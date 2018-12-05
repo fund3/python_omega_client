@@ -147,49 +147,49 @@ class TesConnection(Thread):
             test = response.body.test
             logger.debug('Test Message:',
                          extra={'test_message': test.string})
-            self.on_test_message(response.clientID,
-                                 response.senderCompID,
-                                 build_test_message(test))
+            self.on_test_message(build_test_message(test),
+                                 response.clientID,
+                                 response.senderCompID)
         elif which == 'system':
             system = response.body.system
             logger.debug('System Message:',
                          extra={'error_code': system.errorCode,
                                 'system_message': system.message})
-            self.on_system_message(response.clientID,
-                                   response.senderCompID,
-                                   *build_system_message(system))
+            self.on_system_message(*build_system_message(system), 
+                                   response.clientID,
+                                   response.senderCompID)
         elif which == 'logonAck':
             logon_ack = response.body.logonAck
             logger.debug('LogonAck Message:',
                          extra={'clientID': response.clientID,
                                 'senderCompID': response.senderCompID})
-            self.on_logon_ack(response.clientID,
-                              response.senderCompID,
-                              *build_logon(logon_ack))
+            self.on_logon_ack(*build_logon(logon_ack),
+                              response.clientID,
+                              response.senderCompID)
         elif which == 'logoffAck':
             logoff_ack = response.body.logoffAck
             logger.debug('LogoffAck Message:',
                          extra={'clientID': response.clientID,
                                 'senderCompID': response.senderCompID})
-            self.on_logoff_ack(response.clientID,
-                               response.senderCompID,
-                               *build_logoff(logoff_ack))
+            self.on_logoff_ack(*build_logoff(logoff_ack),
+                               response.clientID,
+                               response.senderCompID)
         elif which == 'executionReport':
             execution_report = response.body.executionReport
             logger.debug('Received executionReport Message:',
                          extra={'clientID': response.clientID,
                                 'senderCompID': response.senderCompID})
-            self.on_exec_report(response.clientID,
-                                response.senderCompID,
-                                build_exec_report(execution_report))
+            self.on_exec_report(build_exec_report(execution_report),
+                                response.clientID,
+                                response.senderCompID)
         elif which == 'accountDataReport':
             acct_data_report = response.body.accountDataReport
             logger.debug('Received account data report.',
                          extra={'type': 'account_data_report',
                                 'acct_data_report': str(acct_data_report)})
-            self.on_account_data(response.clientID,
-                                 response.senderCompID,
-                                 build_account_data_report(acct_data_report))
+            self.on_account_data(build_account_data_report(acct_data_report),
+                                 response.clientID,
+                                 response.senderCompID)
         elif which == 'workingOrdersReport':
             working_orders_report = response.body.workingOrdersReport
             logger.debug('Received working orders report.',
@@ -197,27 +197,27 @@ class TesConnection(Thread):
                                 'working_orders_report': str(
                                    working_orders_report)})
             self.on_working_orders_report(
+                build_working_orders_report(working_orders_report),
                 response.clientID,
-                response.senderCompID,
-                build_working_orders_report(working_orders_report))
+                response.senderCompID)
         elif which == 'accountBalancesReport':
             acct_bals_report = response.body.accountBalancesReport
             logger.debug('Received exchange account balances.',
                          extra={'type': 'account_balance_report',
                                'acct_bals_report': str(acct_bals_report)})
             self.on_account_balances(
+                build_account_balances_report(acct_bals_report),
                 response.clientID,
-                response.senderCompID,
-                build_account_balances_report(acct_bals_report))
+                response.senderCompID)
         elif which == 'openPositionsReport':
             open_pos_report = response.body.openPositionsReport
             logger.debug('Received open positions report.',
                          extra={'type': 'open_positions_report',
                                 'open_positions_report': str(open_pos_report)})
             self.on_open_positions(
+                build_open_positions_report(open_pos_report),
                 response.clientID,
-                response.senderCompID,
-                build_open_positions_report(open_pos_report))
+                response.senderCompID)
         elif which == 'completedOrdersReport':
             completed_orders_report = response.body.completedOrdersReport
             logger.debug('Received completed orders report.',
@@ -225,9 +225,9 @@ class TesConnection(Thread):
                                 'completed_orders_report': str(
                                    completed_orders_report)})
             self.on_completed_orders_report(
+                build_completed_orders_report(completed_orders_report),
                 response.clientID,
-                response.senderCompID,
-                build_completed_orders_report(completed_orders_report))
+                response.senderCompID)
         elif which == 'exchangePropertiesReport':
             exchange_properties_report = response.body.exchangePropertiesReport
             logger.debug('Received exchange properties report.',
@@ -235,9 +235,9 @@ class TesConnection(Thread):
                                 'exchange_properties_report': str(
                                    exchange_properties_report)})
             self.on_exchange_properties_report(
+                build_exchange_properties_report(exchange_properties_report),
                 response.clientID,
-                response.senderCompID,
-                build_exchange_properties_report(exchange_properties_report))
+                response.senderCompID)
 
     @abstractmethod
     def on_heartbeat(self, clientID: int, senderCompID: str):
@@ -248,118 +248,132 @@ class TesConnection(Thread):
         """
 
     @abstractmethod
-    def on_test_message(self, clientID: int, senderCompID: str, string: str):
+    def on_test_message(self, string: str, clientID: int, senderCompID: str):
         """
         Override in subclass to handle TES test message response.
+        :param string: (str) Test message from TES.
         :param clientID: (int) clientID of the response.
         :param senderCompID: (str) senderCompID of the response.
-        :param string: (str) Test message from TES.
         """
 
     @abstractmethod
-    def on_system_message(self, clientID: int, senderCompID: str,
-                          errorCode: int, message: str):
+    def on_system_message(self, errorCode: int, 
+                          message: str, 
+                          clientID: int, 
+                          senderCompID: str):
         """
         Override in subclass to handle TES system message response.
-        :param clientID: (int) clientID of the response.
-        :param senderCompID: (str) senderCompID of the response.
         :param errorCode: (int) The errorCode from TES.
         :param message: (str) The error message from TES.
+        :param clientID: (int) clientID of the response.
+        :param senderCompID: (str) senderCompID of the response.
         """
 
     @abstractmethod
-    def on_logon_ack(self, clientID: int, senderCompID: str, success: bool,
-                     message: str, clientAccounts: List[int]):
+    def on_logon_ack(self, success: bool,
+                     message: str, 
+                     clientAccounts: List[int], 
+                     clientID: int, 
+                     senderCompID: str):
         """
         Override in subclass to handle TES logonAck response.
-        :param clientID: (int) clientID of the response.
-        :param senderCompID: (str) senderCompID of the response.
         :param success: (bool) True if logon is successful, False otherwise.
         :param message: (str) Logon message from TES.
         :param clientAccounts: (List[int]) A list of *all* accountIDs that are
             logged on in the current logon request, including accounts that are
             logged on in previous logon requests.
+        :param clientID: (int) clientID of the response.
+        :param senderCompID: (str) senderCompID of the response.
         """
 
     @abstractmethod
-    def on_logoff_ack(self, clientID: int, senderCompID: str,
-                      success: bool, message: str):
+    def on_logoff_ack(self, success: bool, 
+                      message: str, 
+                      clientID: int, 
+                      senderCompID: str):
         """
         Override in subclass to handle TES logoffAck response.
-        :param clientID: (int) clientID of the response.
-        :param senderCompID: (str) senderCompID of the response.
         :param success: (bool) If True, logoff is successful, False otherwise.
         :param message: (str) Logoff message from TES.
+        :param clientID: (int) clientID of the response.
+        :param senderCompID: (str) senderCompID of the response.
         """
 
     @abstractmethod
-    def on_exec_report(self, clientID: int, senderCompID: str,
-                       report: ExecutionReport):
+    def on_exec_report(self, report: ExecutionReport, 
+                       clientID: int, 
+                       senderCompID: str):
         """
         Override in subclass to handle TES ExecutionReport response.
+        :param report: ExecutionReport python object.
         :param clientID: (int) clientID of the response.
         :param senderCompID: (str) senderCompID of the response.
-        :param report: ExecutionReport python object.
         """
 
     @abstractmethod
-    def on_account_data(self, clientID: int, senderCompID: str,
-                        report: AccountDataReport):
+    def on_account_data(self, report: AccountDataReport,
+                        clientID: int, 
+                        senderCompID: str):
         """
         Override in subclass to handle TES AccountDataReport response.
+        :param report: AccountDataReport Python object.
         :param clientID: (int) clientID of the response.
         :param senderCompID: (str) senderCompID of the response.
-        :param report: AccountDataReport Python object.
         """
 
     @abstractmethod
-    def on_account_balances(self, clientID: int, senderCompID: str,
-                            report: AccountBalancesReport):
+    def on_account_balances(self, report: AccountBalancesReport,
+                            clientID: int, 
+                            senderCompID: str):
         """
         Override in subclass to handle TES AccountBalancesReport response.
+        :param report: AccountBalancesReport Python object.
         :param clientID: (int) clientID of the response.
         :param senderCompID: (str) senderCompID of the response.
-        :param report: AccountBalancesReport Python object.
         """
 
     @abstractmethod
-    def on_open_positions(self, clientID: int, senderCompID: str,
-                          report: OpenPositionsReport):
+    def on_open_positions(self, report: OpenPositionsReport,
+                          clientID: int, 
+                          senderCompID: str):
         """
         Override in subclass to handle TES OpenPositionsReport response.
+        :param report: OpenPositionReport Python object.
         :param clientID: (int) clientID of the response.
         :param senderCompID: (str) senderCompID of the response.
-        :param report: OpenPositionReport Python object.
         """
 
     @abstractmethod
-    def on_working_orders_report(self, clientID: int, senderCompID: str,
-                                 report: WorkingOrdersReport):
+    def on_working_orders_report(self, report: WorkingOrdersReport,
+                                 clientID: int, 
+                                 senderCompID: str):
         """
         Override in subclass to handle TES WorkingOrdersReport response.
+        :param report: WorkingOrdersReport Python object.
         :param clientID: (int) clientID of the response.
         :param senderCompID: (str) senderCompID of the response.
-        :param report: WorkingOrdersReport Python object.
         """
 
     @abstractmethod
-    def on_completed_orders_report(self, clientID, senderCompID,
-                                   report: CompletedOrdersReport):
+    def on_completed_orders_report(self, report: CompletedOrdersReport,
+                                   clientID, 
+                                   senderCompID):
         """
         Override in subclass to handle TES CompletedOrdersReport response.
+        :param report: CompletedOrdersReport Python object.
         :param clientID: (int) clientID of the response.
         :param senderCompID: (str) senderCompID of the response.
-        :param report: CompletedOrdersReport Python object.
         """
 
     @abstractmethod
-    def on_exchange_properties_report(self, clientID, senderCompID,
-                                      report: ExchangePropertiesReport):
+    def on_exchange_properties_report(self, report: ExchangePropertiesReport,
+                                      clientID, 
+                                      senderCompID):
         """
         Override in subclass to handle TES ExchangePropertiesReport response.
+        :param report: ExchangePropertiesReport Python object.
         :param clientID: (int) clientID of the response.
         :param senderCompID: (str) senderCompID of the response.
-        :param report: ExchangePropertiesReport Python object.
         """
 
     """
