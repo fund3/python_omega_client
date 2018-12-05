@@ -1,32 +1,38 @@
 import logging
 import time
 from typing import List
-import uuid
-
+# pylint: disable=W0611
 import capnp
+# pylint: enable=W0611
 
 from tes_client.common_types import AccountBalancesReport, \
-    AccountCredentials, AccountDataReport, AccountInfo, Balance, \
+    AccountDataReport, AccountInfo, Balance, \
     CompletedOrdersReport, Exchange, ExchangePropertiesReport, \
     ExecutionReport, OpenPosition, OpenPositionsReport, Order, OrderInfo, \
     OrderType, SymbolProperties, TimeInForce, WorkingOrdersReport
+# pylint: disable=E0611
+# pylint: disable=E0401
 import communication_protocol.Exchanges_capnp as exch_capnp
 import communication_protocol.TradeMessage_capnp as msgs_capnp
+# pylint: enable=E0611
+# pylint: enable=E0401
 
 logger = logging.getLogger(__name__)
 
+# pylint: disable=E1101
 EXCHANGE_ENUM_MAPPING = {
-                Exchange.poloniex.name: exch_capnp.Exchange.poloniex,
-                Exchange.kraken.name: exch_capnp.Exchange.kraken,
-                Exchange.gemini.name: exch_capnp.Exchange.gemini,
-                Exchange.bitfinex.name: exch_capnp.Exchange.bitfinex,
-                Exchange.bittrex.name: exch_capnp.Exchange.bittrex,
-                Exchange.binance.name: exch_capnp.Exchange.binance,
-                Exchange.coinbasePro.name: exch_capnp.Exchange.coinbasePro,
-                Exchange.coinbasePrime.name: exch_capnp.Exchange.coinbasePrime,
-                Exchange.bitstamp.name: exch_capnp.Exchange.bitstamp,
-                Exchange.itBit.name: exch_capnp.Exchange.itBit
-            }
+    Exchange.poloniex.name: exch_capnp.Exchange.poloniex,
+    Exchange.kraken.name: exch_capnp.Exchange.kraken,
+    Exchange.gemini.name: exch_capnp.Exchange.gemini,
+    Exchange.bitfinex.name: exch_capnp.Exchange.bitfinex,
+    Exchange.bittrex.name: exch_capnp.Exchange.bittrex,
+    Exchange.binance.name: exch_capnp.Exchange.binance,
+    Exchange.coinbasePro.name: exch_capnp.Exchange.coinbasePro,
+    Exchange.coinbasePrime.name: exch_capnp.Exchange.coinbasePrime,
+    Exchange.bitstamp.name: exch_capnp.Exchange.bitstamp,
+    Exchange.itBit.name: exch_capnp.Exchange.itBit
+}
+# pylint: enable=E1101
 
 
 def build_test_message(test):
@@ -331,15 +337,18 @@ def place_order_message(clientID: int, senderCompID: str, order: Order):
 
 def replace_order_message(clientID: int, senderCompID: str,
                           accountInfo: AccountInfo, orderID: str,
+                          # pylint: disable=E1101
                           orderType: str=OrderType.market.name,
                           quantity: float=-1.0, price: float=-1.0,
-                          timeInForce: str=TimeInForce.gtc.name):
+                          timeInForce: str=TimeInForce.gtc.name
+                          # pylint: enable=E1101
+                          ):
     """
     Generates a request to TES to replace an order.
     :param clientID: (int) The assigned clientID.
     :param senderCompID: (str) uuid unique to the session the user is on.
     :param accountInfo: (AccountInfo) Account on which to cancel order.
-    :param orderID: (str) order_id as returned from the ExecutionReport.
+    :param orderID: (str) orderID as returned from the ExecutionReport.
     :param orderType: (OrderType) (OPTIONAL)
     :param quantity: (float) (OPTIONAL)
     :param price: (float) (OPTIONAL)
@@ -355,7 +364,8 @@ def replace_order_message(clientID: int, senderCompID: str,
     replaceOrder.orderID = orderID
     replaceOrder.orderType = orderType
     replaceOrder.quantity = quantity
-    # TODO: merge with ExchangePropertiesReport to get more sophisticated
+    # https://github.com/fund3/tes_python_client/issues/39
+    # merge with ExchangePropertiesReport to get more sophisticated
     # price values
     replaceOrder.price = determine_order_price(
         order_price=price, order_type=orderType)
@@ -515,8 +525,8 @@ def request_order_mass_status_message(clientID: int, senderCompID: str,
     acct = getOrderMassStatus.init('accountInfo')
     acct.accountID = accountInfo.accountID
     oi = getOrderMassStatus.init('orderInfo', len(orderInfo))
-    for i in range(len(orderInfo)):
-        oi[i].orderID = orderInfo[i].orderID
+    for oii in zip(oi, orderInfo):
+        oii[0].orderID = oii[1].orderID
     return tesMessage, getOrderMassStatus
 
 
@@ -546,20 +556,20 @@ def set_logon_credentials(logon, credentials):
         credentials in the form of AccountCredentials.
     :return: (capnp._DynamicStructBuilder) Logon message.
     """
-    for i in range(len(credentials)):
+    for credi in zip(logon.credentials, credentials):
         try:
-            acct_id = credentials[i].accountInfo.accountID
-            api_key = credentials[i].apiKey
-            secret_key = credentials[i].secretKey
+            acct_id = credi[1].accountInfo.accountID
+            api_key = credi[1].apiKey
+            secret_key = credi[1].secretKey
         except Exception as e:
             logger.error('Missing logon credentials. Account ID, apiKey, '
                          'secretKey are all required', extra={'error': e})
             raise e
-        logon.credentials[i].accountInfo.accountID = acct_id
-        logon.credentials[i].apiKey = api_key
-        logon.credentials[i].secretKey = secret_key
-        if credentials[i].passphrase is not None:
-            logon.credentials[i].passphrase = credentials[i].passphrase
+        credi[0].accountInfo.accountID = acct_id
+        credi[0].apiKey = api_key
+        credi[0].secretKey = secret_key
+        if credi[1].passphrase is not None:
+            credi[0].passphrase = credi[1].passphrase
     return logon
 
 
@@ -570,7 +580,6 @@ def build_py_account_info_from_capnp(accountInfo):
     :return: (AccountInfo) Populated Python object.
     """
     return AccountInfo(accountID=accountInfo.accountID,
-                       exchange=accountInfo.exchange,
                        exchangeAccountID=accountInfo.exchangeAccountID,
                        accountType=str(accountInfo.accountType),
                        exchangeClientID=accountInfo.exchangeClientID)
@@ -612,50 +621,51 @@ def build_py_execution_report_from_capnp(executionReport):
     :return: (ExecutionReport) Populated Python object.
     """
     return ExecutionReport(
-            orderID=executionReport.orderID,
-            clientOrderID=executionReport.clientOrderID,
-            clientOrderLinkID=executionReport.clientOrderLinkID,
-            exchangeOrderID=executionReport.exchangeOrderID,
-            accountInfo=build_py_account_info_from_capnp(
-                executionReport.accountInfo),
-            symbol=executionReport.symbol,
-            side=executionReport.side,
-            orderType=executionReport.orderType,
-            quantity=executionReport.quantity,
-            price=executionReport.price,
-            timeInForce=executionReport.timeInForce,
-            leverageType=executionReport.leverageType,
-            leverage=executionReport.leverage,
-            orderStatus=executionReport.orderStatus,
-            filledQuantity=executionReport.filledQuantity,
-            avgFillPrice=executionReport.avgFillPrice,
-            executionReportType=executionReport.type.which(),
-            rejectionReason=executionReport.rejectionReason
-        )
+        orderID=executionReport.orderID,
+        clientOrderID=executionReport.clientOrderID,
+        clientOrderLinkID=executionReport.clientOrderLinkID,
+        exchangeOrderID=executionReport.exchangeOrderID,
+        accountInfo=build_py_account_info_from_capnp(
+            executionReport.accountInfo),
+        symbol=executionReport.symbol,
+        side=executionReport.side,
+        orderType=executionReport.orderType,
+        quantity=executionReport.quantity,
+        price=executionReport.price,
+        timeInForce=executionReport.timeInForce,
+        leverageType=executionReport.leverageType,
+        leverage=executionReport.leverage,
+        orderStatus=executionReport.orderStatus,
+        filledQuantity=executionReport.filledQuantity,
+        avgFillPrice=executionReport.avgFillPrice,
+        executionReportType=executionReport.type.which(),
+        rejectionReason=executionReport.rejectionReason
+    )
 
 
-def determine_rejection_reason(order: capnp._DynamicStructBuilder):
+def determine_rejection_reason(order):
     """
     Determines rejection message by switching on different rejectionReason
     types.
     :param order: (capnp._DynamicStructBuilder) Order object.
     :return: (str) Rejection reason message.
     """
-    # TODO process rejectionCode
+    rejectionType = order.type.which()
+    # process rejectionCode
+    # https://github.com/fund3/tes_python_client/issues/40
     logger.debug('Determining order rejection reason.',
-                 extra={'type': order.type.which()})
-    if order.type.which() in ['orderAccepted', 'orderReplaced',
-                              'orderCanceled', 'orderFilled',
-                              'statusUpdate']:
-        return None
-    elif order.type.which() == 'orderRejected':
-        return order.type.orderRejected.message
-    elif order.type.which() == 'replaceRejected':
-        return order.type.replaceRejected.message
-    elif order.type.which() == 'cancelRejected':
-        return order.type.cancelRejected.message
-    elif order.type.which() == 'statusUpdateRejected':
-        return order.type.statusUpdateRejected.message
+                 extra={'type': rejectionType})
+    if rejectionType == 'orderRejected':
+        rejectionMessage = order.type.orderRejected.message
+    elif rejectionType == 'replaceRejected':
+        rejectionMessage = order.type.replaceRejected.message
+    elif rejectionType == 'cancelRejected':
+        rejectionMessage = order.type.cancelRejected.message
+    elif rejectionType == 'statusUpdateRejected':
+        rejectionMessage = order.type.statusUpdateRejected.message
+    else:
+        rejectionMessage = None
+    return rejectionMessage
 
 
 def determine_order_price(order_price: float, order_type: str):
@@ -697,7 +707,3 @@ def generate_client_order_id():
     """
     client_order_id = int(time.time()*1000000)
     return client_order_id
-
-
-def generate_sender_comp_id():
-    return str(uuid.uuid4())

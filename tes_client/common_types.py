@@ -1,25 +1,13 @@
 from enum import Enum, auto
 from typing import List, Dict, Set
 
-# TODO discuss making types "immutable". See:
-# https://www.blog.pythonlibrary.org/2014/01/17/how-to-create-immutable-classes-in-python/
-
 # pythonized equivalents of what is contained in:
 # https://github.com/fund3/communication-protocol/blob/master/TradeMessage.capnp
 # make sure to call .name if you want the string representation of an enum
 # object when communicating with TES
 
 
-class AutoName(Enum):
-    """ Enum class with attribute values equal to names
-
-    The attribute values are automatically set to the attribute name.
-    """
-    def _generate_next_value_(name, start, count, last_values):
-        return name
-
-
-class Exchange(AutoName):
+class Exchange(Enum):
     """Exchange Names
 
     https://github.com/fund3/communication-protocol/blob/master/Exchanges.capnp
@@ -37,7 +25,7 @@ class Exchange(AutoName):
     itBit = auto()
 
 
-class Side(AutoName):
+class Side(Enum):
     """Trading Sides
 
     https://github.com/fund3/CommunicationProtocol/blob/master/TradeMessage.capnp
@@ -47,7 +35,7 @@ class Side(AutoName):
     sell = auto()
 
 
-class OrderType(AutoName):
+class OrderType(Enum):
     """Supported Order Types
 
     https://github.com/fund3/CommunicationProtocol/blob/master/TradeMessage.capnp
@@ -57,7 +45,7 @@ class OrderType(AutoName):
     limit = auto()
 
 
-class OrderStatus(AutoName):
+class OrderStatus(Enum):
     """Order Status on Exchange
 
     https://github.com/fund3/CommunicationProtocol/blob/master/TradeMessage.capnp
@@ -76,7 +64,7 @@ class OrderStatus(AutoName):
     expired = auto()
 
 
-class TimeInForce(AutoName):
+class TimeInForce(Enum):
     """Order Time In Force
 
     https://github.com/fund3/CommunicationProtocol/blob/master/TradeMessage.capnp
@@ -89,7 +77,7 @@ class TimeInForce(AutoName):
     fok = auto()        # Fill or kill
 
 
-class LeverageType(AutoName):
+class LeverageType(Enum):
     """Leverage Type
 
     https://github.com/fund3/CommunicationProtocol/blob/master/TradeMessage.capnp
@@ -99,7 +87,7 @@ class LeverageType(AutoName):
     custom = auto()
 
 
-class AccountType(AutoName):
+class AccountType(Enum):
     """Account Type
 
     https://github.com/fund3/CommunicationProtocol/blob/master/TradeMessage.capnp
@@ -109,8 +97,6 @@ class AccountType(AutoName):
     margin = auto()
     combined = auto()
 
-
-# TODO make all below objects immutable
 
 class AccountInfo:
     def __init__(self, accountID: int,
@@ -177,8 +163,10 @@ class Order:
                  orderType: OrderType,
                  quantity: float,
                  price: float,
+                 # pylint: disable=E1101
                  timeInForce: str = TimeInForce.gtc.name,
                  leverageType: str = LeverageType.none.name,
+                 # pylint: enable=E1101
                  leverage: float = 0.0,
                  clientOrderLinkID: str = None):
         """
@@ -201,8 +189,8 @@ class Order:
         self.clientOrderID = int(clientOrderID)
         self.clientOrderLinkID = str(clientOrderLinkID or '')
         self.symbol = str(symbol)
-        self.side = str(side.name)
-        self.orderType = str(orderType.name)
+        self.side = str(side)
+        self.orderType = str(orderType)
         self.quantity = float(quantity)
         self.price = float(price)
         self.timeInForce = str(timeInForce)
@@ -257,7 +245,9 @@ class OpenPosition:
     It is based on the "OpenPosition" struct in:
     https://github.com/fund3/communication-protocol/blob/master/TradeMessage.capnp
     """
-    # TODO dict storing the valid values of these types
+    # dict storing the valid values of these types
+    # https://github.com/fund3/tes_python_client/issues/38
+
     def __init__(self,
                  symbol: str,
                  side: str,
@@ -285,7 +275,7 @@ class OpenPosition:
         return self.__dict__ == other.__dict__
 
 
-class ExecutionReportType(AutoName):
+class ExecutionReportType(Enum):
     """Execution Report Type"""
     orderAccepted = auto()
     orderRejected = auto()
@@ -302,6 +292,7 @@ class ExecutionReport:
     """
     returned in response to place, modify, cancel, getOrderStatus requests
     """
+
     def __init__(self, orderID: str,
                  clientOrderID: int,
                  exchangeOrderID: str,
@@ -359,7 +350,7 @@ class ExecutionReport:
         self.filledQuantity = float(filledQuantity)
         self.avgFillPrice = float(avgFillPrice)
         self.executionReportType = str(executionReportType)
-        self.rejectionReason = str(rejectionReason) or ''
+        self.rejectionReason = str(rejectionReason or '')
 
     def __str__(self):
         return str(self.__dict__)
@@ -414,8 +405,7 @@ class AccountBalancesReport:
 
 
 class OpenPositionsReport:
-    def __init__(self, accountInfo: AccountInfo,
-                 openPositions: List[OpenPosition]):
+    def __init__(self, accountInfo: AccountInfo, openPositions: List[OpenPosition]):
         """
 
         :param accountInfo: AccountInfo
@@ -455,7 +445,6 @@ class CompletedOrdersReport:
         """
 
         :param accountInfo: AccountInfo
-        :param exchange: str
         :param orders: List of ExecutionReport of orders completed within the
         last 24 hours on the account given in accountInfo
         """
@@ -470,10 +459,8 @@ class CompletedOrdersReport:
 
 
 class OrderInfo:
-    def __init__(self, orderID: str,
-                 clientOrderID: int=None,
-                 clientOrderLinkID: str=None,
-                 exchangeOrderID: str=None,
+    def __init__(self, orderID: str, clientOrderID: int=None,
+                 clientOrderLinkID: str=None, exchangeOrderID: str=None,
                  symbol: str=None):
         """
 
@@ -498,12 +485,9 @@ class OrderInfo:
 
 
 class SymbolProperties:
-    def __init__(self, symbol: str,
-                 pricePrecision: float,
-                 quantityPrecision: float,
-                 minQuantity: float,
-                 maxQuantity: float,
-                 marginSupported: bool,
+    def __init__(self, symbol: str, pricePrecision: float,
+                 quantityPrecision: float, minQuantity: float,
+                 maxQuantity: float, marginSupported: bool,
                  leverage: Set[float]):
         """
         :param symbol: str
@@ -524,11 +508,9 @@ class SymbolProperties:
 
 
 class ExchangePropertiesReport:
-    def __init__(self, exchange: str,
-                 currencies: Set[str],
+    def __init__(self, exchange: str, currencies: Set[str],
                  symbolProperties: Dict[str, SymbolProperties],
-                 timeInForces: Set[str],
-                 orderTypes: Set[str]):
+                 timeInForces: Set[str], orderTypes: Set[str]):
         """
         :param exchange: str
         :param currencies: set of str active currencies on exchange
