@@ -1,4 +1,5 @@
 import math
+from typing import List
 
 import capnp
 import pytest
@@ -83,8 +84,8 @@ def test_place_order(fake_tes_conn):
         clientOrderID=8675309,
         clientOrderLinkID='a123',
         symbol='BTC/USD',
-        side=Side.buy,
-        orderType=OrderType.limit,
+        side=Side.buy.name,
+        orderType=OrderType.limit.name,
         quantity=1.1,
         price=6000.01,
         timeInForce=TimeInForce.gtc.name,
@@ -162,7 +163,7 @@ def test_request_working_orders(fake_tes_conn):
 def test_tes_logon(fake_tes_conn):
     creds = [
         AccountCredentials(
-            accountInfo=AccountInfo(accountID=100 ),
+            accountInfo=AccountInfo(accountID=100),
             apiKey='fakeApiKey', secretKey='fakeSecret',
             passphrase='fakePassphrase'
         ),
@@ -172,7 +173,7 @@ def test_tes_logon(fake_tes_conn):
             passphrase='fakePassphrase'
         ),
         AccountCredentials(
-            accountInfo=AccountInfo(accountID=200 ),
+            accountInfo=AccountInfo(accountID=200),
             apiKey='fakeApiKey1', secretKey='fakeSecret1',
             passphrase='fakePassphrase1'
         ),
@@ -264,9 +265,9 @@ def test_tes_heartbeat(fake_tes_conn):
 @pytest.mark.test_id(14)
 def test_request_order_status(fake_tes_conn):
     order = fake_tes_conn.request_order_status(
+        clientID=0, senderCompID='asdf',
         accountInfo=AccountInfo(accountID=110),
-        orderID='poiuytrewq123',
-        clientID=0, senderCompID='asdf'
+        orderID='poiuytrewq123'
     )
     assert type(order) == capnp.lib.capnp._DynamicStructBuilder
     assert order.accountInfo.accountID == 110
@@ -277,8 +278,8 @@ def test_request_order_status(fake_tes_conn):
 def test_request_working_orders(fake_tes_conn):
     # test including count and since
     order = fake_tes_conn.request_completed_orders(
-        accountInfo=AccountInfo(accountID=110), count=2, since=1536267034.,
-        clientID=0, senderCompID='asdf'
+        clientID=0, senderCompID='asdf',
+        accountInfo=AccountInfo(accountID=110), count=2, since=1536267034.
     )
     assert type(order) == capnp.lib.capnp._DynamicStructBuilder
     assert order.accountInfo.accountID == 110
@@ -287,8 +288,8 @@ def test_request_working_orders(fake_tes_conn):
 
     # test including count, not since
     order = fake_tes_conn.request_completed_orders(
-        accountInfo=AccountInfo(accountID=110), count=2,
-        clientID=0, senderCompID='asdf'
+        clientID=0, senderCompID='asdf',
+        accountInfo=AccountInfo(accountID=110), count=2
     )
     assert type(order) == capnp.lib.capnp._DynamicStructBuilder
     assert order.accountInfo.accountID == 110
@@ -296,8 +297,8 @@ def test_request_working_orders(fake_tes_conn):
 
     # test including since, not count
     order = fake_tes_conn.request_completed_orders(
-        accountInfo=AccountInfo(accountID=110), since=1536267034.,
-        clientID=0, senderCompID='asdf'
+        clientID=0, senderCompID='asdf',
+        accountInfo=AccountInfo(accountID=110), since=1536267034.
     )
     assert type(order) == capnp.lib.capnp._DynamicStructBuilder
     assert order.accountInfo.accountID == 110
@@ -305,7 +306,7 @@ def test_request_working_orders(fake_tes_conn):
 
     # test excluding both count and since
     order = fake_tes_conn.request_completed_orders(
-        accountInfo=AccountInfo(accountID=110), clientID=0, senderCompID='asdf'
+        clientID=0, senderCompID='asdf', accountInfo=AccountInfo(accountID=110)
     )
     assert type(order) == capnp.lib.capnp._DynamicStructBuilder
     assert order.accountInfo.accountID == 110
@@ -316,8 +317,9 @@ def test_request_order_mass_status(fake_tes_conn):
     # empty order_info_list
     order_info_list = []
     order = fake_tes_conn.request_order_mass_status(
+        clientID=0, senderCompID='asdf',
         accountInfo=AccountInfo(accountID=110),
-        orderInfo=order_info_list, clientID=0, senderCompID='asdf'
+        orderInfo=order_info_list
     )
     assert type(order) == capnp.lib.capnp._DynamicStructBuilder
     assert order.accountInfo.accountID == 110
@@ -326,8 +328,9 @@ def test_request_order_mass_status(fake_tes_conn):
     # filled order_info_list
     order_info_list = [OrderInfo(orderID='poiuy9876')]
     order = fake_tes_conn.request_order_mass_status(
+        clientID=0, senderCompID='asdf',
         accountInfo=AccountInfo(accountID=110),
-        orderInfo=order_info_list, clientID=0, senderCompID='asdf'
+        orderInfo=order_info_list
     )
     assert type(order) == capnp.lib.capnp._DynamicStructBuilder
     assert order.accountInfo.accountID == 110
@@ -351,16 +354,16 @@ def test_place_order_margin_default(fake_tes_conn):
         clientOrderID=9876,
         clientOrderLinkID='a123',
         symbol='BTC/USD',
-        side=Side.buy,
-        orderType=OrderType.market,
+        side=Side.buy.name,
+        orderType=OrderType.market.name,
         quantity=1.1,
         price=0.0,
         timeInForce=TimeInForce.gtc.name,
         leverageType=LeverageType.exchangeDefault.name
     )
     # exchange default margin
-    order = fake_tes_conn.place_order(order=default_margin_order, clientID=0,
-                                      senderCompID='sndrCmpD')
+    order = fake_tes_conn.place_order(clientID=0, senderCompID='sndrCmpD',
+                                      order=default_margin_order)
     assert type(order) == capnp.lib.capnp._DynamicStructBuilder
     assert order.accountInfo.accountID == 100
     assert order.symbol == 'BTC/USD'
@@ -380,8 +383,8 @@ def test_place_order_margin_custom(fake_tes_conn):
         clientOrderID=9876,
         clientOrderLinkID='a123',
         symbol='BTC/USD',
-        side=Side.buy,
-        orderType=OrderType.market,
+        side=Side.buy.name,
+        orderType=OrderType.market.name,
         quantity=1.1,
         price=0.0,
         timeInForce=TimeInForce.gtc.name,
@@ -389,8 +392,8 @@ def test_place_order_margin_custom(fake_tes_conn):
         leverage=2.0
     )
     # custom margin
-    order = fake_tes_conn.place_order(order=custom_margin_order,
-                                      clientID=0, senderCompID='sndrCmpD')
+    order = fake_tes_conn.place_order(clientID=0, senderCompID='sndrCmpD',
+                                      order=custom_margin_order)
     assert type(order) == capnp.lib.capnp._DynamicStructBuilder
     assert order.accountInfo.accountID == 100
     assert order.symbol == 'BTC/USD'
@@ -406,8 +409,8 @@ def test_place_order_margin_custom(fake_tes_conn):
 @pytest.mark.test_id(19)
 def test_request_open_positions(fake_tes_conn):
     open_pos = fake_tes_conn.request_open_positions(
-        accountInfo=AccountInfo(accountID=110),
-        clientID=0, senderCompID='asdf'
+        clientID=0, senderCompID='asdf',
+        accountInfo=AccountInfo(accountID=110)
     )
     assert type(open_pos) == capnp.lib.capnp._DynamicStructBuilder
     assert open_pos.accountInfo.accountID == 110
@@ -417,7 +420,8 @@ def test_request_open_positions(fake_tes_conn):
 def test_request_exchange_properties(fake_tes_conn):
     # valid exchange test case
     exch_prop = fake_tes_conn.request_exchange_properties(
-        exchange='gemini', clientID=0, senderCompID='sndrCmpD'
+        clientID=0, senderCompID='sndrCmpD',
+        exchange='gemini'
     )
     assert type(exch_prop) == capnp.lib.capnp._DynamicStructBuilder
     assert exch_prop.exchange == exch_capnp.Exchange.gemini
@@ -427,7 +431,8 @@ def test_request_exchange_properties(fake_tes_conn):
 def test_request_exchange_properties_invalid_case(fake_tes_conn):
     # invalid exchange test case
     exch_prop = fake_tes_conn.request_exchange_properties(
-        exchange='gdax', clientID=0, senderCompID='sndrCmpD'
+        clientID=0, senderCompID='sndrCmpD',
+        exchange='gdax'
     )
     assert type(exch_prop) == capnp.lib.capnp._DynamicStructBuilder
     assert exch_prop.exchange == exch_capnp.Exchange.undefined
