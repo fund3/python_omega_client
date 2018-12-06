@@ -4,15 +4,21 @@ import time
 from threading import Event, Thread
 from typing import List
 
+# pylint: disable=W0611
 import capnp
+# pylint: enable=W0611
 import zmq
 
-from tes_client.common_types import AccountBalancesReport, \
-    AccountCredentials, AccountDataReport, AccountInfo, Balance, \
-    CompletedOrdersReport, Exchange, ExchangePropertiesReport, \
-    ExecutionReport, OpenPosition, OpenPositionsReport, Order, OrderInfo, \
-    OrderType, SymbolProperties, TimeInForce, WorkingOrdersReport
+# pylint: disable=E0611
+# pylint: disable=E0401
 import communication_protocol.TradeMessage_capnp as msgs_capnp
+# pylint: enable=E0401
+# pylint: enable=E0611
+from tes_client.common_types import AccountBalancesReport, \
+    AccountCredentials, AccountDataReport, AccountInfo, \
+    CompletedOrdersReport, ExchangePropertiesReport, \
+    ExecutionReport, OpenPositionsReport, Order, OrderInfo, \
+    OrderType, TimeInForce, WorkingOrdersReport
 from tes_client.tes_message_factory import build_account_balances_report, \
     build_account_data_report, build_completed_orders_report, \
     build_exchange_properties_report, build_exec_report, build_logoff, \
@@ -49,6 +55,7 @@ class TesConnection(Thread):
             _tes_connection_socket.
         running:
     """
+
     def __init__(self,
                  tes_connection_string: str,
                  zmq_context: zmq.Context,
@@ -74,13 +81,12 @@ class TesConnection(Thread):
             return
 
         self._tes_connection_socket.send(tes_mess.to_bytes())
-    """
-    ############################################################################
-    
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Thread Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     ############################################################################
-    """
+    #                                                                          #
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Thread Methods ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+    #                                                                          #
+    ############################################################################
 
     def stop(self):
         logger.debug('Stopping engine..')
@@ -95,13 +101,17 @@ class TesConnection(Thread):
         logger.debug('Creating TES DEALER socket:',
                      extra={'action': 'creating_socket',
                             'socket_type': 'zmq.DEALER'})
+        #pylint: disable=E1101
         self._tes_connection_socket = self._zmq_context.socket(zmq.DEALER)
+        #pylint: enable=E1101
         logger.debug('Connecting to TES socket:',
                      extra={'action': 'connect_to_tes',
                             'connection_string': self._tes_connection_string})
         self._tes_connection_socket.connect(self._tes_connection_string)
         poller = zmq.Poller()
+        #pylint: disable=E1101
         poller.register(self._tes_connection_socket, zmq.POLLIN)
+        #pylint: enable=E1101
 
         logger.debug('Zmq poller registered.  Waiting for message execution '
                      'responses.', extra={'polling_interval':
@@ -115,13 +125,12 @@ class TesConnection(Thread):
         time.sleep(2.)
         self.cleanup()
 
-    """
     ############################################################################
-    
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Incoming TESMessages ~~~~~~~~~~~~~~~~~~~~~~~~~~
+    #                                                                          #
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Incoming TESMessages ~~~~~~~~~~~~~~~~~~~~~~ #
+    #                                                                          #
+    ############################################################################
 
-    ############################################################################
-    """
     def _handle_tes_message(self, binary_msg):
         """
         Callback when a tes_message is received and passed to an appriopriate
@@ -195,7 +204,7 @@ class TesConnection(Thread):
             logger.debug('Received working orders report.',
                          extra={'type': 'working_orders_report',
                                 'working_orders_report': str(
-                                   working_orders_report)})
+                                    working_orders_report)})
             self.on_working_orders_report(
                 build_working_orders_report(working_orders_report),
                 response.clientID,
@@ -204,7 +213,7 @@ class TesConnection(Thread):
             acct_bals_report = response.body.accountBalancesReport
             logger.debug('Received exchange account balances.',
                          extra={'type': 'account_balance_report',
-                               'acct_bals_report': str(acct_bals_report)})
+                                'acct_bals_report': str(acct_bals_report)})
             self.on_account_balances(
                 build_account_balances_report(acct_bals_report),
                 response.clientID,
@@ -223,7 +232,7 @@ class TesConnection(Thread):
             logger.debug('Received completed orders report.',
                          extra={'type': 'completed_orders_report',
                                 'completed_orders_report': str(
-                                   completed_orders_report)})
+                                    completed_orders_report)})
             self.on_completed_orders_report(
                 build_completed_orders_report(completed_orders_report),
                 response.clientID,
@@ -233,7 +242,7 @@ class TesConnection(Thread):
             logger.debug('Received exchange properties report.',
                          extra={'type': 'exchange_properties_report',
                                 'exchange_properties_report': str(
-                                   exchange_properties_report)})
+                                    exchange_properties_report)})
             self.on_exchange_properties_report(
                 build_exchange_properties_report(exchange_properties_report),
                 response.clientID,
@@ -376,14 +385,12 @@ class TesConnection(Thread):
         :param senderCompID: (str) senderCompID of the response.
         """
 
-    """
     ############################################################################
-    
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~ Outgoing TESMessages ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    ----------------- Public Methods to be called by client -------------------
-    
+    #                                                                          #
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~ Outgoing TESMessages ~~~~~~~~~~~~~~~~~~~~~~~~~ #
+    # ---------------- Public Methods to be called by client ----------------- #
     ############################################################################
-    """
+
     def logon(self, credentials: List[AccountCredentials], clientID: int,
               senderCompID: str):
         """
@@ -459,9 +466,12 @@ class TesConnection(Thread):
 
     def replace_order(self, accountInfo: AccountInfo, orderID: str,
                       clientID: int, senderCompID: str,
+                      # pylint: disable=E1101
                       orderType: str=OrderType.market.name,
                       quantity: float=-1.0, price: float=-1.0,
-                      timeInForce: str=TimeInForce.gtc.name):
+                      timeInForce: str=TimeInForce.gtc.name
+                      # pylint: enable=E1101
+                      ):
         """
         Sends a request to TES to replace an order.
         :param clientID: (int) The assigned clientID.

@@ -78,7 +78,7 @@ def test_handle_tes_message_logon():
     logon = body.init('logonAck')
     logon.success = True
     logon.message = ('The Times 03/Jan/2009 Chancellor on brink of second ' +
-                    'bailout for banks')
+                     'bailout for banks')
     logon.clientAccounts = [100, 101]
     success, msg, accounts = build_logon(tes_mess.type.response.body.logonAck)
     assert type(msg == str)
