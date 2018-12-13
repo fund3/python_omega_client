@@ -20,6 +20,7 @@ TEST_TES_CONFIG = {'TES_CONNECTION_STR': 'tcp://127.0.0.1:5555',
 
 TEST_CLIENT_ID = 123
 TEST_SENDER_COMP_ID = str(987)
+TEST_ZMQ_ENCRYPTION_KEY = b'encryptionkeyencryptionkeyencryptionkeye'
 
 
 @pytest.fixture(scope="module")
@@ -31,10 +32,12 @@ def fake_tes_conn():
     tes_conn = SingleClientTesConnection(
         tes_connection_string='tcp://127.0.0.1:5555',
         zmq_context=zmq_context,
+        server_zmq_encryption_key=TEST_ZMQ_ENCRYPTION_KEY,
         clientID=TEST_CLIENT_ID,
         senderCompID=TEST_SENDER_COMP_ID
     )
     yield tes_conn
+    tes_conn.cleanup()
     zmq_context.term()
 
 

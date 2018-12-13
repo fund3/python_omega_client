@@ -22,6 +22,7 @@ TEST_ACCOUNT_CREDS_1 = AccountCredentials(AccountInfo(0), apiKey='api_key',
                                           passphrase='passphrase')
 TEST_TES_CONFIG = {'TES_CONNECTION_STR': 'tcp://127.0.0.1:5555',
                    'CREDENTIALS': [TEST_ACCOUNT_CREDS_1]}
+TEST_ZMQ_ENCRYPTION_KEY = b'encryptionkeyencryptionkeyencryptionkeye'
 
 
 @pytest.fixture(scope="module")
@@ -32,9 +33,11 @@ def fake_tes_conn():
     zmq_context = zmq.Context.instance()
     tes_conn = TesConnection(
         tes_connection_string='tcp://127.0.0.1:5555',
-        zmq_context=zmq_context
+        zmq_context=zmq_context,
+        server_zmq_encryption_key=TEST_ZMQ_ENCRYPTION_KEY
     )
     yield tes_conn
+    tes_conn.cleanup()
     zmq_context.term()
 
 
