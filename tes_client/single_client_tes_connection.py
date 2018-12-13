@@ -12,11 +12,15 @@ class SingleClientTesConnection(TesConnection):
     Mostly identical with TesConnection, but added boilerplate code support
     for connections with only 1 clientID.
     """
-    def __init__(self, tes_connection_string: str, zmq_context: zmq.Context,
-                 clientID: int, senderCompID: str):
+    def __init__(self, tes_connection_string: str,
+                 zmq_context: zmq.Context,
+                 server_zmq_encryption_key: bytes,
+                 clientID: int,
+                 senderCompID: str):
         self._clientID = clientID
         self._senderCompID = senderCompID
-        super().__init__(tes_connection_string, zmq_context)
+        super().__init__(tes_connection_string, zmq_context,
+                         server_zmq_encryption_key)
 
     """
     ############################################################################
