@@ -59,6 +59,7 @@ class TesConnection(Thread):
     def __init__(self,
                  tes_connection_string: str,
                  zmq_context: zmq.Context,
+                 server_zmq_encryption_key: str,
                  tes_polling_timeout_milli: int=1000,
                  name: str='TesConnection'):
         """
@@ -72,6 +73,8 @@ class TesConnection(Thread):
         self._zmq_context = zmq_context
         self._tes_connection_socket = None
         self._TES_POLLING_TIMEOUT_MILLI = tes_polling_timeout_milli
+        self._server_zmq_encryption_key = server_zmq_encryption_key
+
         super().__init__(name=name)
         self.running = Event()
 
@@ -101,9 +104,14 @@ class TesConnection(Thread):
         logger.debug('Creating TES DEALER socket:',
                      extra={'action': 'creating_socket',
                             'socket_type': 'zmq.DEALER'})
-        #pylint: disable=E1101
+        # pylint: disable=E1101
         self._tes_connection_socket = self._zmq_context.socket(zmq.DEALER)
-        #pylint: enable=E1101
+        # pylint: enable=E1101
+        client_public, client_secret = zmq.curve_keypair()
+        self._tes_connection_socket.curve_publickey = client_public
+        self._tes_connection_socket.curve_secretkey = client_secret
+        self._tes_connection_socket.curve_serverkey = (
+            self._server_zmq_encryption_key)
         logger.debug('Connecting to TES socket:',
                      extra={'action': 'connect_to_tes',
                             'connection_string': self._tes_connection_string})
@@ -112,7 +120,6 @@ class TesConnection(Thread):
         #pylint: disable=E1101
         poller.register(self._tes_connection_socket, zmq.POLLIN)
         #pylint: enable=E1101
-
         logger.debug('Zmq poller registered.  Waiting for message execution '
                      'responses.', extra={'polling_interval':
                                           self._TES_POLLING_TIMEOUT_MILLI})
