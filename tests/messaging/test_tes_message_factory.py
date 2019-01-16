@@ -1,9 +1,10 @@
+import math
 from typing import List
 
 import capnp
 import pytest
 
-from tes_client.common_types import AccountBalancesReport, \
+from tes_client.messaging.common_types import AccountBalancesReport, \
     AccountCredentials, AccountDataReport, AccountInfo, Balance, \
     CompletedOrdersReport, Exchange, ExchangePropertiesReport, LeverageType, \
     ExecutionReport, OpenPosition, OpenPositionsReport, Order, OrderInfo, \
@@ -11,17 +12,18 @@ from tes_client.common_types import AccountBalancesReport, \
     WorkingOrdersReport
 import communication_protocol.Exchanges_capnp as exch_capnp
 import communication_protocol.TradeMessage_capnp as msgs_capnp
-from tes_client.tes_message_factory import build_account_balances_report, \
-    build_account_data_report, build_completed_orders_report, \
-    build_exchange_properties_report, build_exec_report, build_logoff, \
-    build_logon, build_open_positions_report, build_system_message, \
-    build_test_message, build_working_orders_report, cancel_order_message, \
-    heartbeat_message, logoff_message, logon_message, place_order_message, \
-    replace_order_message, request_account_balances_message, \
-    request_account_data_message, request_completed_orders, \
-    request_exchange_properties_message, request_open_positions_message, \
-    request_order_mass_status_message, request_order_status_message, \
-    request_working_orders_message
+from tes_client.messaging.message_factory import account_balances_report_py, \
+    account_data_report_py, completed_orders_report_py, \
+    exchange_properties_report_py, execution_report_py, \
+    generate_client_order_id, logoff_ack_py, logon_ack_py, \
+    open_positions_report_py, system_message_py, tes_test_message_py, \
+    working_orders_report_py, cancel_order_capnp, heartbeat_capnp, \
+    logoff_capnp, logon_capnp, place_order_capnp, replace_order_capnp, \
+    request_account_balances_capnp, request_account_data_capnp, \
+    request_completed_orders_capnp, request_exchange_properties_capnp, \
+    request_open_positions_capnp, request_order_mass_status_capnp, \
+    request_order_status_capnp, request_working_orders_capnp, \
+    _determine_order_price, _generate_tes_request
 
 
 def get_new_execution_report(body, include_cl_ord_link_id=True):
@@ -58,7 +60,7 @@ def test_handle_tes_message_system():
     system.errorCode = 0
     system.message = ('The Times 03/Jan/2009 Chancellor on brink of second ' +
                       'bailout for banks')
-    error_code, system_msg = build_system_message(
+    error_code, system_msg = system_message_py(
         tes_mess.type.response.body.system)
     assert type(error_code) == int
     assert type(system_msg == str)
@@ -80,7 +82,7 @@ def test_handle_tes_message_logon():
     logon.message = ('The Times 03/Jan/2009 Chancellor on brink of second ' +
                      'bailout for banks')
     logon.clientAccounts = [100, 101]
-    success, msg, accounts = build_logon(tes_mess.type.response.body.logonAck)
+    success, msg, accounts = logon_ack_py(tes_mess.type.response.body.logonAck)
     assert type(msg == str)
     assert msg == ('The Times 03/Jan/2009 Chancellor on brink of second ' +
                    'bailout for banks')
@@ -100,7 +102,7 @@ def test_handle_tes_message_logon():
     logon1.success = False
     logon1.message = 'Jamie Dimon has denied you access'
     logon1.clientAccounts = [100, 101]
-    success1, msg1, accounts1 = build_logon(
+    success1, msg1, accounts1 = logon_ack_py(
         tes_mess1.type.response.body.logonAck)
     assert type(msg1 == str)
     assert msg1 == 'Jamie Dimon has denied you access'
@@ -126,7 +128,7 @@ def test_handle_tes_message_logoff():
     logoff.success = True
     logoff.message = ('The Times 03/Jan/2009 Chancellor on brink of second ' +
                       'bailout for banks')
-    success, msg = build_logoff(tes_mess.type.response.body.logoffAck)
+    success, msg = logoff_ack_py(tes_mess.type.response.body.logoffAck)
     assert type(msg == str)
     assert msg == ('The Times 03/Jan/2009 Chancellor on brink of second ' +
                    'bailout for banks')
@@ -143,7 +145,7 @@ def test_handle_tes_message_logoff():
     logoff1 = body1.init('logoffAck')
     logoff1.success = False
     logoff1.message = 'Jamie Dimon has denied you access'
-    success1, msg1 = build_logoff(tes_mess1.type.response.body.logoffAck)
+    success1, msg1 = logoff_ack_py(tes_mess1.type.response.body.logoffAck)
     assert type(msg1 == str)
     assert msg1 == 'Jamie Dimon has denied you access'
     assert type(success1) == bool
@@ -193,12 +195,12 @@ def test_handle_tes_message_account_data_report():
     ops[0].initialPrice = 450.3
     ops[0].unrealizedPL = 503.1
 
-    acct_data_report = build_account_data_report(
-        accountDataReport=tes_mess.type.response.body.accountDataReport)
+    acct_data_report = account_data_report_py(
+        account_data_report=tes_mess.type.response.body.accountDataReport)
     assert type(acct_data_report == AccountDataReport)
-    assert type(acct_data_report.accountInfo == AccountInfo)
+    assert type(acct_data_report.account_info == AccountInfo)
     assert type(acct_data_report.orders == List[ExecutionReport])
-    assert type(acct_data_report.openPositions == List[OpenPosition])
+    assert type(acct_data_report.open_positions == List[OpenPosition])
     assert type(acct_data_report.balances == List[Balance])
 
 
@@ -249,17 +251,17 @@ def test_handle_tes_message_working_orders_report():
     order_rejected = orders[1].type.init('cancelRejected')
     order_rejected.message = 'way too silly'
 
-    wos_reports = build_working_orders_report(
+    wos_reports = working_orders_report_py(
         tes_mess.type.response.body.workingOrdersReport)
     assert type(wos_reports) == WorkingOrdersReport
-    assert type(wos_reports.accountInfo) == AccountInfo
+    assert type(wos_reports.account_info) == AccountInfo
 
     exec_reports = wos_reports.orders
     assert type(exec_reports) == list
-    assert type(exec_reports[0].executionReportType) == str
-    assert exec_reports[0].executionReportType == 'statusUpdate'
-    assert type(exec_reports[1].executionReportType) == str
-    assert exec_reports[1].executionReportType == 'cancelRejected'
+    assert type(exec_reports[0].execution_report_type) == str
+    assert exec_reports[0].execution_report_type == 'statusUpdate'
+    assert type(exec_reports[1].execution_report_type) == str
+    assert exec_reports[1].execution_report_type == 'cancelRejected'
 
 
 @pytest.mark.test_id(6)
@@ -280,19 +282,19 @@ def test_handle_tes_message_account_balances_report():
     balances[1].fullBalance = 1005002.02
     balances[1].availableBalance = 915002.02
 
-    acct_bals = build_account_balances_report(
+    acct_bals = account_balances_report_py(
         tes_mess.type.response.body.accountDataReport)
     assert type(acct_bals == AccountBalancesReport)
-    assert type(acct_bals.accountInfo == AccountInfo)
+    assert type(acct_bals.account_info == AccountInfo)
     assert type(acct_bals.balances == List[Balance])
 
     assert acct_bals.balances[0].currency == 'ETH'
     assert acct_bals.balances[1].currency == 'USD'
 
-    assert acct_bals.balances[0].fullBalance == 100.1
-    assert acct_bals.balances[0].availableBalance == 97.3
-    assert acct_bals.balances[1].fullBalance == 1005002.02
-    assert acct_bals.balances[1].availableBalance == 915002.02
+    assert acct_bals.balances[0].full_balance == 100.1
+    assert acct_bals.balances[0].available_balance == 97.3
+    assert acct_bals.balances[1].full_balance == 1005002.02
+    assert acct_bals.balances[1].available_balance == 915002.02
 
 
 @pytest.mark.test_id(7)
@@ -339,17 +341,17 @@ def test_handle_tes_message_completed_orders_report():
     orders[1].avgFillPrice = 0.0
     orders[1].type.statusUpdate = None
 
-    cos_reports = build_completed_orders_report(
+    cos_reports = completed_orders_report_py(
         tes_mess.type.response.body.completedOrdersReport)
     assert type(cos_reports) == CompletedOrdersReport
-    assert type(cos_reports.accountInfo) == AccountInfo
+    assert type(cos_reports.account_info) == AccountInfo
 
     exec_reports = cos_reports.orders
     assert type(exec_reports) == list
-    assert type(exec_reports[0].executionReportType) == str
-    assert exec_reports[0].executionReportType == 'statusUpdate'
-    assert type(exec_reports[1].executionReportType) == str
-    assert exec_reports[1].executionReportType == 'statusUpdate'
+    assert type(exec_reports[0].execution_report_type) == str
+    assert exec_reports[0].execution_report_type == 'statusUpdate'
+    assert type(exec_reports[1].execution_report_type) == str
+    assert exec_reports[1].execution_report_type == 'statusUpdate'
 
 
 @pytest.mark.test_id(8)
@@ -374,24 +376,24 @@ def test_handle_tes_message_open_positions_report():
     ops[1].initialPrice = 0.07
     ops[1].unrealizedPL = -0.003
 
-    open_pos_report = build_open_positions_report(
+    open_pos_report = open_positions_report_py(
         tes_mess.type.response.body.openPositionsReport)
     assert type(open_pos_report == OpenPosition)
-    assert type(open_pos_report.accountInfo) == AccountInfo
-    assert open_pos_report.accountInfo.accountID == 110
+    assert type(open_pos_report.account_info) == AccountInfo
+    assert open_pos_report.account_info.account_id == 110
 
-    open_pos = open_pos_report.openPositions
+    open_pos = open_pos_report.open_positions
     # list of list of tuples
     assert open_pos[0].side == 'buy'
     assert open_pos[0].symbol == 'ETH/USD'
     assert open_pos[0].quantity == 10.2
-    assert open_pos[0].initialPrice == 450.3
-    assert open_pos[0].unrealizedPL == 503.1
+    assert open_pos[0].initial_price == 450.3
+    assert open_pos[0].unrealized_pl == 503.1
     assert open_pos[1].side == 'sell'
     assert open_pos[1].symbol == 'ETH/BTC'
     assert open_pos[1].quantity == 4.9
-    assert open_pos[1].initialPrice == 0.07
-    assert open_pos[1].unrealizedPL == -0.003
+    assert open_pos[1].initial_price == 0.07
+    assert open_pos[1].unrealized_pl == -0.003
 
 
 @pytest.mark.test_id(9)
@@ -430,7 +432,7 @@ def test_handle_tes_message_exchange_properties_report():
     ots[1] = OrderType.limit.name
     ots[2] = OrderType.market.name
 
-    exch_props_rpt = build_exchange_properties_report(
+    exch_props_rpt = exchange_properties_report_py(
         tes_mess.type.response.body.exchangePropertiesReport)
     assert type(exch_props_rpt == ExchangePropertiesReport)
 
@@ -454,10 +456,10 @@ def test_on_account_balances():
     balances[1].fullBalance = 2100.10
     balances[1].availableBalance = 2100.10
 
-    acct_bal_report = build_account_balances_report(
+    acct_bal_report = account_balances_report_py(
         tes_mess.type.response.body.accountBalancesReport)
     assert type(acct_bal_report == AccountBalancesReport)
-    assert type(acct_bal_report.accountInfo == AccountInfo)
+    assert type(acct_bal_report.account_info == AccountInfo)
     assert type(acct_bal_report.balances == List[Balance])
 
 
@@ -471,10 +473,10 @@ def test_handle_tes_message_execution_report():
     body = heartbeat_resp.init('body')
     er = get_new_execution_report(body=body)
     er.type.orderAccepted = None
-    er_type = build_exec_report(
+    er_type = execution_report_py(
         tes_mess.type.response.body.executionReport)
     assert type(er_type == ExecutionReport)
-    assert er_type.executionReportType == 'orderAccepted'
+    assert er_type.execution_report_type == 'orderAccepted'
 
     # order rejected
     tes_mess1 = msgs_capnp.TradeMessage.new_message()
@@ -486,9 +488,9 @@ def test_handle_tes_message_execution_report():
     order_rejected = er1.type.init('orderRejected')
     order_rejected.message = 'too silly'
     order_rejected.rejectionCode = 123
-    er_type1 = build_exec_report(tes_mess1.type.response.body.executionReport)
+    er_type1 = execution_report_py(tes_mess1.type.response.body.executionReport)
     assert type(er_type1 == ExecutionReport)
-    assert er_type1.executionReportType == 'orderRejected'
+    assert er_type1.execution_report_type == 'orderRejected'
 
     # order replaced
     tes_mess2 = msgs_capnp.TradeMessage.new_message()
@@ -498,9 +500,9 @@ def test_handle_tes_message_execution_report():
     body2 = heartbeat_resp2.init('body')
     er2 = get_new_execution_report(body=body2)
     er2.type.orderReplaced = None
-    er_type2 = build_exec_report(tes_mess2.type.response.body.executionReport)
+    er_type2 = execution_report_py(tes_mess2.type.response.body.executionReport)
     assert type(er_type2 == ExecutionReport)
-    assert er_type2.executionReportType == 'orderReplaced'
+    assert er_type2.execution_report_type == 'orderReplaced'
 
     # replace rejected
     tes_mess3 = msgs_capnp.TradeMessage.new_message()
@@ -512,9 +514,9 @@ def test_handle_tes_message_execution_report():
     order_rejected = er3.type.init('replaceRejected')
     order_rejected.message = 'way too silly'
     order_rejected.rejectionCode = 321
-    er_type3 = build_exec_report(tes_mess3.type.response.body.executionReport)
+    er_type3 = execution_report_py(tes_mess3.type.response.body.executionReport)
     assert type(er_type3 == ExecutionReport)
-    assert er_type3.executionReportType == 'replaceRejected'
+    assert er_type3.execution_report_type == 'replaceRejected'
 
     # order cancelled
     tes_mess4 = msgs_capnp.TradeMessage.new_message()
@@ -524,9 +526,9 @@ def test_handle_tes_message_execution_report():
     body4 = heartbeat_resp4.init('body')
     er4 = get_new_execution_report(body=body4)
     er4.type.orderCanceled = None
-    er_type4 = build_exec_report(tes_mess4.type.response.body.executionReport)
+    er_type4 = execution_report_py(tes_mess4.type.response.body.executionReport)
     assert type(er_type4 == ExecutionReport)
-    assert er_type4.executionReportType == 'orderCanceled'
+    assert er_type4.execution_report_type == 'orderCanceled'
 
     # cancel rejected
     tes_mess5 = msgs_capnp.TradeMessage.new_message()
@@ -538,9 +540,9 @@ def test_handle_tes_message_execution_report():
     order_rejected = er5.type.init('cancelRejected')
     order_rejected.message = 'way too silly'
     order_rejected.rejectionCode = 9987
-    er_type5 = build_exec_report(tes_mess5.type.response.body.executionReport)
+    er_type5 = execution_report_py(tes_mess5.type.response.body.executionReport)
     assert type(er_type5 == ExecutionReport)
-    assert er_type5.executionReportType == 'cancelRejected'
+    assert er_type5.execution_report_type == 'cancelRejected'
 
     # order filled
     tes_mess6 = msgs_capnp.TradeMessage.new_message()
@@ -550,9 +552,9 @@ def test_handle_tes_message_execution_report():
     body6 = heartbeat_resp6.init('body')
     er6 = get_new_execution_report(body=body6)
     er6.type.orderFilled = None
-    er_type6 = build_exec_report(tes_mess6.type.response.body.executionReport)
+    er_type6 = execution_report_py(tes_mess6.type.response.body.executionReport)
     assert type(er_type6 == ExecutionReport)
-    assert er_type6.executionReportType == 'orderFilled'
+    assert er_type6.execution_report_type == 'orderFilled'
 
     # status update
     tes_mess7 = msgs_capnp.TradeMessage.new_message()
@@ -562,6 +564,49 @@ def test_handle_tes_message_execution_report():
     body7 = heartbeat_resp7.init('body')
     er7 = get_new_execution_report(body=body7)
     er7.type.statusUpdate = None
-    er_type7 = build_exec_report(tes_mess7.type.response.body.executionReport)
+    er_type7 = execution_report_py(tes_mess7.type.response.body.executionReport)
     assert type(er_type7 == ExecutionReport)
-    assert er_type7.executionReportType == 'statusUpdate'
+    assert er_type7.execution_report_type == 'statusUpdate'
+
+
+@pytest.mark.test_id(12)
+def test_determine_order_price():
+    # market order
+    op = _determine_order_price(order_price=400., order_type='market')
+    assert math.isclose(op, 0.0, rel_tol=1e-6)
+    # limit order price > MIN_ORDER_PRICE
+    op1 = _determine_order_price(order_price=400., order_type='limit')
+    assert math.isclose(op1, 400., rel_tol=1e-6)
+
+
+@pytest.mark.test_id(13)
+def test_generate_tes_request():
+    body, tes_mess = _generate_tes_request(client_id=0, sender_comp_id='asdf')
+    # print(body, '\n', tes_mess)
+    assert type(body) == capnp.lib.capnp._DynamicStructBuilder
+    assert type(tes_mess) == capnp.lib.capnp._DynamicStructBuilder
+
+
+@pytest.mark.test_id(14)
+def test_generate_client_order_id():
+    import time
+    cl_oid = generate_client_order_id()
+    assert type(cl_oid) == int
+    # assuming time between generation and testing is < 60 seconds
+    assert cl_oid <= int(time.time()*1000000)
+    assert cl_oid > int(time.time()*1000000 - 60000000)
+
+
+@pytest.mark.test_id(15)
+def test_handle_tes_message_test():
+    tes_mess = msgs_capnp.TradeMessage.new_message()
+    test_response = tes_mess.init('type').init('response')
+    test_response.clientID = 123
+    test_response.senderCompID = str(987)
+    body = test_response.init('body')
+    test = body.init('test')
+    test.string = 'test_string'
+    test_string = tes_test_message_py(
+        tes_mess.type.response.body.test)
+
+    assert test_string == 'test_string'
