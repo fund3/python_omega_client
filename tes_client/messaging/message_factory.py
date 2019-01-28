@@ -734,6 +734,8 @@ def _generate_tes_request(client_id: int, sender_comp_id: str):
 
 def generate_client_order_id():
     """
+    Simple way to generate client_order_id.  The client can generate their
+    own unique order id as they wish.
     :return: (int) Client order_id based on the microsecond timestamp.
     """
     client_order_id = int(time.time()*1000000)
