@@ -34,7 +34,8 @@ class ResponseReceiver(Thread):
         _POLLING_TIMEOUT_MILLI: (int) The polling timeout for response_socket.
         _SOCKET_IDENTITY: (bytes) The socket identity in bytes used for the
             ROUTER socket on the other side to identify the DEALER socket in
-            this class.
+            this class.  Optional since zmq DEALER socket generates a default
+            identity.
         _ZMQ_ENDPOINT: (str) The zmq endpoint to connect to.
         _ZMQ_CONTEXT: (zmq.Context) Required to create sockets. It is
             recommended that one application use one shared zmq context for
@@ -78,6 +79,12 @@ class ResponseReceiver(Thread):
         """
         self.stop()
         self.join()
+
+    def is_running(self):
+        """
+        Return True if the thread is running, False otherwise.
+        """
+        return self._is_running.is_set()
 
     def stop(self):
         """
