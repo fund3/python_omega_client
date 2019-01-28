@@ -1,6 +1,6 @@
 import logging
-import time
 from threading import Event, Thread
+import time
 
 import zmq
 
@@ -8,11 +8,11 @@ from tes_client.communication.request_sender import RequestSender
 from tes_client.communication.response_receiver import ResponseReceiver
 from tes_client.communication.single_client_request_sender import \
     SingleClientRequestSender
-from tes_client.constants import REQUEST_SENDER_ENDPOINT, RESPONSE_HANDLER_ENDPOINT
-from tes_client.messaging.printing_response_handler import \
-    PrintingResponseHandler
 
 logger = logging.getLogger(__name__)
+
+REQUEST_SENDER_ENDPOINT = 'inproc://TES_REQUEST_SENDER'
+RESPONSE_HANDLER_ENDPOINT = 'inproc://TES_RESPONSE_HANDLER'
 
 
 class TesConnection(Thread):
