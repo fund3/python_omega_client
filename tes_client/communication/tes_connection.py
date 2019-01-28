@@ -25,7 +25,6 @@ class TesConnection(Thread):
     parsing, and communication with the TES.
     Actions like Placing Orders, Requesting Account Balances and passing
     their associated responses from TES as callbacks are handled by this class.
-    Also handles heartbeats to maintain connection.
 
     Attributes:
         _ZMQ_CONTEXT: (zmq.Context) Required to create sockets. It is
