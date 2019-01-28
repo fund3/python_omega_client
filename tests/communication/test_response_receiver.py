@@ -16,8 +16,8 @@ from tes_client.messaging.response_handler import ResponseHandler
 from tes_client.communication.response_receiver import ResponseReceiver
 
 
-__FAKE_ROUTER_SOCKET_CONNECTION_STR = 'inproc://FAKE_ROUTER_SOCKET'
-__FAKE_DEALER_SOCKET_CONNECTION_STR = 'inproc://FAKE_DEALER_SOCKET'
+__FAKE_ROUTER_SOCKET_ENDPOINT = 'inproc://FAKE_ROUTER_SOCKET'
+__FAKE_DEALER_SOCKET_ENDPOINT = 'inproc://FAKE_DEALER_SOCKET'
 __RESPONSE_RECEIVER_IDENTITY = b'A'
 
 
@@ -74,7 +74,7 @@ def fake_response_handler():
 @pytest.fixture(scope="module")
 def fake_router_socket(fake_zmq_context):
     router_socket = fake_zmq_context.socket(zmq.ROUTER)
-    router_socket.bind(__FAKE_ROUTER_SOCKET_CONNECTION_STR)
+    router_socket.bind(__FAKE_ROUTER_SOCKET_ENDPOINT)
     yield router_socket
     router_socket.close()
 
@@ -82,18 +82,19 @@ def fake_router_socket(fake_zmq_context):
 @pytest.fixture(scope="module")
 def fake_dealer_socket(fake_zmq_context):
     dealer_socket = fake_zmq_context.socket(zmq.DEALER)
-    dealer_socket.bind(__FAKE_DEALER_SOCKET_CONNECTION_STR)
+    dealer_socket.bind(__FAKE_DEALER_SOCKET_ENDPOINT)
     yield dealer_socket
     dealer_socket.close()
 
 
 @pytest.fixture(scope="module")
-def fake_response_receiver_from_router(fake_zmq_context, fake_router_socket):
+def fake_response_receiver_from_router(fake_zmq_context):
+    # Creates a response receiver that connects to a ROUTER socket.
     fake_response_handler = FakeResponseHandler(list())
     response_receiver = ResponseReceiver(
-        fake_zmq_context,
-        __FAKE_ROUTER_SOCKET_CONNECTION_STR,
-        fake_response_handler,
+        zmq_context=fake_zmq_context,
+        zmq_endpoint=__FAKE_ROUTER_SOCKET_ENDPOINT,
+        response_handler=fake_response_handler,
         socket_identity=__RESPONSE_RECEIVER_IDENTITY
     )
     response_receiver.start()
@@ -102,12 +103,13 @@ def fake_response_receiver_from_router(fake_zmq_context, fake_router_socket):
 
 
 @pytest.fixture(scope="module")
-def fake_response_receiver_from_dealer(fake_zmq_context, fake_dealer_socket):
+def fake_response_receiver_from_dealer(fake_zmq_context):
+    # Creates a response receiver that connects to a DEALER socket.
     fake_response_handler = FakeResponseHandler(list())
     response_receiver = ResponseReceiver(
-        fake_zmq_context,
-        __FAKE_DEALER_SOCKET_CONNECTION_STR,
-        fake_response_handler
+        zmq_context=fake_zmq_context,
+        zmq_endpoint=__FAKE_DEALER_SOCKET_ENDPOINT,
+        response_handler=fake_response_handler
     )
     response_receiver.start()
     yield response_receiver
@@ -166,13 +168,17 @@ def test_heartbeat_handling(fake_response_receiver_from_dealer,
     body = heartbeat_resp.init('body')
     body.heartbeat = None
 
-    fake_response_receiver_from_dealer._response_handler = fake_response_handler
+    fake_response_receiver_from_dealer.set_response_handler(
+        fake_response_handler)
     fake_response_receiver_from_dealer._handle_binary_tes_message(
         tes_mess.to_bytes())
+
+    assert len(fake_response_handler.message_list) == 1
     assert fake_response_handler.message_list[0] == (
         'heartbeat', 123, '987')
 
 
+@pytest.mark.test_id(4)
 def test_test_message_handling(fake_response_receiver_from_dealer,
                                fake_response_handler):
     tes_mess = msgs_capnp.TradeMessage.new_message()
@@ -183,13 +189,16 @@ def test_test_message_handling(fake_response_receiver_from_dealer,
     test = body.init('test')
     test.string = 'test_string'
 
-    fake_response_receiver_from_dealer._response_handler = fake_response_handler
+    fake_response_receiver_from_dealer.set_response_handler(
+        fake_response_handler)
     fake_response_receiver_from_dealer._handle_binary_tes_message(
         tes_mess.to_bytes())
+    assert len(fake_response_handler.message_list) == 1
     assert fake_response_handler.message_list[0] == ('test', 'test_string',
                                                      123, '987')
 
 
+@pytest.mark.test_id(5)
 def test_system_message_handling(fake_response_receiver_from_dealer,
                                  fake_response_handler):
     tes_mess = msgs_capnp.TradeMessage.new_message()
@@ -204,13 +213,16 @@ def test_system_message_handling(fake_response_receiver_from_dealer,
     system.message = ('The Times 03/Jan/2009 Chancellor on brink of second ' +
                       'bailout for banks')
 
-    fake_response_receiver_from_dealer._response_handler = fake_response_handler
+    fake_response_receiver_from_dealer.set_response_handler(
+        fake_response_handler)
     fake_response_receiver_from_dealer._handle_binary_tes_message(
         tes_mess.to_bytes())
+    assert len(fake_response_handler.message_list) == 1
     assert fake_response_handler.message_list[0] == (
         'system', system.errorCode, system.message, 123, '987')
 
 
+@pytest.mark.test_id(6)
 def test_logon_ack_handling(fake_response_receiver_from_dealer,
                             fake_response_handler):
     tes_mess = msgs_capnp.TradeMessage.new_message()
@@ -224,9 +236,11 @@ def test_logon_ack_handling(fake_response_receiver_from_dealer,
                      'bailout for banks')
     logon.clientAccounts = [100, 101]
 
-    fake_response_receiver_from_dealer._response_handler = fake_response_handler
+    fake_response_receiver_from_dealer.set_response_handler(
+        fake_response_handler)
     fake_response_receiver_from_dealer._handle_binary_tes_message(
         tes_mess.to_bytes())
+    assert len(fake_response_handler.message_list) == 1
     assert fake_response_handler.message_list[0] == (
         'logonAck', logon.success, logon.message, [100, 101], 123, '987')
 

@@ -1,3 +1,7 @@
+"""
+TES Response Receiver class.  Receive messages from a local TesConnection
+that is connected to TES.
+"""
 import logging
 from threading import Event, Thread
 import time
@@ -28,66 +32,84 @@ class ResponseReceiver(Thread):
 
     Attributes:
         _POLLING_TIMEOUT_MILLI: (int) The polling timeout for response_socket.
-        _zmq_context: (zmq.Context) Required to create sockets. It is
+        _SOCKET_IDENTITY: (bytes) The socket identity in bytes used for the
+            ROUTER socket on the other side to identify the DEALER socket in
+            this class.
+        _ZMQ_ENDPOINT: (str) The zmq endpoint to connect to.
+        _ZMQ_CONTEXT: (zmq.Context) Required to create sockets. It is
             recommended that one application use one shared zmq context for
             all sockets.
-        _response_handler: (ResponseHandler) The ResponseHandler object that
+        _RESPONSE_HANDLER: (ResponseHandler) The ResponseHandler object that
             holds the logic of handling each type of response.
-        _running: (Event) Event object that indicates on/ off
+        _is_running: (Event) Event object that indicates on/ off
             behavior for the response handler loop.
     """
     def __init__(self,
                  zmq_context: zmq.Context,
-                 connection_string: str,
+                 zmq_endpoint: str,
                  response_handler: ResponseHandler,
                  polling_timeout_milli: int = 1000,
                  name: str = 'ResponseHandler',
                  socket_identity: bytes = None):
         assert zmq_context
-        assert connection_string
+        assert zmq_endpoint
         assert response_handler
 
-        self._CONNECTION_STRING = connection_string
+        self._ZMQ_CONTEXT = zmq_context
+        self._ZMQ_ENDPOINT = zmq_endpoint
+        self._RESPONSE_HANDLER = response_handler
+
         self._POLLING_TIMEOUT_MILLI = polling_timeout_milli
         self._SOCKET_IDENTITY = socket_identity
 
-        self._zmq_context = zmq_context
-        self._response_handler = response_handler
-
-        self._running = Event()
+        self._is_running = Event()
         super().__init__(name=name)
 
+    def set_response_handler(self, response_handler: ResponseHandler):
+        """
+        Set _RESPONSE_HANDLER.
+        :param response_handler:
+        """
+        self._RESPONSE_HANDLER = response_handler
+
     def cleanup(self):
+        """
+        Stop the response receiver gracefully and join the thread.
+        """
         self.stop()
         self.join()
 
     def stop(self):
-        self._running.clear()
+        """
+        Clear the _is_running Event, which terminates the response receiver
+        loop.
+        """
+        self._is_running.clear()
 
     def run(self):
-        logger.debug('Creating TES Response Handler DEALER socket:',
-                     extra={'action': 'creating_socket',
-                            'socket_type': 'zmq.DEALER',
-                            'name': 'tes_response_handler'})
-        response_socket = self._zmq_context.socket(zmq.DEALER)
-        logger.debug(
-            'Connecting to TES Response Handler DEALER socket:',
-            extra={'action': 'connecting_to_tes_response_handler',
-                   'connection_string': self._CONNECTION_STRING})
+        """
+        Message receiving loop.
+        Create the response_socket as a zmq.DEALER socket and then connect to
+        the provided _ZMQ_ENDPOINT.  After that, set up the poller and handle
+        received messages.
+
+        Normally zmq socket generates a default socket identity, but for
+        testing or other purposes, the socket identity can be set by passing
+        in a binary identity when creating the ResponseReceiver class.
+
+        The poller exists so that the response receiver can be stopped
+        gracefully and not get blocked by socket.recv() or stuck in a loop.
+        """
+        response_socket = self._ZMQ_CONTEXT.socket(zmq.DEALER)
         if self._SOCKET_IDENTITY:
             response_socket.setsockopt(zmq.IDENTITY, self._SOCKET_IDENTITY)
-        response_socket.connect(self._CONNECTION_STRING)
+        response_socket.connect(self._ZMQ_ENDPOINT)
         poller = zmq.Poller()
         # pylint: disable=E1101
         poller.register(response_socket, zmq.POLLIN)
         # pylint: enable=E1101
-        logger.debug(
-            'Zmq poller registered.  Waiting for message execution responses.',
-            extra={'polling_interval': self._POLLING_TIMEOUT_MILLI,
-                   'name': 'tes_response_handler',
-                   'status': 'poller_registered'})
-        self._running.set()
-        while self._running.is_set():
+        self._is_running.set()
+        while self._is_running.is_set():
             socks = dict(poller.poll(self._POLLING_TIMEOUT_MILLI))
             if socks.get(response_socket) == zmq.POLLIN:
                 message = response_socket.recv()
@@ -95,23 +117,29 @@ class ResponseReceiver(Thread):
         time.sleep(2.)
         response_socket.close()
 
-    def _handle_response(self, response_type, response):
-        self._response_handler.handle_response(response_type, response)
+    def _handle_response(self,
+                         response_type: str,
+                         response: capnp._DynamicStructBuilder):
+        """
+        Pass response_type and response to the registered response handler.
+        :param response_type: (str) The type of TradeMessage embedded in the
+            response from TES.
+        :param response: (capnp._DynamicStructBuilder) One of the types under
+            "TradeMessage.Response.body".
+            See communication_protocol.TradeMessage.capnp.
+        """
+        self._RESPONSE_HANDLER.handle_response(response_type, response)
 
-    def _handle_binary_tes_message(self, binary_msg):
+    def _handle_binary_tes_message(self, binary_msg: bytes):
         """
-        Callback when a tes_message is received and passed to an appropriate
-        event handler method.
-        :param binary_msg: (capnp._DynamicStructBuilder) The received
-            tesMessage.
+        Pass a received message from TES to an appropriate handler method.
+        :param binary_msg: (bytes) The received binary message.
         """
-        logger.debug('Received TESMessage..')
         try:
-            tes_msg = msgs_capnp.TradeMessage.from_bytes(binary_msg)
-            response = tes_msg.type.response
+            trade_message = msgs_capnp.TradeMessage.from_bytes(binary_msg)
+            response = trade_message.type.response
             response_type = response.body.which()
             self._handle_response(response_type, response)
         except (Exception, TypeError) as e:
             logger.error('Exception in decoding message' + repr(e),
                          extra={'exception': repr(e)})
-            return
