@@ -1,3 +1,6 @@
+"""
+TES Connection class.  Send and receive messages to and from TES.
+"""
 import logging
 from threading import Event, Thread
 import time
@@ -5,6 +8,7 @@ import time
 import zmq
 
 from tes_client.communication.request_sender import RequestSender
+from tes_client.messaging.response_handler import ResponseHandler
 from tes_client.communication.response_receiver import ResponseReceiver
 from tes_client.communication.single_client_request_sender import \
     SingleClientRequestSender
@@ -12,7 +16,7 @@ from tes_client.communication.single_client_request_sender import \
 logger = logging.getLogger(__name__)
 
 REQUEST_SENDER_ENDPOINT = 'inproc://TES_REQUEST_SENDER'
-RESPONSE_HANDLER_ENDPOINT = 'inproc://TES_RESPONSE_HANDLER'
+RESPONSE_RECEIVER_ENDPOINT = 'inproc://TES_RESPONSE_RECEIVER'
 
 
 class TesConnection(Thread):
@@ -24,16 +28,29 @@ class TesConnection(Thread):
     Also handles heartbeats to maintain connection.
 
     Attributes:
-        _TES_ENDPOINT: (str) of ip address, port for connecting to
-        TES, in the form of a zmq connection str 'protocol://interface:port',
-        e.g. 'tcp://0.0.0.0:9999'
-        _TES_POLLING_TIMEOUT_MILLI: (int) The polling timeout for
-            _tes_connection_socket.
-        _SERVER_ZMQ_ENCRYPTION_KEY
-        _zmq_context: (zmq.Context) Required to create sockets. It is
+        _ZMQ_CONTEXT: (zmq.Context) Required to create sockets. It is
             recommended that one application use one shared zmq context for
             all sockets.
-        _running:
+        _TES_ENDPOINT: (str) The zmq endpoint to connect to TES, in the form of
+            a zmq connection str 'protocol://interface:port', e.g.
+            'tcp://0.0.0.0:9999'.
+        _REQUEST_SENDER_ENDPOINT: (str) The zmq endpoint used to connect to
+            _request_sender.  By default it is a local, inproc endpoint that
+            lives in another thread of the same process.
+        _RESPONSE_RECEIVER_ENDPOINT: (str) The zmq endpoint used to connect to
+            _response_receiver.  By default it is a local, inproc endpoint that
+            lives in another thread of the same process.
+        _TES_POLLING_TIMEOUT_MILLI: (int) The polling timeout for
+            _tes_connection_socket.
+        _TES_SOCKET_IDENTITY: (bytes) The socket identity in bytes used for the
+            ROUTER socket on the other side to identify the DEALER socket in
+            this class. Optional since zmq DEALER socket generates a default
+            identity.
+        _SERVER_ZMQ_ENCRYPTION_KEY: (str) The public key of the TES server
+            used to encrypt data flowing between the client and server.
+        _response_receiver: (ResponseReceiver) The response receiver object.
+        _request_sender: (RequestSender) The request sender object.
+        _is_running: (Event) An event to indicate if the connection is running.
     """
     def __init__(self,
                  zmq_context: zmq.Context,
@@ -46,11 +63,6 @@ class TesConnection(Thread):
                  name: str = 'TesConnection',
                  tes_socket_identity: bytes = None,
                  server_zmq_encryption_key: str = None):
-        """
-        :param tes_polling_timeout_milli: int millisecond TES polling
-        interval. Leave as default unless specifically instructed to change.
-        :param name: str name of the thread (used for debugging)
-        """
         assert zmq_context
         assert tes_endpoint
         assert request_sender_endpoint
@@ -58,6 +70,7 @@ class TesConnection(Thread):
         assert request_sender
         assert response_receiver
 
+        self._ZMQ_CONTEXT = zmq_context
         self._TES_ENDPOINT = tes_endpoint
         self._REQUEST_SENDER_ENDPOINT = request_sender_endpoint
         self._RESPONSE_RECEIVER_ENDPOINT = response_receiver_endpoint
@@ -65,12 +78,11 @@ class TesConnection(Thread):
         self._TES_SOCKET_IDENTITY = tes_socket_identity
         self._SERVER_ZMQ_ENCRYPTION_KEY = server_zmq_encryption_key
 
-        self._zmq_context = zmq_context
         self._response_receiver = response_receiver
         self._request_sender = request_sender
 
         super().__init__(name=name)
-        self._running = Event()
+        self._is_running = Event()
 
     ############################################################################
     #                                                                          #
@@ -79,21 +91,34 @@ class TesConnection(Thread):
     ############################################################################
 
     def cleanup(self):
+        """
+        Stop the response receiver gracefully and join the thread.
+        """
         self.stop()
         self.join()
 
     def is_running(self):
-        return self._running.is_set()
+        """
+        Return True if the thread is running, False otherwise.
+        """
+        return self._is_running.is_set()
 
     def wait_until_running(self):
-        self._running.wait()
+        self._is_running.wait()
 
     def stop(self):
-        logger.debug('Stopping engine..')
-        self._running.clear()
-        logger.debug('..done.')
+        """
+        Clear the _is_running Event, which terminates the response receiver
+        loop.
+        """
+        self._is_running.clear()
 
-    def _set_curve_keypair(self, socket):
+    def _set_curve_keypair(self, socket: zmq.Socket):
+        """
+        Generate a client keypair using CURVE encryption mechanism, and set
+        the server key for encryption.
+        :param socket: (zmq.Socket) The socket to set CURVE key.
+        """
         client_public, client_secret = zmq.curve_keypair()
         socket.curve_publickey = client_public
         socket.curve_secretkey = client_secret
@@ -101,43 +126,43 @@ class TesConnection(Thread):
                                  self._SERVER_ZMQ_ENCRYPTION_KEY)
 
     def run(self):
-        logger.debug('Creating TES DEALER socket:',
-                     extra={'action': 'creating_socket',
-                            'socket_type': 'zmq.DEALER'})
+        """
+        Main loop for TES connection.
+        Set up 3 sockets:
+        1. tes_socket - the socket that sends and receives messages from TES.
+        2. request_listener_socket - listens to requests from request sender
+            and forward them to tes_socket.
+        3. response_forwarding_socket - forwards responses to response_receiver
+            when responses are received from TES.
+        """
         # pylint: disable=E1101
-        tes_socket = self._zmq_context.socket(zmq.DEALER)
+        tes_socket = self._ZMQ_CONTEXT.socket(zmq.DEALER)
         # pylint: enable=E1101
         if self._SERVER_ZMQ_ENCRYPTION_KEY:
             self._set_curve_keypair(tes_socket)
         if self._TES_SOCKET_IDENTITY:
             tes_socket.setsockopt(zmq.IDENTITY, self._TES_SOCKET_IDENTITY)
-        logger.debug('Connecting to TES socket:',
-                     extra={'action': 'connect_to_tes',
-                            'tes_endpoint': self._TES_ENDPOINT})
         tes_socket.connect(self._TES_ENDPOINT)
 
-        request_listener_socket = self._zmq_context.socket(zmq.DEALER)
+        request_listener_socket = self._ZMQ_CONTEXT.socket(zmq.DEALER)
         request_listener_socket.bind(self._REQUEST_SENDER_ENDPOINT)
-        self._response_receiver.start()
-
-        response_handler_socket = self._zmq_context.socket(zmq.DEALER)
-        response_handler_socket.bind(self._RESPONSE_RECEIVER_ENDPOINT)
         self._request_sender.start()
+
+        response_forwarding_socket = self._ZMQ_CONTEXT.socket(zmq.DEALER)
+        response_forwarding_socket.bind(self._RESPONSE_RECEIVER_ENDPOINT)
+        self._response_receiver.start()
 
         poller = zmq.Poller()
         #pylint: disable=E1101
         poller.register(tes_socket, zmq.POLLIN)
         poller.register(request_listener_socket, zmq.POLLIN)
         #pylint: enable=E1101
-        logger.debug('Zmq poller registered.  Waiting for message execution '
-                     'responses.', extra={'polling_interval':
-                                          self._TES_POLLING_TIMEOUT_MILLI})
-        self._running.set()
+        self._is_running.set()
         while self.is_running():
             socks = dict(poller.poll(self._TES_POLLING_TIMEOUT_MILLI))
             if socks.get(tes_socket) == zmq.POLLIN:
                 incoming_message = tes_socket.recv()
-                response_handler_socket.send(incoming_message)
+                response_forwarding_socket.send(incoming_message)
 
             if socks.get(request_listener_socket) == zmq.POLLIN:
                 outgoing_message = request_listener_socket.recv()
@@ -145,47 +170,71 @@ class TesConnection(Thread):
         time.sleep(2.)
         tes_socket.close()
         request_listener_socket.close()
-        self._response_receiver.stop()
-        response_handler_socket.close()
-        self._request_sender.stop()
+        self._request_sender.cleanup()
+        response_forwarding_socket.close()
+        self._response_receiver.cleanup()
 
 
-def configure_default_tes_connection(tes_endpoint,
-                                     tes_server_key,
-                                     response_handler):
-    zmq_context = zmq.Context.instance()
-    request_sender = RequestSender(zmq_context,
+def configure_default_tes_connection(tes_endpoint: str,
+                                     tes_server_key: str,
+                                     response_handler: ResponseHandler):
+    """
+    Set up a TesConnection that comes with request_sender and response_receiver.
+    :param tes_endpoint: (str) The zmq endpoint to connect to TES.
+    :param tes_server_key: (str) The public key of the TES server.
+    :param response_handler: (ResponseHandler) The handler object that will
+        be called in a callback function when tes_connection receives a
+        message.
+    :return: tes_connection, request_sender, response_receiver
+    """
+    ZMQ_CONTEXT = zmq.Context.instance()
+    request_sender = RequestSender(ZMQ_CONTEXT,
                                    REQUEST_SENDER_ENDPOINT)
-    response_receiver = ResponseReceiver(zmq_context,
-                                         RESPONSE_HANDLER_ENDPOINT,
+    response_receiver = ResponseReceiver(ZMQ_CONTEXT,
+                                         RESPONSE_RECEIVER_ENDPOINT,
                                          response_handler)
-    tes_connection = TesConnection(zmq_context,
+    tes_connection = TesConnection(ZMQ_CONTEXT,
                                    tes_endpoint,
                                    REQUEST_SENDER_ENDPOINT,
-                                   RESPONSE_HANDLER_ENDPOINT,
+                                   RESPONSE_RECEIVER_ENDPOINT,
                                    request_sender,
                                    response_receiver,
                                    server_zmq_encryption_key=tes_server_key)
     return tes_connection, request_sender, response_receiver
 
 
-def configure_single_client_tes_connection(tes_endpoint,
-                                           tes_server_key,
-                                           client_id,
-                                           sender_comp_id,
-                                           response_handler):
-    zmq_context = zmq.Context.instance()
-    request_sender = SingleClientRequestSender(zmq_context,
+def configure_single_client_tes_connection(tes_endpoint: str,
+                                           tes_server_key: str,
+                                           client_id: int,
+                                           sender_comp_id: str,
+                                           response_handler: ResponseHandler):
+    """
+    Set up a TesConnection that comes with request_sender and
+    response_receiver.  Sets the default client_id and sender_comp_id for the
+    request sender.
+    Note that each machine should be assigned a unique sender_comp_id even
+    when the client_id is the same.
+    :param tes_endpoint: (str) The zmq endpoint to connect to TES.
+    :param tes_server_key: (str) The public key of the TES server.
+    :param client_id: (int) The client id assigned by Fund3.
+    :param sender_comp_id: (str) str representation of a unique Python uuid.
+    :param response_handler: (ResponseHandler) The handler object that will
+        be called in a callback function when tes_connection receives a
+        message.
+    :return: tes_connection, request_sender, response_receiver
+    """
+    ZMQ_CONTEXT = zmq.Context.instance()
+    request_sender = SingleClientRequestSender(ZMQ_CONTEXT,
                                                REQUEST_SENDER_ENDPOINT,
                                                client_id,
                                                sender_comp_id)
-    response_receiver = ResponseReceiver(zmq_context,
-                                         RESPONSE_HANDLER_ENDPOINT,
+    response_receiver = ResponseReceiver(ZMQ_CONTEXT,
+                                         RESPONSE_RECEIVER_ENDPOINT,
                                          response_handler)
-    tes_connection = TesConnection(zmq_context,
+    tes_connection = TesConnection(ZMQ_CONTEXT,
                                    tes_endpoint,
                                    REQUEST_SENDER_ENDPOINT,
-                                   RESPONSE_HANDLER_ENDPOINT,
+                                   RESPONSE_RECEIVER_ENDPOINT,
                                    request_sender,
                                    response_receiver,
                                    server_zmq_encryption_key=tes_server_key)

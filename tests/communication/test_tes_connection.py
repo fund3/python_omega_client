@@ -1,4 +1,3 @@
-import binascii
 from queue import Queue
 import time
 
@@ -27,7 +26,7 @@ def fake_request_sender(fake_zmq_context):
     queue = Queue()
     request_sender = RequestSender(
         zmq_context=fake_zmq_context,
-        connection_string=__REQUEST_SENDER_ENDPOINT,
+        zmq_endpoint=__REQUEST_SENDER_ENDPOINT,
         outgoing_message_queue=queue,
     )
     yield request_sender
@@ -38,7 +37,7 @@ def fake_request_sender(fake_zmq_context):
 def fake_response_receiver(fake_zmq_context):
     response_receiver = ResponseReceiver(
         zmq_context=fake_zmq_context,
-        connection_string=__RESPONSE_RECEIVER_ENDPOINT,
+        zmq_endpoint=__RESPONSE_RECEIVER_ENDPOINT,
         response_handler=ResponseHandler()
     )
     yield response_receiver
