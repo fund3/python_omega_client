@@ -12,11 +12,11 @@ import communication_protocol.Exchanges_capnp as exch_capnp
 import communication_protocol.TradeMessage_capnp as msgs_capnp
 # pylint: enable=E0611
 # pylint: enable=E0401
-from tes_client.messaging.common_types import AccountBalancesReport, AccountDataReport, \
-    AccountInfo, Balance, CompletedOrdersReport, Exchange, \
-    ExchangePropertiesReport, ExecutionReport, OpenPosition, \
-    OpenPositionsReport, Order, OrderInfo, OrderType, SymbolProperties, \
-    TimeInForce, WorkingOrdersReport
+from tes_client.messaging.common_types import AccountBalancesReport, \
+    AccountDataReport, AccountInfo, Balance, CompletedOrdersReport, Exchange,\
+    ExchangePropertiesReport, ExecutionReport, ExecutionReportType, \
+    OpenPosition, OpenPositionsReport, Order, OrderInfo, OrderType, \
+    RequestRejected, SymbolProperties, TimeInForce, WorkingOrdersReport
 
 logger = logging.getLogger(__name__)
 
@@ -646,6 +646,45 @@ def _build_py_balance_from_capnp(balance):
     )
 
 
+def _request_rejected_py(request_rejected):
+    return RequestRejected(rejection_code=request_rejected.rejectionCode,
+                           message=request_rejected.message)
+
+
+def _execution_report_type_py(execution_report_type):
+    """
+    Determines rejection message by switching on different rejectionReason
+    types.
+    :param execution_report: (capnp._DynamicStructBuilder) Order object.
+    :return: (ExecutionReportType) ExecutionReportType.
+    """
+    execution_report_type_name = execution_report_type.which()
+    # process rejectionCode
+    # https://github.com/fund3/tes_python_client/issues/40
+    if execution_report_type == 'orderRejected':
+        return ExecutionReportType(
+            name=execution_report_type_name,
+            request_rejected=_request_rejected_py(
+                execution_report_type.orderRejected))
+    elif execution_report_type == 'replaceRejected':
+        return ExecutionReportType(
+            name=execution_report_type_name,
+            request_rejected=_request_rejected_py(
+                execution_report_type.replaceRejected))
+    elif execution_report_type == 'cancelRejected':
+        return ExecutionReportType(
+            name=execution_report_type_name,
+            request_rejected=_request_rejected_py(
+                execution_report_type.cancelRejected))
+    elif execution_report_type == 'statusUpdateRejected':
+        return ExecutionReportType(
+            name=execution_report_type_name,
+            request_rejected=_request_rejected_py(
+                execution_report_type.statusUpdateRejected))
+    else:
+        return ExecutionReportType(name=execution_report_type)
+
+
 def _build_py_execution_report_from_capnp(execution_report):
     """
     Converts a capnp ExecutionReport to Python object.
@@ -671,7 +710,7 @@ def _build_py_execution_report_from_capnp(execution_report):
         order_status=execution_report.orderStatus,
         filled_quantity=execution_report.filledQuantity,
         avg_fill_price=execution_report.avgFillPrice,
-        execution_report_type=execution_report.type.which(),
+        execution_report_type=_execution_report_type_py(execution_report.type),
         rejection_reason=execution_report.rejectionReason
     )
 

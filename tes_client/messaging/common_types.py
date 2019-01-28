@@ -201,12 +201,21 @@ class Order(CommonType):
 
 
 class RequestRejected(CommonType):
-    def __init__(self, message: str = None):
+    def __init__(self, rejection_code: int, message: str):
         """
+        :param rejection_code: (int) Rejection code.
+        :param message: (str) Rejection reason.
+        """
+        self.rejection_code = int(rejection_code)
+        self.message = str(message)
 
-        :param message: str rejection reason
-        """
-        self.message = str(message or '')
+
+class ExecutionReportType(CommonType):
+    def __init__(self, name: str,
+                 request_rejected: RequestRejected = None):
+        self.name = name
+        if request_rejected:
+            self.request_rejected = request_rejected
 
 
 class Balance(CommonType):
