@@ -40,7 +40,7 @@ def main():
         client_order_link_id='test',  # A str to identify and group orders
         symbol='ETH/USD',
         side=Side.sell.name,
-        order_type=OrderType.market.name,
+        order_type=OrderType.market.name,  # Optional param
         quantity=1.1,
         price=0.0,
         time_in_force=TimeInForce.gtc.name,

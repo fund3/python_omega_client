@@ -46,7 +46,7 @@ def main():
     account_id = 2
     api_key = "api_key"
     secret_key = "secret_key"
-    passphrase = "passphrase"
+    passphrase = "passphrase"  # Optional, only for certain exchanges
     credentials = AccountCredentials(AccountInfo(account_id), api_key,
                                      secret_key, passphrase)
 
