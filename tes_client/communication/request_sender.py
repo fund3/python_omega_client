@@ -1,9 +1,10 @@
 import logging
-from threading import Event, Thread
 from queue import Empty, Queue
+from threading import Event, Thread
 import time
 from typing import List
 
+import capnp
 import zmq
 
 from tes_client.messaging.common_types import AccountBalancesReport, \
@@ -26,47 +27,87 @@ logger = logging.getLogger(__name__)
 
 
 class RequestSender(Thread):
+    """
+    Runs as an individual thread to send requests to TesConnection,
+    which then gets routed to TES.  The motivation of the design is different
+    threads should not share zmq sockets, and that the TesConnection event
+    loop should not be blocked.
+
+    When a request is "sent" from this class, it is placed into an internal
+    thread-safe queue.  The request sender loop checks if the queue has a
+    message, and if there is one, sends it to TesConnection through an inproc
+    connection.
+
+    Attributes:
+        _ZMQ_CONTEXT: (zmq.Context) Required to create sockets. It is
+            recommended that one application use one shared zmq context for
+            all sockets.
+        _ZMQ_ENDPOINT: (str) The zmq endpoint to connect to.
+        _QUEUE_POLLING_TIMEOUT_SECONDS: (int) The polling timeout for the
+            internal queue.
+        _outgoing_message_queue: (Queue) Internal message queue for outgoing
+            TES Messages.
+        _is_running: (Event) Event object that indicates on/ off
+            behavior for the response handler loop.
+    """
     def __init__(self,
                  zmq_context: zmq.Context,
-                 connection_string: str,
+                 zmq_endpoint: str,
                  outgoing_message_queue: Queue = None,
                  queue_polling_timeout_seconds: int = 1,
                  name: str='TesRequestSender'):
         assert zmq_context
-        assert connection_string
+        assert zmq_endpoint
 
-        self._zmq_context = zmq_context
-        self._connection_string = connection_string
-        self._outgoing_message_queue = outgoing_message_queue or Queue()
+        self._ZMQ_CONTEXT = zmq_context
+        self._ZMQ_ENDPOINT = zmq_endpoint
         self._QUEUE_POLLING_TIMEOUT_SECONDS = queue_polling_timeout_seconds
 
-        self._running = Event()
+        self._outgoing_message_queue = outgoing_message_queue or Queue()
+
+        self._is_running = Event()
         super().__init__(name=name)
 
-    def _queue_message(self, tes_message_capnp):
+    def _queue_message(self, tes_message_capnp: capnp._DynamicStructBuilder):
+        """
+        Put a capnp message into the internal queue for sending to
+        TesConnection.
+        :param tes_message_capnp:
+        """
         self._outgoing_message_queue.put(tes_message_capnp)
 
     def cleanup(self):
+        """
+        Stop the response receiver gracefully and join the thread.
+        """
         self.stop()
         self.join()
 
     def stop(self):
-        self._running.clear()
+        """
+        Clear the _is_running Event, which terminates the request sender loop.
+        """
+        self._is_running.clear()
+
+    def is_running(self):
+        """
+        Return True if the thread is running, False otherwise.
+        """
+        return self._is_running.is_set()
 
     def run(self):
-        logger.debug('Creating TES Request Sender DEALER socket:',
-                     extra={'action': 'creating_socket',
-                            'socket_type': 'zmq.DEALER',
-                            'name': 'tes_request_sender'})
-        request_socket = self._zmq_context.socket(zmq.DEALER)
-        logger.debug(
-            'Connecting to TES Request Sender DEALER socket:',
-            extra={'action': 'connecting_to_tes_request_sender',
-                   'socket_type': 'zmq.DEALER',
-                   'connection_string': self._connection_string})
-        request_socket.connect(self._connection_string)
-        self._running.set()
-        while self._running.is_set():
+        """
+        Message sending loop.
+        Create the request_socket as a zmq.DEALER socket and then connect to
+        the provided _ZMQ_ENDPOINT.
+
+        Try to get a message for _QUEUE_POLLING_TIMEOUT_SECONDS and then send
+        it out to TesConnection.
+        """
+        request_socket = self._ZMQ_CONTEXT.socket(zmq.DEALER)
+        request_socket.connect(self._ZMQ_ENDPOINT)
+        self._is_running.set()
+        while self._is_running.is_set():
             try:
                 # Block for 1 second
                 capnp_request = self._outgoing_message_queue.get(
@@ -164,10 +205,12 @@ class RequestSender(Thread):
         self._queue_message(tes_message)
         return place_order
 
-    def replace_order(self, account_info: AccountInfo, order_id: str,
-                      client_id: int, sender_comp_id: str,
+    def replace_order(self, account_info: AccountInfo,
+                      order_id: str,
+                      client_id: int,
+                      sender_comp_id: str,
                       # pylint: disable=E1101
-                      order_type: str = OrderType.market.name,
+                      order_type: str = OrderType.undefined.name,
                       quantity: float = -1.0, price: float = -1.0,
                       time_in_force: str = TimeInForce.gtc.name
                       # pylint: enable=E1101
@@ -223,7 +266,7 @@ class RequestSender(Thread):
                              sender_comp_id: str):
         """
         Sends a request to TES for full account snapshot including balances,
-        open positions, and working orders on specified exchange.
+        open positions, and working orders on specified account.
         :param client_id: (int) The assigned client_id.
         :param sender_comp_id: (str) uuid unique to the session the user is
         on.
