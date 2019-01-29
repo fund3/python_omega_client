@@ -211,9 +211,15 @@ class RequestRejected(CommonType):
 
 
 class ExecutionReportType(CommonType):
-    def __init__(self, name: str,
+    def __init__(self,
+                 name: str,
                  request_rejected: RequestRejected = None):
-        self.name = name
+        """
+
+        :param name: (str) Name of the ExecutionReportType.
+        :param request_rejected: RequestRejected object.
+        """
+        self.name = str(name)
         if request_rejected:
             self.request_rejected = request_rejected
 
@@ -285,7 +291,7 @@ class ExecutionReport(CommonType):
                  order_status: str,
                  filled_quantity: float,
                  avg_fill_price: float,
-                 execution_report_type: str,
+                 execution_report_type: ExecutionReportType,
                  rejection_reason: str = None,
                  client_order_link_id: str = None):
         """
@@ -326,7 +332,7 @@ class ExecutionReport(CommonType):
         self.order_status = str(order_status)
         self.filled_quantity = float(filled_quantity)
         self.avg_fill_price = float(avg_fill_price)
-        self.execution_report_type = str(execution_report_type)
+        self.execution_report_type = execution_report_type
         self.rejection_reason = str(rejection_reason or '')
 
 

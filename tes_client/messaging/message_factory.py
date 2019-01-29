@@ -655,34 +655,35 @@ def _execution_report_type_py(execution_report_type):
     """
     Determines rejection message by switching on different rejectionReason
     types.
-    :param execution_report: (capnp._DynamicStructBuilder) Order object.
+    :param execution_report_type: (capnp._DynamicStructBuilder)
+        execution_report_type object.
     :return: (ExecutionReportType) ExecutionReportType.
     """
-    execution_report_type_name = execution_report_type.which()
+    execution_report_type_name = str(execution_report_type.which())
     # process rejectionCode
     # https://github.com/fund3/tes_python_client/issues/40
-    if execution_report_type == 'orderRejected':
+    if execution_report_type_name == 'orderRejected':
         return ExecutionReportType(
             name=execution_report_type_name,
             request_rejected=_request_rejected_py(
                 execution_report_type.orderRejected))
-    elif execution_report_type == 'replaceRejected':
+    elif execution_report_type_name == 'replaceRejected':
         return ExecutionReportType(
             name=execution_report_type_name,
             request_rejected=_request_rejected_py(
                 execution_report_type.replaceRejected))
-    elif execution_report_type == 'cancelRejected':
+    elif execution_report_type_name == 'cancelRejected':
         return ExecutionReportType(
             name=execution_report_type_name,
             request_rejected=_request_rejected_py(
                 execution_report_type.cancelRejected))
-    elif execution_report_type == 'statusUpdateRejected':
+    elif execution_report_type_name == 'statusUpdateRejected':
         return ExecutionReportType(
             name=execution_report_type_name,
             request_rejected=_request_rejected_py(
                 execution_report_type.statusUpdateRejected))
     else:
-        return ExecutionReportType(name=execution_report_type)
+        return ExecutionReportType(name=execution_report_type_name)
 
 
 def _build_py_execution_report_from_capnp(execution_report):

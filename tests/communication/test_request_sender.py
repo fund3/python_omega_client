@@ -57,9 +57,9 @@ def fake_dealer_socket(fake_zmq_context):
 def fake_request_sender_to_router(fake_zmq_context):
     queue = Queue()
     request_sender = RequestSender(
-        connection_string=__FAKE_ROUTER_SOCKET_CONNECTION_STR,
-        outgoing_message_queue=queue,
-        zmq_context=fake_zmq_context
+        zmq_context=fake_zmq_context,
+        zmq_endpoint=__FAKE_ROUTER_SOCKET_CONNECTION_STR,
+        outgoing_message_queue=queue
     )
     request_sender.start()
     yield request_sender
@@ -70,9 +70,9 @@ def fake_request_sender_to_router(fake_zmq_context):
 def fake_request_sender_to_dealer(fake_zmq_context):
     queue = Queue()
     request_sender = RequestSender(
-        connection_string=__FAKE_DEALER_SOCKET_CONNECTION_STR,
-        outgoing_message_queue=queue,
-        zmq_context=fake_zmq_context
+        zmq_context=fake_zmq_context,
+        zmq_endpoint=__FAKE_DEALER_SOCKET_CONNECTION_STR,
+        outgoing_message_queue=queue
     )
     request_sender.start()
     yield request_sender
@@ -83,9 +83,9 @@ def fake_request_sender_to_dealer(fake_zmq_context):
 def fake_request_sender(fake_zmq_context):
     queue = Queue()
     request_sender = RequestSender(
-        connection_string=__FAKE_REQUEST_SENDER_CONNECTION_STR,
-        outgoing_message_queue=queue,
-        zmq_context=fake_zmq_context
+        zmq_context=fake_zmq_context,
+        zmq_endpoint=__FAKE_REQUEST_SENDER_CONNECTION_STR,
+        outgoing_message_queue=queue
     )
     request_sender._queue_message = lambda message: None
     request_sender.start()
