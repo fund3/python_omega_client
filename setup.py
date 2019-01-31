@@ -34,7 +34,7 @@ setup(
     author="dev-fund3",
     author_email='dev@fund3.co',
     url='https://github.com/fund3/python_tes_client',
-    packages=['tes_client'],
+    packages=find_packages(),
     install_requires=requirements,
     zip_safe=False,
     keywords='tes',
