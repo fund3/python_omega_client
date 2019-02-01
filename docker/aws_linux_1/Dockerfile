@@ -1,5 +1,6 @@
 # This Dockerfile does not work on its own. This is just to illustrate
-# installation and setup on AWS Linux 1 instances. You will have to install
+# installation and setup on AWS Linux 1 instances with old gcc.
+# (https://aws.amazon.com/amazon-linux-ami/) You will have to install
 # gcc 4.8+ for this to work.
 FROM centos:6
 
