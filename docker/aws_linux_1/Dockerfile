@@ -1,8 +1,12 @@
-FROM centos:7
+# This Dockerfile does not work on its own. This is just to illustrate
+# installation and setup on AWS Linux 1 instances. You will have to install
+# gcc 4.8+ for this to work.
+FROM centos:6
 
 USER root
+
 RUN yum -y update && yum -y install yum-utils && yum -y groupinstall development
-RUN yum install -y https://centos7.iuscommunity.org/ius-release.rpm && \
+RUN yum install -y https://centos6.iuscommunity.org/ius-release.rpm && \
     yum install -y python36u python36u-pip python36u-devel
 
 RUN ln -s /usr/bin/python3.6 /usr/bin/python3

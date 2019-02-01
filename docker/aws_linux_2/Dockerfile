@@ -1,7 +1,11 @@
 FROM centos:7
 
 USER root
-RUN yum -y update && yum -y install yum-utils && yum -y groupinstall development
+
+RUN yum -y update && yum -y install yum-utils wget && yum -y groupinstall development
+RUN wget http://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm && \
+    rpm -ivh epel-release-latest-7.noarch.rpm
+RUN rm -f epel-release-latest-7.noarch.rpm
 RUN yum install -y https://centos7.iuscommunity.org/ius-release.rpm && \
     yum install -y python36u python36u-pip python36u-devel
 
