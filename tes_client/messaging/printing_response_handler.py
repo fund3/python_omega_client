@@ -9,7 +9,9 @@ logger = logging.getLogger(__name__)
 
 class PrintingResponseHandler(ResponseHandler):
     def on_heartbeat(self, client_id: int, sender_comp_id: str):
-        print(client_id, sender_comp_id)
+        print({'message': 'Heartbeat received!',
+               'client_id': client_id,
+               'sender_comp_id': sender_comp_id})
 
     def on_logon_ack(self,
                      success: bool,
@@ -17,19 +19,23 @@ class PrintingResponseHandler(ResponseHandler):
                      client_accounts: List[int],
                      client_id: int,
                      sender_comp_id: str):
-        print(success, message, client_accounts, client_id, sender_comp_id)
+        print({'success': success,
+               'message': message,
+               'client_accounts': client_accounts,
+               'client_id': client_id,
+               'sender_comp_id': sender_comp_id})
 
     def on_logoff_ack(self,
                       success: bool,
                       message: str,
                       client_id: int,
                       sender_comp_id: str):
-        print(success, message, client_id, sender_comp_id)
+        print({'success': success,
+               'message': message,
+               'client_id': client_id,
+               'sender_comp_id': sender_comp_id})
 
     def on_exec_report(self, report: ExecutionReport,
                        client_id: int,
                        sender_comp_id: str):
-        print('Order executed!')
-        print(report.symbol)
-        print(report.side)
-        print(report.quantity)
+        print({'message': 'Order executed!', 'report': report})

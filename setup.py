@@ -4,15 +4,18 @@ from distutils.command.build import build
 import subprocess
 import os
 
+
 # https://stackoverflow.com/questions/1754966/how-can-i-run-a-makefile-in-setup-py
 class MyInstall(install):
     def run(self):
         install.run(self)
 
+
 class MyBuild(build):
     def run(self):
         # Need to install it like this to avoid conflict with other packages using communication_protocol
-        subprocess.run(['pip', 'install', '.'], cwd=os.path.abspath('./communication_protocol'), check=True)
+        subprocess.run(['pip3', 'install', '.'], cwd=os.path.abspath(
+            './communication_protocol'), check=True)
         build.run(self)
 
 with open('README.md') as readme_file:
