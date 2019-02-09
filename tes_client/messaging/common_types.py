@@ -517,12 +517,6 @@ class AuthorizationGrant(CommonType):
         self.expire_at = float(expire_at)
 
 
-class AuthorizationRefresh(CommonType):
-    def __init__(self,
-                 refresh_token: str):
-        self.refresh_token = str(refresh_token)
-
-
 class LogonAck(CommonType):
     def __init__(self,
                  success: bool,
