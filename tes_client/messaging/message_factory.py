@@ -13,10 +13,12 @@ import communication_protocol.TradeMessage_capnp as msgs_capnp
 # pylint: enable=E0611
 # pylint: enable=E0401
 from tes_client.messaging.common_types import AccountBalancesReport, \
-    AccountDataReport, AccountInfo, Balance, CompletedOrdersReport, Exchange,\
-    ExchangePropertiesReport, ExecutionReport, ExecutionReportType, \
+    AccountDataReport, AccountInfo, AuthorizationGrant, AuthorizationRefresh, \
+    Balance, CompletedOrdersReport, Exchange,ExchangePropertiesReport, \
+    ExecutionReport, ExecutionReportType, LogoffAck, LogonAck, \
     OpenPosition, OpenPositionsReport, Order, OrderInfo, OrderType, \
-    RequestRejected, SymbolProperties, TimeInForce, WorkingOrdersReport
+    RequestRejected, SymbolProperties, SystemMessage, TimeInForce, \
+    WorkingOrdersReport
 
 logger = logging.getLogger(__name__)
 
@@ -36,62 +38,67 @@ EXCHANGE_ENUM_MAPPING = {
 # pylint: enable=E1101
 
 
-def tes_test_message_py(test):
+def tes_test_message_py(test_message):
     """
     TODO: the naming gets rid of 'test' as a function prefix since pytest
     tests all functions with 'test' as a prefix.  Rename this back to
     test_message_py once we have disabled that behavior.
 
     Builds test message Python object from capnp object.
-    :param test: (capnp._DynamicStructBuilder) TestMessage object.
+    :param test_message: (capnp._DynamicStructBuilder) TestMessage object.
     :return: (str) test message.
     """
-    return test.string
+    return test_message.string
 
 
-def system_message_py(system):
+def system_message_py(system_message):
     """
     Builds system message Python object from capnp object.
-    :param system: (capnp._DynamicStructBuilder) system message.
+    :param system_message: (capnp._DynamicStructBuilder) system message.
     :return: (int) error code, (str) system message.
     """
-    return system.errorCode, system.message
+    return SystemMessage(account_info=account_info_py(
+                             system_message.accountInfo),
+                         error_code=system_message.errorCode,
+                         message=system_message.message)
+
+
+def authorization_grant_py(authorization_grant):
+    """
+    Builds AuthorizationGrant Python object from capnp object.
+    :param authorization_grant: (capnp._DynamicStructBuilder)
+        capnp AuthorizationGrant message
+    :return: AuthorizationGrant
+    """
+    return AuthorizationGrant(success=authorization_grant.success,
+                              message=authorization_grant.message,
+                              access_token=authorization_grant.accessToken,
+                              refresh_token=authorization_grant.refreshToken,
+                              expire_at=authorization_grant.expireAt)
 
 
 def logon_ack_py(logon_ack):
     """
-    Builds Logon Python object from capnp object.
+    Builds LogonAck Python object from capnp object.
     :param logon_ack: (capnp._DynamicStructBuilder) LogonAck object.
-    :return: (bool) success, (str) message, (List[int]) clientAccounts.
+    :return: LogonAck
     """
-    if logon_ack.success:
-        logger.debug('Logon success', extra={'status': 'logon_success'})
-    else:
-        logger.debug('Logon failure', extra={'status': 'logon_failure'})
-    logger.debug('logon response: ',
-                 extra={'logon_response': logon_ack.message})
-    client_accounts = list([acct for acct in logon_ack.clientAccounts])
-    logger.debug('client accounts:',
-                 extra={'client_accounts': client_accounts})
-    # NOTE client accounts are not used for now since they are what's
-    #  passed to TES in the 1st place
-    return logon_ack.success, logon_ack.message, client_accounts
+    client_accounts = list([account_info_py(account) for account in
+                            logon_ack.clientAccounts])
+    return LogonAck(success=logon_ack.success,
+                    message=logon_ack.message,
+                    client_accounts=client_accounts,
+                    authorization_grant=authorization_grant_py(
+                        logon_ack.authorizationGrant))
 
 
 def logoff_ack_py(logoff_ack):
     """
-    Builds Logoff Python object from capnp object.
+    Builds LogoffAck Python object from capnp object.
     :param logoff_ack: (capnp._DynamicStructBuilder) LogoffAck object.
-    :return: (bool) success, (str) message.
+    :return: LogoffAck
     """
-    logoff_success = bool(logoff_ack.success)
-    logoff_msg = str(logoff_ack.message)
-    if logoff_success:
-        logger.debug('Logoff success.', extra={'status': 'logoff_success'})
-    else:
-        logger.debug('Logoff failure.', extra={'status': 'logoff_failure'})
-    logger.debug('Logoff message.', extra={'logoff_message': logoff_msg})
-    return logoff_success, logoff_msg
+    return LogoffAck(bool(logoff_ack.success), str(logoff_ack.message))
 
 
 def execution_report_py(execution_report):
@@ -101,54 +108,6 @@ def execution_report_py(execution_report):
         object.
     :return: (ExecutionReport) python object.
     """
-    logger.debug('Execution report:',
-                 extra={'execution_report': execution_report})
-    er_type = execution_report.type.which()
-
-    if er_type == 'orderAccepted':
-        logger.debug('Order accepted.', extra={'er_type': str(er_type)})
-
-    elif er_type == 'orderRejected':
-        oR = execution_report.type.orderRejected
-        logger.debug('Order rejected.',
-                     extra={'er_type': str(er_type),
-                            'rejection_message': str(oR.message),
-                            'rejection_code': str(oR.rejectionCode)})
-
-    elif er_type == 'orderReplaced':
-        oR = execution_report.type.orderReplaced
-        logger.debug('Order replaced.',
-                     extra={'er_type': er_type, 'order_replaced': str(oR)})
-
-    elif er_type == 'replaceRejected':
-        rR = execution_report.type.replaceRejected
-        logger.debug('Replace rejected.',
-                     extra={'er_type': er_type,
-                            'rejection_message': str(rR.message),
-                            'rejection_code': str(rR.rejectionCode)})
-
-    elif er_type == 'orderCanceled':
-        logger.debug('Order cancelled.', extra={'er_type': str(er_type)})
-
-    elif er_type == 'cancelRejected':
-        cR = execution_report.type.cancelRejected
-        logger.debug('Cancel rejected. ',
-                     extra={'er_type': er_type,
-                            'rejection_message': str(cR.message),
-                            'rejection_code': str(cR.rejectionCode)})
-
-    elif er_type == 'orderFilled':
-        logger.debug('Order filled.', extra={'er_type': str(er_type)})
-
-    elif er_type == 'statusUpdate':
-        logger.debug('Status update.', extra={'er_type': str(er_type)})
-
-    elif er_type == 'statusUpdateRejected':
-        sUR = execution_report.type.statusUpdateRejected
-        logger.debug('Status update rejected.',
-                     extra={'er_type': str(er_type),
-                            'rejection_message': str(sUR.message),
-                            'rejection_code': str(sUR.rejectionCode)})
     return _build_py_execution_report_from_capnp(execution_report)
 
 
@@ -167,8 +126,7 @@ def account_data_report_py(account_data_report):
     orders = [_build_py_execution_report_from_capnp(er)
               for er in account_data_report.orders]
     return AccountDataReport(
-        account_info=_build_py_account_info_from_capnp(
-            account_data_report.accountInfo),
+        account_info=account_info_py(account_data_report.accountInfo),
         balances=acct_balances,
         open_positions=open_positions,
         orders=orders
@@ -185,8 +143,7 @@ def account_balances_report_py(account_balances_report):
     acct_balances = [_build_py_balance_from_capnp(ab) for ab in
                      account_balances_report.balances]
     return AccountBalancesReport(
-        account_info=_build_py_account_info_from_capnp(
-            account_balances_report.accountInfo),
+        account_info=account_info_py(account_balances_report.accountInfo),
         balances=acct_balances
     )
 
@@ -201,8 +158,7 @@ def open_positions_report_py(open_position_report):
     open_pos = [_build_py_open_position_from_capnp(op)
                 for op in open_position_report.openPositions]
     return OpenPositionsReport(
-        account_info=_build_py_account_info_from_capnp(
-            open_position_report.accountInfo),
+        account_info=account_info_py(open_position_report.accountInfo),
         open_positions=open_pos
     )
 
@@ -218,8 +174,7 @@ def working_orders_report_py(working_orders_report):
                          for er in working_orders_report.orders]
 
     return WorkingOrdersReport(
-        account_info=_build_py_account_info_from_capnp(
-            working_orders_report.accountInfo),
+        account_info=account_info_py(working_orders_report.accountInfo),
         orders=execution_reports
     )
 
@@ -235,8 +190,7 @@ def completed_orders_report_py(completed_orders_report):
                          for er in completed_orders_report.orders]
 
     return CompletedOrdersReport(
-        account_info=_build_py_account_info_from_capnp(
-            completed_orders_report.accountInfo),
+        account_info=account_info_py(completed_orders_report.accountInfo),
         orders=execution_reports
     )
 
@@ -312,6 +266,34 @@ def heartbeat_capnp(client_id: int, sender_comp_id: str):
     tes_message, body = _generate_tes_request(client_id, sender_comp_id)
     body.heartbeat = None
     return tes_message, body
+
+
+def request_server_time_capnp(client_id: int, sender_comp_id: str):
+    """
+    Generates a capnp getServerTime message.
+    :param client_id: (int) The assigned clientID.
+    :param sender_comp_id: (str) uuid unique to the session the user is on.
+    :return: (capnp._DynamicStructBuilder) heartbeat capnp object.
+    """
+    tes_message, body = _generate_tes_request(client_id, sender_comp_id)
+    body.getServerTime = None
+    return tes_message, body
+
+
+def authorization_refresh_capnp(client_id: int,
+                                sender_comp_id: str,
+                                refresh_token: str):
+    """
+    Generates a capnp authorizationRefresh message.
+    :param client_id: (int) The assigned clientID.
+    :param sender_comp_id: (str) uuid unique to the session the user is on.
+    :param refresh_token: (str) capnp AuthorizationRefresh message.
+    :return: AuthorizationRefresh
+    """
+    tes_message, body = _generate_tes_request(client_id, sender_comp_id)
+    authorization_refresh = body.init('authorizationRefresh')
+    authorization_refresh.refreshToken = refresh_token
+    return tes_message, authorization_refresh
 
 
 def place_order_capnp(
@@ -606,7 +588,7 @@ def _set_logon_credentials(logon, credentials):
     return logon
 
 
-def _build_py_account_info_from_capnp(account_info):
+def account_info_py(account_info):
     """
     Converts a capnp AccountInfo to Python object.
     :param account_info: (capnp._DynamicStructBuilder) AccountInfo object.
@@ -698,7 +680,7 @@ def _build_py_execution_report_from_capnp(execution_report):
         client_order_id=execution_report.clientOrderID,
         client_order_link_id=execution_report.clientOrderLinkID,
         exchange_order_id=execution_report.exchangeOrderID,
-        account_info=_build_py_account_info_from_capnp(
+        account_info=account_info_py(
             execution_report.accountInfo),
         symbol=execution_report.symbol,
         side=execution_report.side,

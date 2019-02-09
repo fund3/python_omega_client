@@ -73,10 +73,12 @@ class ResponseReceiver(Thread):
         """
         self._RESPONSE_HANDLER = response_handler
 
-    def cleanup(self):
+    def cleanup(self, socket):
         """
         Stop the response receiver gracefully and join the thread.
         """
+        time.sleep(2.)
+        socket.close()
         self.stop()
         self.join()
 
@@ -121,8 +123,7 @@ class ResponseReceiver(Thread):
             if socks.get(response_socket) == zmq.POLLIN:
                 message = response_socket.recv()
                 self._handle_binary_tes_message(message)
-        time.sleep(2.)
-        response_socket.close()
+        self.cleanup(response_socket)
 
     def _handle_response(self,
                          response_type: str,

@@ -19,7 +19,7 @@ def _test_message_unpacker(response):
 
 def _system_message_unpacker(response):
     return (
-        *system_message_py(response.body.system),
+        system_message_py(response.body.system),
         response.clientID,
         response.senderCompID
     )
@@ -27,7 +27,7 @@ def _system_message_unpacker(response):
 
 def _logon_ack_message_unpacker(response):
     return (
-        *logon_ack_py(response.body.logonAck),
+        logon_ack_py(response.body.logonAck),
         response.clientID,
         response.senderCompID
     )
@@ -35,7 +35,7 @@ def _logon_ack_message_unpacker(response):
 
 def _logoff_ack_message_unpacker(response):
     return (
-        *logoff_ack_py(response.body.logoffAck),
+        logoff_ack_py(response.body.logoffAck),
         response.clientID,
         response.senderCompID
     )

@@ -12,13 +12,13 @@ from tes_client.messaging.common_types import AccountBalancesReport, \
     CompletedOrdersReport, ExchangePropertiesReport, \
     ExecutionReport, OpenPositionsReport, Order, OrderInfo, \
     OrderType, TimeInForce, WorkingOrdersReport
-from tes_client.messaging.message_factory import cancel_order_capnp, \
-    heartbeat_capnp, logoff_capnp, logon_capnp, place_order_capnp, \
-    replace_order_capnp, request_account_balances_capnp, \
+from tes_client.messaging.message_factory import authorization_refresh_capnp,\
+    cancel_order_capnp, heartbeat_capnp, logoff_capnp, logon_capnp, \
+    place_order_capnp, replace_order_capnp, request_account_balances_capnp, \
     request_account_data_capnp, request_completed_orders_capnp, \
     request_exchange_properties_capnp, request_open_positions_capnp, \
     request_order_mass_status_capnp, request_order_status_capnp, \
-    request_working_orders_capnp
+    request_server_time_capnp, request_working_orders_capnp
 
 logger = logging.getLogger(__name__)
 
@@ -142,9 +142,6 @@ class RequestSender(Thread):
         """
         tes_message, logon = logon_capnp(client_id, sender_comp_id,
                                          credentials)
-        logger.debug('Sending TES logon msg.',
-                     extra={'client_id': client_id,
-                            'sender_comp_id': sender_comp_id})
         self._queue_message(tes_message)
         return logon
 
@@ -157,9 +154,6 @@ class RequestSender(Thread):
         :return: (capnp._DynamicStructBuilder) Logoff capnp object.
         """
         tes_message, body = logoff_capnp(client_id, sender_comp_id)
-        logger.debug('Sending logoff',
-                     extra={'client_id': client_id,
-                            'sender_comp_id': sender_comp_id})
         self._queue_message(tes_message)
         return body
 
@@ -173,9 +167,6 @@ class RequestSender(Thread):
         :return: (capnp._DynamicStructBuilder) heartbeat capnp object.
         """
         tes_message, body = heartbeat_capnp(client_id, sender_comp_id)
-        logger.debug('Sending heartbeat.',
-                     extra={'client_id': client_id,
-                            'sender_comp_id': sender_comp_id})
         self._queue_message(tes_message)
         return body
 
@@ -190,18 +181,6 @@ class RequestSender(Thread):
         """
         tes_message, place_order = place_order_capnp(
             client_id, sender_comp_id, order)
-        logger.debug('Sending Place Order.',
-                     extra={'accountID': order.account_info.account_id,
-                            'clientOrderID': order.client_order_id,
-                            'clientOrderLinkID': order.client_order_link_id,
-                            'symbol': order.symbol,
-                            'side': order.side,
-                            'orderType': order.order_type,
-                            'quantity': str(order.quantity),
-                            'price': str(order.price),
-                            'timeInForce': order.time_in_force,
-                            'leverageType': order.leverage_type,
-                            'leverage': str(order.leverage)})
         self._queue_message(tes_message)
         return place_order
 
@@ -231,12 +210,6 @@ class RequestSender(Thread):
         tes_message, replace_order = replace_order_capnp(
             client_id, sender_comp_id, account_info, order_id, order_type,
             quantity, price, time_in_force)
-        logger.debug('Sending Replace Order ',
-                     extra={'orderID': order_id,
-                            'orderType': order_type,
-                            'quantity': str(quantity),
-                            'price': str(price),
-                            'timeInForce': time_in_force})
         self._queue_message(tes_message)
         return replace_order
 
@@ -256,7 +229,6 @@ class RequestSender(Thread):
         """
         tes_message, cancel_order = cancel_order_capnp(
             client_id, sender_comp_id, account_info, order_id)
-        logger.debug('Cancelling Order.', extra={'order_id': order_id})
         self._queue_message(tes_message)
         return cancel_order
 
@@ -276,8 +248,6 @@ class RequestSender(Thread):
         """
         tes_message, get_account_data = request_account_data_capnp(
             client_id, sender_comp_id, account_info)
-        logger.debug('Requesting Account Data.',
-                     extra={'accountID': str(account_info.account_id)})
         self._queue_message(tes_message)
         return get_account_data
 
@@ -297,8 +267,6 @@ class RequestSender(Thread):
         """
         tes_message, get_open_positions = request_open_positions_capnp(
             client_id, sender_comp_id, account_info)
-        logger.debug('Requesting Open Positions',
-                     extra={'account_id': str(account_info.account_id)})
         self._queue_message(tes_message)
         return get_open_positions
 
@@ -319,8 +287,6 @@ class RequestSender(Thread):
         """
         tes_message, get_account_balances = request_account_balances_capnp(
             client_id, sender_comp_id, account_info)
-        logger.debug('Requesting Account Balances',
-                     extra={'account_id': str(account_info.account_id)})
         self._queue_message(tes_message)
         return get_account_balances
 
@@ -341,8 +307,6 @@ class RequestSender(Thread):
         """
         tes_message, get_working_orders = request_working_orders_capnp(
             client_id, sender_comp_id, account_info)
-        logger.debug('Requesting Working Orders.',
-                     extra={'account_id': str(account_info.account_id)})
         self._queue_message(tes_message)
         return get_working_orders
 
@@ -363,9 +327,6 @@ class RequestSender(Thread):
         """
         tes_message, get_order_status = request_order_status_capnp(
             client_id, sender_comp_id, account_info, order_id)
-        logger.debug('Requesting Order Status.',
-                     extra={'account_id': str(account_info.account_id),
-                            'order_id': order_id})
         self._queue_message(tes_message)
         return get_order_status
 
@@ -395,8 +356,6 @@ class RequestSender(Thread):
         """
         tes_message, get_completed_orders = request_completed_orders_capnp(
             client_id, sender_comp_id, account_info, count, since)
-        logger.debug('Requesting Working Orders.',
-                     extra={'account_id': str(account_info.account_id)})
         self._queue_message(tes_message)
         return get_completed_orders
 
@@ -419,10 +378,6 @@ class RequestSender(Thread):
         """
         tes_message, get_order_mass_status = request_order_mass_status_capnp(
             client_id, sender_comp_id, account_info, order_info)
-        logger.debug('Requesting Mass Order Status.',
-                     extra={'account_id': str(account_info.account_id),
-                            'order_ids': str([oid.order_id for oid in
-                                             order_info])})
         self._queue_message(tes_message)
         return get_order_mass_status
 
@@ -444,7 +399,20 @@ class RequestSender(Thread):
             request_exchange_properties_capnp(client_id,
                                               sender_comp_id,
                                               exchange))
-        logger.debug('Requesting Exchange Properties.',
-                     extra={'exchange': exchange})
         self._queue_message(tes_message)
         return get_exchange_properties
+
+    def request_server_time(self, client_id: int, sender_comp_id: str):
+        tes_message, body = request_server_time_capnp(client_id, sender_comp_id)
+        self._queue_message(tes_message)
+        return body
+
+    def request_authorization_refresh(self, refresh_token: str,
+                                      client_id: int,
+                                      sender_comp_id: str):
+        tes_message, body = authorization_refresh_capnp(
+            client_id, sender_comp_id, refresh_token)
+        self._queue_message(tes_message)
+        return body
+
+    # logon with auth

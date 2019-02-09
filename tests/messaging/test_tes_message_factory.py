@@ -5,14 +5,16 @@ import capnp
 import pytest
 
 from tes_client.messaging.common_types import AccountBalancesReport, \
-    AccountCredentials, AccountDataReport, AccountInfo, Balance, \
-    CompletedOrdersReport, Exchange, ExchangePropertiesReport, \
-    ExecutionReportType, ExecutionReport, LeverageType, OpenPosition, \
-    OpenPositionsReport, Order, OrderInfo, OrderStatus, OrderType, \
-    RequestRejected, Side, SymbolProperties, TimeInForce, WorkingOrdersReport
+    AccountCredentials, AccountDataReport, AccountInfo, AuthorizationGrant, \
+    AuthorizationRefresh, Balance, CompletedOrdersReport, Exchange,  \
+    ExchangePropertiesReport, ExecutionReportType, ExecutionReport, \
+    LeverageType, OpenPosition, OpenPositionsReport, Order, OrderInfo, \
+    OrderStatus, OrderType, RequestRejected, Side, SymbolProperties,  \
+    TimeInForce, WorkingOrdersReport
 import communication_protocol.TradeMessage_capnp as msgs_capnp
 from tes_client.messaging.message_factory import account_balances_report_py, \
-    account_data_report_py, completed_orders_report_py, \
+    account_data_report_py, authorization_grant_py, \
+    authorization_refresh_py, completed_orders_report_py, \
     exchange_properties_report_py, execution_report_py, \
     generate_client_order_id, logoff_ack_py, logon_ack_py, \
     open_positions_report_py, system_message_py, tes_test_message_py, \
@@ -614,3 +616,56 @@ def test_handle_tes_message_test():
         tes_mess.type.response.body.test)
 
     assert test_string == 'test_string'
+
+
+@pytest.mark.test_id(16)
+def test_authorization_grant_py():
+    auth_grant_capnp = msgs_capnp.AuthorizationGrant.new_message()
+    auth_grant_capnp.success = True
+    auth_grant_capnp.message = 'auth successful'
+    auth_grant_capnp.accessToken = 'access_token'
+    auth_grant_capnp.refreshToken = 'refresh_token'
+    auth_grant_capnp.expireAt = 1549618563.0
+
+    expected_auth_grant = AuthorizationGrant(True,
+                                             'auth successful',
+                                             'access_token',
+                                             'refresh_token',
+                                             1549618563.0)
+    assert authorization_grant_py(auth_grant_capnp) == expected_auth_grant
+
+
+@pytest.mark.test_id(17)
+def test_heartbeat_capnp():
+    tes_mess = msgs_capnp.TradeMessage.new_message()
+    heartbeat_req = tes_mess.init('type').init('request')
+    heartbeat_req.clientID = 123
+    heartbeat_req.senderCompID = str(987)
+    body = heartbeat_req.init('body')
+    body.heartbeat = None
+
+    assert heartbeat_capnp(123, '987') == tes_mess
+
+
+@pytest.mark.test_id(18)
+def test_request_server_time_capnp():
+    tes_message = msgs_capnp.TradeMessage.new_message()
+    request_server_time = tes_message.init('type').init('request')
+    request_server_time.clientID = 123
+    request_server_time.senderCompID = str(987)
+    body = request_server_time.init('body')
+    body.getServerTime = None
+
+    assert request_server_time(123, '987') == tes_message
+
+
+@pytest.mark.test_id(19)
+def test_request_authorization_refresh():
+    tes_message = msgs_capnp.TradeMessage.new_message()
+    request_auth_refresh = tes_message.init('type').init('request')
+    request_auth_refresh.clientID = 123
+    request_auth_refresh.senderCompID = str(987)
+    body = request_auth_refresh.init('body')
+    body.refreshToken = 'refresh_token'
+
+    assert request_auth_refresh(123, '987', 'refresh_token') == tes_message

@@ -473,3 +473,28 @@ def test_request_exchange_properties_invalid_case(fake_request_sender):
     )
     assert type(exch_prop) == capnp.lib.capnp._DynamicStructBuilder
     assert exch_prop.exchange == exch_capnp.Exchange.undefined
+
+
+"""
+############################################################################
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ End Margin Support ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+############################################################################
+"""
+
+
+@pytest.mark.test_id(20)
+def test_request_server_time(fake_request_sender):
+    request_server_time = fake_request_sender.request_server_time(
+        client_id=0, sender_comp_id='asdf')
+    assert type(request_server_time) == capnp.lib.capnp._DynamicStructBuilder
+    assert request_server_time.getServerTime is None
+
+
+@pytest.mark.test_id(21)
+def test_request_authorization_refresh(fake_request_sender):
+    request_auth_refresh = fake_request_sender.request_authorization_refresh(
+        refresh_token='refresh_token', client_id=0, sender_comp_id='asdf')
+    assert type(request_auth_refresh) == capnp.lib.capnp._DynamicStructBuilder
+    assert request_auth_refresh.refreshToken == 'refresh_token'
