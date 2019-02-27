@@ -21,6 +21,7 @@ class ResponseHandler:
         self._command_dispatcher = {
             'heartbeat': self.on_heartbeat,
             'test': self.on_test_message,
+            'serverTime': self.on_server_time,
             'system': self.on_system_message,
             'logonAck': self.on_logon_ack,
             'logoffAck': self.on_logoff_ack,
@@ -53,6 +54,18 @@ class ResponseHandler:
         """
         Override in subclass to handle TES test message response.
         :param string: (str) Test message from TES.
+        :param client_id: (int) client_id of the response.
+        :param sender_comp_id: (str) sender_comp_id of the response.
+        """
+
+    @abstractmethod
+    def on_server_time(self,
+                       server_time: float,
+                       client_id: int,
+                       sender_comp_id: str):
+        """
+        Override in subclass to handle TES test message response.
+        :param server_time: (float) Server time from TES.
         :param client_id: (int) client_id of the response.
         :param sender_comp_id: (str) sender_comp_id of the response.
         """

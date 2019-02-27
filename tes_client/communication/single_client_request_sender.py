@@ -31,10 +31,13 @@ class SingleClientRequestSender(RequestSender):
 
     ############################################################################
     """
-    def logon(self, credentials: List[AccountCredentials],
+    def logon(self,
+              client_secret: str,
+              credentials: List[AccountCredentials],
               client_id: int = None,
               sender_comp_id: str = None):
-        return super().logon(credentials, self._client_id, self._sender_comp_id)
+        return super().logon(client_secret, credentials, self._client_id,
+                             self._sender_comp_id)
 
     def logoff(self, client_id: int = None, sender_comp_id: str = None):
         return super().logoff(self._client_id, self._sender_comp_id)

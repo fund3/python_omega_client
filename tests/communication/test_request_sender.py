@@ -27,6 +27,9 @@ TEST_ZMQ_ENCRYPTION_KEY = b'encryptionkeyencryptionkeyencryptionkeye'
 __FAKE_ROUTER_SOCKET_CONNECTION_STR = 'inproc://FAKE_ROUTER_SOCKET'
 __FAKE_DEALER_SOCKET_CONNECTION_STR = 'inproc://FAKE_DEALER_SOCKET'
 __FAKE_REQUEST_SENDER_CONNECTION_STR = 'inproc://FAKE_REQUEST_SENDER'
+__FAKE_CLIENT_SECRET = ('2B24_ih9IFVdWgxR2sEA3rj0fKlY212Ec_TwTNVCD663ktYb1' +
+                        'ABPz4qJy0Ouze6O9vgdueei0XmZ6uGGFM34nw')
+__FAKE_ACCESS_TOKEN = 'FakeAccessToken'
 
 # TODO: Integration Testing
 
@@ -61,6 +64,7 @@ def fake_request_sender_to_router(fake_zmq_context):
         zmq_endpoint=__FAKE_ROUTER_SOCKET_CONNECTION_STR,
         outgoing_message_queue=queue
     )
+    request_sender._access_token = __FAKE_ACCESS_TOKEN
     request_sender.start()
     yield request_sender
     request_sender.cleanup()
@@ -74,6 +78,7 @@ def fake_request_sender_to_dealer(fake_zmq_context):
         zmq_endpoint=__FAKE_DEALER_SOCKET_CONNECTION_STR,
         outgoing_message_queue=queue
     )
+    request_sender._access_token = __FAKE_ACCESS_TOKEN
     request_sender.start()
     yield request_sender
     request_sender.cleanup()
@@ -88,6 +93,7 @@ def fake_request_sender(fake_zmq_context):
         outgoing_message_queue=queue
     )
     request_sender._queue_message = lambda message: None
+    request_sender._access_token = __FAKE_ACCESS_TOKEN
     request_sender.start()
     yield request_sender
     request_sender.cleanup()
@@ -96,7 +102,7 @@ def fake_request_sender(fake_zmq_context):
 @pytest.mark.test_id(1)
 def test_message_sending_to_dealer(fake_dealer_socket,
                                    fake_request_sender_to_dealer):
-    tes_message, body = heartbeat_capnp(123, '987')
+    tes_message, body = heartbeat_capnp(123, '987', __FAKE_ACCESS_TOKEN)
     fake_request_sender_to_dealer.send_heartbeat(123, '987')
     received_message = fake_dealer_socket.recv()
     assert received_message == tes_message.to_bytes()
@@ -105,7 +111,7 @@ def test_message_sending_to_dealer(fake_dealer_socket,
 @pytest.mark.test_id(2)
 def test_message_sending_to_router(fake_router_socket,
                                    fake_request_sender_to_router):
-    tes_message, body = heartbeat_capnp(123, '987')
+    tes_message, body = heartbeat_capnp(123, '987', __FAKE_ACCESS_TOKEN)
     fake_request_sender_to_router.send_heartbeat(123, '987')
     identity, received_message = fake_router_socket.recv_multipart()
     assert received_message == tes_message.to_bytes()
@@ -218,9 +224,12 @@ def test_tes_logon(fake_request_sender):
         )
     ]
     fake_request_sender._tes_credentials = creds
-    logon = fake_request_sender.logon(credentials=creds, client_id=0,
-                                      sender_comp_id='asdf')
+    logon = fake_request_sender.logon(credentials=creds,
+                                      client_id=0,
+                                      sender_comp_id='asdf',
+                                      client_secret=__FAKE_CLIENT_SECRET)
     assert type(logon) == capnp.lib.capnp._DynamicStructBuilder
+    assert logon.clientSecret == __FAKE_CLIENT_SECRET
     assert logon.credentials[0].accountInfo.accountID == 100
     assert logon.credentials[0].apiKey == 'fakeApiKey'
     assert logon.credentials[0].secretKey == 'fakeSecret'
@@ -246,9 +255,12 @@ def test_tes_logon(fake_request_sender):
         )
     ]
     fake_request_sender._tes_credentials = creds1
-    logon1 = fake_request_sender.logon(credentials=creds1, client_id=0,
-                                       sender_comp_id='asdf')
+    logon1 = fake_request_sender.logon(credentials=creds1,
+                                       client_id=0,
+                                       sender_comp_id='asdf',
+                                       client_secret=__FAKE_CLIENT_SECRET)
     assert type(logon) == capnp.lib.capnp._DynamicStructBuilder
+    assert logon.clientSecret == __FAKE_CLIENT_SECRET
     assert logon1.credentials[0].accountInfo.accountID == 100
     assert logon1.credentials[0].apiKey == 'fakeApiKey'
     assert logon1.credentials[0].secretKey == 'fakeSecret'
@@ -266,7 +278,8 @@ def test_tes_logon(fake_request_sender):
         ]
         fake_request_sender._tes_credentials = creds2
         logon2 = fake_request_sender.logon(credentials=creds2, client_id=0,
-                                           sender_comp_id='asdf')
+                                           sender_comp_id='asdf',
+                                           client_secret=__FAKE_CLIENT_SECRET)
 
     # logon missing apiSecret - Attribute Error
     with pytest.raises(Exception or AttributeError):
@@ -278,7 +291,8 @@ def test_tes_logon(fake_request_sender):
         ]
         fake_request_sender._tes_credentials = creds3
         logon3 = fake_request_sender.logon(credentials=creds3, client_id=0,
-                                           sender_comp_id='asdf')
+                                           sender_comp_id='asdf',
+                                           client_secret=__FAKE_CLIENT_SECRET)
     fake_request_sender._tes_credentials = TEST_ACCOUNT_CREDS_1
 
 
@@ -490,11 +504,3 @@ def test_request_server_time(fake_request_sender):
         client_id=0, sender_comp_id='asdf')
     assert type(request_server_time) == capnp.lib.capnp._DynamicStructBuilder
     assert request_server_time.getServerTime is None
-
-
-@pytest.mark.test_id(21)
-def test_request_authorization_refresh(fake_request_sender):
-    request_auth_refresh = fake_request_sender.request_authorization_refresh(
-        refresh_token='refresh_token', client_id=0, sender_comp_id='asdf')
-    assert type(request_auth_refresh) == capnp.lib.capnp._DynamicStructBuilder
-    assert request_auth_refresh.refreshToken == 'refresh_token'

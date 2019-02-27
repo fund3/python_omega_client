@@ -24,6 +24,9 @@ TEST_CLIENT_ID = 123
 TEST_SENDER_COMP_ID = str(987)
 TEST_ZMQ_ENCRYPTION_KEY = b'encryptionkeyencryptionkeyencryptionkeye'
 __FAKE_REQUEST_SENDER_CONNECTION_STR = 'inproc://FAKE_REQUEST_SENDER'
+__FAKE_ACCESS_TOKEN = 'FakeAccessToken'
+__FAKE_CLIENT_SECRET = ('2B24_ih9IFVdWgxR2sEA3rj0fKlY212Ec_TwTNVCD663ktYb1' +
+                        'ABPz4qJy0Ouze6O9vgdueei0XmZ6uGGFM34nw')
 
 
 @pytest.fixture(scope="session")
@@ -41,6 +44,7 @@ def fake_request_sender(fake_zmq_context):
         sender_comp_id=TEST_SENDER_COMP_ID
     )
     request_sender._queue_message = lambda message: None
+    request_sender._access_token = __FAKE_ACCESS_TOKEN
     request_sender.start()
     yield request_sender
     request_sender.cleanup()
@@ -147,7 +151,8 @@ def test_tes_logon(fake_request_sender):
         )
     ]
     fake_request_sender._tes_credentials = creds
-    logon = fake_request_sender.logon(credentials=creds)
+    logon = fake_request_sender.logon(credentials=creds,
+                                      client_secret=__FAKE_CLIENT_SECRET)
     assert type(logon) == capnp.lib.capnp._DynamicStructBuilder
     assert logon.credentials[0].accountInfo.accountID == 100
     assert logon.credentials[0].apiKey == 'fakeApiKey'
@@ -174,7 +179,8 @@ def test_tes_logon(fake_request_sender):
         )
     ]
     fake_request_sender._tes_credentials = creds1
-    logon1 = fake_request_sender.logon(credentials=creds1)
+    logon1 = fake_request_sender.logon(credentials=creds1,
+                                       client_secret=__FAKE_CLIENT_SECRET)
     assert type(logon) == capnp.lib.capnp._DynamicStructBuilder
     assert logon1.credentials[0].accountInfo.accountID == 100
     assert logon1.credentials[0].apiKey == 'fakeApiKey'
@@ -192,7 +198,8 @@ def test_tes_logon(fake_request_sender):
             )
         ]
         fake_request_sender._tes_credentials = creds2
-        logon2 = fake_request_sender.logon(credentials=creds2)
+        logon2 = fake_request_sender.logon(credentials=creds2,
+                                           client_secret=__FAKE_CLIENT_SECRET)
 
     # logon missing apiSecret - Attribute Error
     with pytest.raises(Exception or AttributeError):
@@ -203,7 +210,8 @@ def test_tes_logon(fake_request_sender):
             )
         ]
         fake_request_sender._tes_credentials = creds3
-        logon3 = fake_request_sender.logon(credentials=creds3)
+        logon3 = fake_request_sender.logon(credentials=creds3,
+                                           client_secret=__FAKE_CLIENT_SECRET)
     fake_request_sender._tes_credentials = TEST_ACCOUNT_CREDS_1
 
 

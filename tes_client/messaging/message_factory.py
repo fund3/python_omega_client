@@ -13,12 +13,12 @@ import communication_protocol.TradeMessage_capnp as msgs_capnp
 # pylint: enable=E0611
 # pylint: enable=E0401
 from tes_client.messaging.common_types import AccountBalancesReport, \
-    AccountDataReport, AccountInfo, AuthorizationGrant, AuthorizationRefresh, \
-    Balance, CompletedOrdersReport, Exchange,ExchangePropertiesReport, \
-    ExecutionReport, ExecutionReportType, LogoffAck, LogonAck, \
-    OpenPosition, OpenPositionsReport, Order, OrderInfo, OrderType, \
-    RequestRejected, SymbolProperties, SystemMessage, TimeInForce, \
-    WorkingOrdersReport
+    AccountCredentials, AccountDataReport, AccountInfo, AuthorizationGrant, \
+    Balance, CompletedOrdersReport, Exchange,\
+    ExchangePropertiesReport, ExecutionReport, ExecutionReportType, \
+    LogoffAck,  LogonAck, OpenPosition, OpenPositionsReport, Order, \
+    OrderInfo,  OrderType, RequestRejected, SymbolProperties, SystemMessage, \
+    TimeInForce, WorkingOrdersReport
 
 logger = logging.getLogger(__name__)
 
@@ -227,88 +227,94 @@ def exchange_properties_report_py(exchange_properties_report):
     )
 
 
-def logon_capnp(client_id: int, sender_comp_id: str, credentials):
+def logon_capnp(client_id: int,
+                sender_comp_id: str,
+                client_secret: str,
+                credentials: List[AccountCredentials]):
     """
     Generates a capnp Logon message with a specific clientID and set of
     credentials.
-    :param credentials: (List[AccountCredentials]) List of exchange
-        credentials in the form of AccountCredentials.
     :param client_id: (int) The assigned clientID.
     :param sender_comp_id: (str) uuid unique to the session the user is on.
+    :param client_secret: (str) client_secret key assigned by Fund3.
+    :param credentials: (List[AccountCredentials]) List of exchange
+        credentials in the form of AccountCredentials.
     :return: (capnp._DynamicStructBuilder) Logon capnp object.
     """
-    tes_message, body = _generate_tes_request(client_id, sender_comp_id)
+    tes_message, body = _generate_tes_request(client_id=client_id,
+                                              sender_comp_id=sender_comp_id,
+                                              access_token="")
     logon = body.init('logon')
+    logon.clientSecret = client_secret
     logon.init('credentials', len(credentials))
     logon = _set_logon_credentials(logon, credentials)
     return tes_message, logon
 
 
-def logoff_capnp(client_id: int, sender_comp_id: str):
+def logoff_capnp(client_id: int, sender_comp_id: str, access_token: str):
     """
     Generates a capnp Logoff message with a specific clientID.
     :param client_id: (int) The assigned clientID.
     :param sender_comp_id: (str) uuid unique to the session the user is on.
+    :param access_token: (str) Access token granted by TES.
     :return: (capnp._DynamicStructBuilder) Logoff capnp object.
     """
-    tes_message, body = _generate_tes_request(client_id, sender_comp_id)
+    tes_message, body = _generate_tes_request(client_id=client_id,
+                                              sender_comp_id=sender_comp_id,
+                                              access_token=access_token)
     body.logoff = None
     return tes_message, body
 
 
-def heartbeat_capnp(client_id: int, sender_comp_id: str):
+def heartbeat_capnp(client_id: int, sender_comp_id: str, access_token: str):
     """
     Generates a capnp heartbeat message.
     :param client_id: (int) The assigned clientID.
     :param sender_comp_id: (str) uuid unique to the session the user is on.
+    :param access_token: (str) Access token granted by TES.
     :return: (capnp._DynamicStructBuilder) heartbeat capnp object.
     """
-    tes_message, body = _generate_tes_request(client_id, sender_comp_id)
+    tes_message, body = _generate_tes_request(client_id=client_id,
+                                              sender_comp_id=sender_comp_id,
+                                              access_token=access_token)
     body.heartbeat = None
     return tes_message, body
 
 
-def request_server_time_capnp(client_id: int, sender_comp_id: str):
+def request_server_time_capnp(client_id: int,
+                              sender_comp_id: str,
+                              access_token: str):
     """
     Generates a capnp getServerTime message.
     :param client_id: (int) The assigned clientID.
     :param sender_comp_id: (str) uuid unique to the session the user is on.
+    :param access_token: (str) Access token granted by TES.
     :return: (capnp._DynamicStructBuilder) heartbeat capnp object.
     """
-    tes_message, body = _generate_tes_request(client_id, sender_comp_id)
+    tes_message, body = _generate_tes_request(client_id=client_id,
+                                              sender_comp_id=sender_comp_id,
+                                              access_token=access_token)
     body.getServerTime = None
     return tes_message, body
-
-
-def authorization_refresh_capnp(client_id: int,
-                                sender_comp_id: str,
-                                refresh_token: str):
-    """
-    Generates a capnp authorizationRefresh message.
-    :param client_id: (int) The assigned clientID.
-    :param sender_comp_id: (str) uuid unique to the session the user is on.
-    :param refresh_token: (str) capnp AuthorizationRefresh message.
-    :return: AuthorizationRefresh
-    """
-    tes_message, body = _generate_tes_request(client_id, sender_comp_id)
-    authorization_refresh = body.init('authorizationRefresh')
-    authorization_refresh.refreshToken = refresh_token
-    return tes_message, authorization_refresh
 
 
 def place_order_capnp(
         client_id: int,
         sender_comp_id: str,
+        access_token: str,
         order: Order):
     """
     Generates a capnp placeOrder message from an Order.
     :param client_id: (int) The assigned clientID.
     :param sender_comp_id: (str) uuid unique to the session the user is on.
+    :param access_token: (str) Access token granted by TES.
     :param order: (Order) Python object from tes_client.common_types.
     :return: (capnp._DynamicStructBuilder) TradeMessage capnp object,
              (capnp._DynamicStructBuilder) placeOrder capnp object.
     """
-    tes_message, body = _generate_tes_request(client_id, sender_comp_id)
+    tes_message, body = _generate_tes_request(client_id=client_id,
+                                              sender_comp_id=sender_comp_id,
+                                              access_token=access_token)
     place_order = body.init('placeOrder')
     acct = place_order.init('accountInfo')
     acct.accountID = order.account_info.account_id
@@ -328,6 +334,7 @@ def place_order_capnp(
 def replace_order_capnp(
         client_id: int,
         sender_comp_id: str,
+        access_token: str,
         account_info: AccountInfo,
         order_id: str,
         # pylint: disable=E1101
@@ -341,6 +348,7 @@ def replace_order_capnp(
     Generates a request to TES to replace an order.
     :param client_id: (int) The assigned clientID.
     :param sender_comp_id: (str) uuid unique to the session the user is on.
+    :param access_token: (str) Access token granted by TES.
     :param account_info: (AccountInfo) Account on which to cancel order.
     :param order_id: (str) orderID as returned from the ExecutionReport.
     :param order_type: (OrderType) (OPTIONAL)
@@ -350,7 +358,9 @@ def replace_order_capnp(
     :return: (capnp._DynamicStructBuilder) TradeMessage capnp object,
              (capnp._DynamicStructBuilder) replaceOrder capnp object.
     """
-    tes_message, body = _generate_tes_request(client_id, sender_comp_id)
+    tes_message, body = _generate_tes_request(client_id=client_id,
+                                              sender_comp_id=sender_comp_id,
+                                              access_token=access_token)
     replace_order = body.init('replaceOrder')
     acct = replace_order.init('accountInfo')
     acct.accountID = account_info.account_id
@@ -370,18 +380,22 @@ def replace_order_capnp(
 def cancel_order_capnp(
         client_id: int,
         sender_comp_id: str,
+        access_token: str,
         account_info: AccountInfo,
         order_id: str):
     """
     Generates a capnp cancelOrder message.
     :param client_id: (int) The assigned clientID.
     :param sender_comp_id: (str) uuid unique to the session the user is on.
+    :param access_token: (str) Access token granted by TES.
     :param account_info: (AccountInfo) Account on which to cancel order.
     :param order_id: (str) order_id as returned from the ExecutionReport.
     :return: (capnp._DynamicStructBuilder) TradeMessage capnp object,
              (capnp._DynamicStructBuilder) cancelOrder capnp object.
     """
-    tes_message, body = _generate_tes_request(client_id, sender_comp_id)
+    tes_message, body = _generate_tes_request(client_id=client_id,
+                                              sender_comp_id=sender_comp_id,
+                                              access_token=access_token)
     cancel_order = body.init('cancelOrder')
     acct = cancel_order.init('accountInfo')
     acct.accountID = account_info.account_id
@@ -392,17 +406,21 @@ def cancel_order_capnp(
 def request_account_data_capnp(
         client_id: int,
         sender_comp_id: str,
+        access_token: str,
         account_info: AccountInfo):
     """
     Generates a request to TES for full account snapshot including balances,
     open positions, and working orders.
     :param client_id: (int) The assigned clientID.
     :param sender_comp_id: (str) uuid unique to the session the user is on.
+    :param access_token: (str) Access token granted by TES.
     :param account_info: (AccountInfo) Account from which to retrieve data.
     :return: (capnp._DynamicStructBuilder) TradeMessage capnp object,
              (capnp._DynamicStructBuilder) getAccountData capnp object.
     """
-    tes_message, body = _generate_tes_request(client_id, sender_comp_id)
+    tes_message, body = _generate_tes_request(client_id=client_id,
+                                              sender_comp_id=sender_comp_id,
+                                              access_token=access_token)
     get_account_data = body.init('getAccountData')
     acct = get_account_data.init('accountInfo')
     acct.accountID = account_info.account_id
@@ -412,16 +430,20 @@ def request_account_data_capnp(
 def request_open_positions_capnp(
         client_id: int,
         sender_comp_id: str,
+        access_token: str,
         account_info: AccountInfo):
     """
     Send a request to TES for open positions on an Account.
     :param client_id: (int) The assigned clientID.
     :param sender_comp_id: (str) uuid unique to the session the user is on.
+    :param access_token: (str) Access token granted by TES.
     :param account_info: (AccountInfo) Account from which to retrieve data.
     :return: (capnp._DynamicStructBuilder) TradeMessage capnp object,
              (capnp._DynamicStructBuilder) getOpenPositions capnp object.
     """
-    tes_message, body = _generate_tes_request(client_id, sender_comp_id)
+    tes_message, body = _generate_tes_request(client_id=client_id,
+                                              sender_comp_id=sender_comp_id,
+                                              access_token=access_token)
     get_open_positions = body.init('getOpenPositions')
     acct = get_open_positions.init('accountInfo')
     acct.accountID = account_info.account_id
@@ -431,17 +453,21 @@ def request_open_positions_capnp(
 def request_account_balances_capnp(
         client_id: int,
         sender_comp_id: str,
+        access_token: str,
         account_info: AccountInfo):
     """
     Generates a request to TES for full account balances snapshot on an
     Account.
     :param client_id: (int) The assigned clientID.
     :param sender_comp_id: (str) uuid unique to the session the user is on.
+    :param access_token: (str) Access token granted by TES.
     :param account_info: (AccountInfo) Account from which to retrieve data.
     :return: (capnp._DynamicStructBuilder) TradeMessage capnp object,
              (capnp._DynamicStructBuilder) getAccountBalances capnp object.
     """
-    tes_message, body = _generate_tes_request(client_id, sender_comp_id)
+    tes_message, body = _generate_tes_request(client_id=client_id,
+                                              sender_comp_id=sender_comp_id,
+                                              access_token=access_token)
     get_account_balances = body.init('getAccountBalances')
     acct = get_account_balances.init('accountInfo')
     acct.accountID = account_info.account_id
@@ -451,16 +477,20 @@ def request_account_balances_capnp(
 def request_working_orders_capnp(
         client_id: int,
         sender_comp_id: str,
+        access_token: str,
         account_info: AccountInfo):
     """
     Generates a request to TES for all working orders snapshot on an Account.
     :param client_id: (int) The assigned clientID.
     :param sender_comp_id: (str) uuid unique to the session the user is on.
+    :param access_token: (str) Access token granted by TES.
     :param account_info: (AccountInfo) Account from which to retrieve data.
     :return: (capnp._DynamicStructBuilder) TradeMessage capnp object,
              (capnp._DynamicStructBuilder) getWorkingOrders capnp object.
     """
-    tes_message, body = _generate_tes_request(client_id, sender_comp_id)
+    tes_message, body = _generate_tes_request(client_id=client_id,
+                                              sender_comp_id=sender_comp_id,
+                                              access_token=access_token)
     get_working_orders = body.init('getWorkingOrders')
     acct = get_working_orders.init('accountInfo')
     acct.accountID = account_info.account_id
@@ -470,18 +500,22 @@ def request_working_orders_capnp(
 def request_order_status_capnp(
         client_id: int,
         sender_comp_id: str,
+        access_token: str,
         account_info: AccountInfo,
         order_id: str):
     """
     Generates a request to TES to request status of a specific order.
     :param client_id: (int) The assigned clientID.
     :param sender_comp_id: (str) uuid unique to the session the user is on.
+    :param access_token: (str) Access token granted by TES.
     :param account_info: (AccountInfo) Account from which to retrieve data.
     :param order_id: (str) The id of the order of interest.
     :return: (capnp._DynamicStructBuilder) TradeMessage capnp object,
              (capnp._DynamicStructBuilder) getOrderStatus capnp object.
     """
-    tes_message, body = _generate_tes_request(client_id, sender_comp_id)
+    tes_message, body = _generate_tes_request(client_id=client_id,
+                                              sender_comp_id=sender_comp_id,
+                                              access_token=access_token)
     get_order_status = body.init('getOrderStatus')
     acct = get_order_status.init('accountInfo')
     acct.accountID = account_info.account_id
@@ -492,6 +526,7 @@ def request_order_status_capnp(
 def request_completed_orders_capnp(
         client_id: int,
         sender_comp_id: str,
+        access_token: str,
         account_info: AccountInfo,
         count: int = None,
         since: float = None):
@@ -500,6 +535,7 @@ def request_completed_orders_capnp(
     If both 'count' and 'from_unix' are None, returns orders for last 24h.
     :param client_id: (int) The assigned clientID.
     :param sender_comp_id: (str) uuid unique to the session the user is on.
+    :param access_token: (str) Access token granted by TES.
     :param account_info: (AccountInfo) Account from which to retrieve data.
     :param count: (int) optional, number of returned orders (most recent
         ones).
@@ -508,7 +544,9 @@ def request_completed_orders_capnp(
     :return: (capnp._DynamicStructBuilder) TradeMessage capnp object,
              (capnp._DynamicStructBuilder) getCompletedOrders capnp object.
     """
-    tes_message, body = _generate_tes_request(client_id, sender_comp_id)
+    tes_message, body = _generate_tes_request(client_id=client_id,
+                                              sender_comp_id=sender_comp_id,
+                                              access_token=access_token)
     get_completed_orders = body.init('getCompletedOrders')
     acct = get_completed_orders.init('accountInfo')
     acct.accountID = account_info.account_id
@@ -522,18 +560,22 @@ def request_completed_orders_capnp(
 def request_order_mass_status_capnp(
         client_id: int,
         sender_comp_id: str,
+        access_token: str,
         account_info: AccountInfo,
         order_info: List[OrderInfo]):
     """
     Generates a request to TES for status of multiple orders.
     :param client_id: (int) The assigned clientID.
     :param sender_comp_id: (str) uuid unique to the session the user is on.
+    :param access_token: (str) Access token granted by TES.
     :param account_info: (AccountInfo) Account from which to retrieve data.
     :param order_info: (List[OrderInfo]) List of orderIDs to get status updates.
     :return: (capnp._DynamicStructBuilder) TradeMessage capnp object,
              (capnp._DynamicStructBuilder) getOrderMassStatus capnp object.
     """
-    tes_message, body = _generate_tes_request(client_id, sender_comp_id)
+    tes_message, body = _generate_tes_request(client_id=client_id,
+                                              sender_comp_id=sender_comp_id,
+                                              access_token=access_token)
     get_order_mass_status = body.init('getOrderMassStatus')
     acct = get_order_mass_status.init('accountInfo')
     acct.accountID = account_info.account_id
@@ -546,17 +588,21 @@ def request_order_mass_status_capnp(
 def request_exchange_properties_capnp(
         client_id: int,
         sender_comp_id: str,
+        access_token: str,
         exchange: str):
     """
     Generates a request to TES for supported currencies, symbols and their
     associated properties, timeInForces, and orderTypes on an exchange.
     :param client_id: (int) The assigned clientID.
     :param sender_comp_id: (str) uuid unique to the session the user is on.
+    :param access_token: (str) Access token granted by TES.
     :param exchange: (str) The exchange of interest.
     :return: (capnp._DynamicStructBuilder) TradeMessage capnp object,
              (capnp._DynamicStructBuilder) getExchangeProperties capnp object.
     """
-    tes_message, body = _generate_tes_request(client_id, sender_comp_id)
+    tes_message, body = _generate_tes_request(client_id=client_id,
+                                              sender_comp_id=sender_comp_id,
+                                              access_token=access_token)
     get_exchange_properties = body.init('getExchangeProperties')
     get_exchange_properties.exchange = EXCHANGE_ENUM_MAPPING.get(
         exchange, exch_capnp.Exchange.undefined)
@@ -735,7 +781,9 @@ def _determine_order_price(order_price: float, order_type: str):
     return order_price
 
 
-def _generate_tes_request(client_id: int, sender_comp_id: str):
+def _generate_tes_request(client_id: int,
+                          sender_comp_id: str,
+                          access_token: str):
     """
     Generates an empty TES request from TradeMessage.capnp.
     :param client_id: (int) The assigned clientID.
@@ -750,6 +798,7 @@ def _generate_tes_request(client_id: int, sender_comp_id: str):
     request = tes_message.init('type').init('request')
     request.clientID = client_id
     request.senderCompID = sender_comp_id
+    request.accessToken = access_token
     body = request.init('body')
     return tes_message, body
 

@@ -17,6 +17,14 @@ def _test_message_unpacker(response):
     )
 
 
+def _server_time_message_unpacker(response):
+    return (
+        response.body.serverTime,
+        response.clientID,
+        response.senderCompID
+    )
+
+
 def _system_message_unpacker(response):
     return (
         system_message_py(response.body.system),
@@ -101,6 +109,7 @@ def _exchange_properties_report_message_unpacker(response):
 _tes_response_unpacker = {
     'heartbeat': _heartbeat_message_unpacker,
     'test': _test_message_unpacker,
+    'serverTime': _server_time_message_unpacker,
     'system': _system_message_unpacker,
     'logonAck': _logon_ack_message_unpacker,
     'logoffAck': _logoff_ack_message_unpacker,

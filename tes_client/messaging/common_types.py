@@ -521,7 +521,7 @@ class LogonAck(CommonType):
     def __init__(self,
                  success: bool,
                  message: str,
-                 client_accounts: List(AccountInfo),
+                 client_accounts: List[AccountInfo],
                  authorization_grant: AuthorizationGrant):
         self.success = bool(success)
         self.message = str(message)
