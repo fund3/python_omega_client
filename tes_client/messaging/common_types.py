@@ -545,3 +545,20 @@ class SystemMessage(CommonType):
         self.account_info = account_info
         self.error_code = int(error_code)
         self.message = str(message)
+
+
+class RequestHeader(CommonType):
+    def __init__(self,
+                 client_id: int,
+                 sender_comp_id: str,
+                 access_token: str):
+        """
+        Header parameter object for requests.
+        :param client_id: (int) The assigned client_id.
+        :param sender_comp_id: (str) uuid unique to the user session.
+        :param access_token: (str) Access token granted by TES.  Note that
+            access_token is ignored in logon.
+        """
+        self.client_id = client_id
+        self.sender_comp_id = sender_comp_id
+        self.access_token = access_token

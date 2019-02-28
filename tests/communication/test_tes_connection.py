@@ -4,6 +4,7 @@ import time
 import pytest
 import zmq
 
+from tes_client.messaging.common_types import RequestHeader
 from tes_client.messaging.response_handler import ResponseHandler
 from tes_client.communication.response_receiver import ResponseReceiver
 from tes_client.communication.request_sender import RequestSender
@@ -14,6 +15,9 @@ __REQUEST_SENDER_ENDPOINT = 'inproc://REQUEST_SENDER'
 __RESPONSE_RECEIVER_ENDPOINT = 'inproc://RESPONSE_RECEIVER'
 __TES_SOCKET_IDENTITY = b'TES_SOCKET'
 __FAKE_ACCESS_TOKEN = 'FakeAccessToken'
+__FAKE_REQUEST_HEADER = RequestHeader(client_id=123,
+                                      sender_comp_id='987',
+                                      access_token=__FAKE_ACCESS_TOKEN)
 
 
 @pytest.fixture(scope="session")
@@ -99,7 +103,8 @@ def test_send_tes_message(fake_router_socket,
                           fake_tes_connection):
     collected_message_list = list()
     for x in range(6):
-        fake_request_sender.send_heartbeat(123, '987', )
+        fake_request_sender.send_heartbeat(
+            request_header=__FAKE_REQUEST_HEADER)
     time.sleep(0.1)
     for x in range(6):
         collected_message_list.append(fake_router_socket.recv())

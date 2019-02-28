@@ -9,8 +9,8 @@ from tes_client.messaging.common_types import AccountBalancesReport, \
     Balance, CompletedOrdersReport, Exchange,  \
     ExchangePropertiesReport, ExecutionReportType, ExecutionReport, \
     LeverageType, OpenPosition, OpenPositionsReport, Order, OrderInfo, \
-    OrderStatus, OrderType, RequestRejected, Side, SymbolProperties,  \
-    TimeInForce, WorkingOrdersReport
+    OrderStatus, OrderType, RequestHeader, RequestRejected, Side, \
+    SymbolProperties,  TimeInForce, WorkingOrdersReport
 import communication_protocol.TradeMessage_capnp as msgs_capnp
 from tes_client.messaging.message_factory import account_balances_report_py, \
     account_data_report_py, authorization_grant_py, \
@@ -28,7 +28,9 @@ from tes_client.messaging.message_factory import account_balances_report_py, \
     _generate_tes_request
 
 __FAKE_ACCESS_TOKEN = 'FakeAccessToken'
-
+__FAKE_REQUEST_HEADER = RequestHeader(client_id=123,
+                                      sender_comp_id='987',
+                                      access_token=__FAKE_ACCESS_TOKEN)
 
 def get_new_execution_report(body, include_cl_ord_link_id=True):
     er = body.init('executionReport')
@@ -616,9 +618,11 @@ def test_determine_order_price():
 
 @pytest.mark.test_id(13)
 def test_generate_tes_request():
-    body, tes_mess = _generate_tes_request(client_id=0,
-                                           sender_comp_id='asdf',
-                                           access_token=__FAKE_ACCESS_TOKEN)
+    body, tes_mess = _generate_tes_request(
+        RequestHeader(client_id=0,
+                      sender_comp_id='asdf',
+                      access_token=__FAKE_ACCESS_TOKEN)
+        )
     # print(body, '\n', tes_mess)
     assert type(body) == capnp.lib.capnp._DynamicStructBuilder
     assert type(tes_mess) == capnp.lib.capnp._DynamicStructBuilder
@@ -676,7 +680,7 @@ def test_heartbeat_capnp():
     body = heartbeat_req.init('body')
     body.heartbeat = None
 
-    actual_tes_message = heartbeat_capnp(123, '987', __FAKE_ACCESS_TOKEN)[0]
+    actual_tes_message = heartbeat_capnp(__FAKE_REQUEST_HEADER)[0]
 
     assert actual_tes_message.type.request.clientID == (
             expected_tes_message.type.request.clientID)
@@ -696,8 +700,7 @@ def test_request_server_time_capnp():
     body = request_server_time.init('body')
     body.getServerTime = None
 
-    actual_tes_message = request_server_time_capnp(
-        123, '987', __FAKE_ACCESS_TOKEN)[0]
+    actual_tes_message = request_server_time_capnp(__FAKE_REQUEST_HEADER)[0]
 
     assert actual_tes_message.type.request.clientID == (
         expected_tes_message.type.request.clientID)

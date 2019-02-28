@@ -9,8 +9,8 @@ from tes_client.messaging.common_types import AccountBalancesReport, \
     AccountCredentials, AccountDataReport, AccountInfo, Balance, \
     CompletedOrdersReport, Exchange, ExchangePropertiesReport, LeverageType, \
     ExecutionReport, OpenPosition, OpenPositionsReport, Order, OrderInfo, \
-    OrderStatus, OrderType, Side, SymbolProperties, TimeInForce, \
-    WorkingOrdersReport
+    OrderStatus, OrderType, RequestHeader, Side, SymbolProperties, \
+    TimeInForce, WorkingOrdersReport
 from tes_client.communication.single_client_request_sender import \
     SingleClientRequestSender
 
@@ -24,9 +24,12 @@ TEST_CLIENT_ID = 123
 TEST_SENDER_COMP_ID = str(987)
 TEST_ZMQ_ENCRYPTION_KEY = b'encryptionkeyencryptionkeyencryptionkeye'
 __FAKE_REQUEST_SENDER_CONNECTION_STR = 'inproc://FAKE_REQUEST_SENDER'
-__FAKE_ACCESS_TOKEN = 'FakeAccessToken'
 __FAKE_CLIENT_SECRET = ('2B24_ih9IFVdWgxR2sEA3rj0fKlY212Ec_TwTNVCD663ktYb1' +
                         'ABPz4qJy0Ouze6O9vgdueei0XmZ6uGGFM34nw')
+__FAKE_ACCESS_TOKEN = 'FakeAccessToken'
+__FAKE_REQUEST_HEADER = RequestHeader(client_id=123,
+                                      sender_comp_id='987',
+                                      access_token=__FAKE_ACCESS_TOKEN)
 
 
 @pytest.fixture(scope="session")
@@ -44,7 +47,7 @@ def fake_request_sender(fake_zmq_context):
         sender_comp_id=TEST_SENDER_COMP_ID
     )
     request_sender._queue_message = lambda message: None
-    request_sender._access_token = __FAKE_ACCESS_TOKEN
+    request_sender._request_header = __FAKE_REQUEST_HEADER
     request_sender.start()
     yield request_sender
     request_sender.cleanup()
