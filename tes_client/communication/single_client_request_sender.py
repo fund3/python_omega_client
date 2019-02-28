@@ -21,9 +21,6 @@ class SingleClientRequestSender(RequestSender):
         self._request_header = RequestHeader(client_id=client_id,
                                              sender_comp_id=sender_comp_id,
                                              access_token='')
-        self._client_id = client_id
-        self._sender_comp_id = sender_comp_id
-        self._access_token = None
         super().__init__(zmq_context=zmq_context,
                          zmq_endpoint=connection_string,
                          outgoing_message_queue=outgoing_message_queue)
