@@ -227,9 +227,9 @@ def exchange_properties_report_py(exchange_properties_report):
     )
 
 
-def logon_capnp(client_secret: str,
-                credentials: List[AccountCredentials],
-                request_header: RequestHeader):
+def logon_capnp(request_header: RequestHeader,
+                client_secret: str,
+                credentials: List[AccountCredentials]):
     """
     Generates a capnp Logon message with a specific clientID and set of
     credentials.
@@ -281,7 +281,7 @@ def request_server_time_capnp(request_header: RequestHeader):
     return tes_message, body
 
 
-def place_order_capnp(order: Order, request_header: RequestHeader):
+def place_order_capnp(request_header: RequestHeader, order: Order):
     """
     Generates a capnp placeOrder message from an Order.
     :param order: (Order) Python object from tes_client.common_types.
@@ -307,9 +307,9 @@ def place_order_capnp(order: Order, request_header: RequestHeader):
 
 
 def replace_order_capnp(
+        request_header: RequestHeader,
         account_info: AccountInfo,
         order_id: str,
-        request_header: RequestHeader,
         # pylint: disable=E1101
         order_type: str = OrderType.market.name,
         quantity: float = -1.0,
@@ -347,9 +347,9 @@ def replace_order_capnp(
 
 
 def cancel_order_capnp(
+        request_header: RequestHeader,
         account_info: AccountInfo,
-        order_id: str,
-        request_header: RequestHeader):
+        order_id: str):
     """
     Generates a capnp cancelOrder message.
     :param account_info: (AccountInfo) Account on which to cancel order.
@@ -367,8 +367,8 @@ def cancel_order_capnp(
 
 
 def request_account_data_capnp(
-        account_info: AccountInfo,
-        request_header: RequestHeader):
+        request_header: RequestHeader,
+        account_info: AccountInfo):
     """
     Generates a request to TES for full account snapshot including balances,
     open positions, and working orders.
@@ -385,8 +385,8 @@ def request_account_data_capnp(
 
 
 def request_open_positions_capnp(
-        account_info: AccountInfo,
-        request_header: RequestHeader):
+        request_header: RequestHeader,
+        account_info: AccountInfo):
     """
     Send a request to TES for open positions on an Account.
     :param account_info: (AccountInfo) Account from which to retrieve data.
@@ -402,8 +402,8 @@ def request_open_positions_capnp(
 
 
 def request_account_balances_capnp(
-        account_info: AccountInfo,
-        request_header: RequestHeader):
+        request_header: RequestHeader,
+        account_info: AccountInfo):
     """
     Generates a request to TES for full account balances snapshot on an
     Account.
@@ -420,8 +420,8 @@ def request_account_balances_capnp(
 
 
 def request_working_orders_capnp(
-        account_info: AccountInfo,
-        request_header: RequestHeader):
+        request_header: RequestHeader,
+        account_info: AccountInfo):
     """
     Generates a request to TES for all working orders snapshot on an Account.
     :param account_info: (AccountInfo) Account from which to retrieve data.
@@ -437,9 +437,9 @@ def request_working_orders_capnp(
 
 
 def request_order_status_capnp(
+        request_header: RequestHeader,
         account_info: AccountInfo,
-        order_id: str,
-        request_header: RequestHeader):
+        order_id: str):
     """
     Generates a request to TES to request status of a specific order.
     :param account_info: (AccountInfo) Account from which to retrieve data.
@@ -457,8 +457,8 @@ def request_order_status_capnp(
 
 
 def request_completed_orders_capnp(
-        account_info: AccountInfo,
         request_header: RequestHeader,
+        account_info: AccountInfo,
         count: int = None,
         since: float = None):
     """
@@ -484,9 +484,9 @@ def request_completed_orders_capnp(
 
 
 def request_order_mass_status_capnp(
+        request_header: RequestHeader,
         account_info: AccountInfo,
-        order_info: List[OrderInfo],
-        request_header: RequestHeader):
+        order_info: List[OrderInfo]):
     """
     Generates a request to TES for status of multiple orders.
     :param account_info: (AccountInfo) Account from which to retrieve data.
@@ -505,8 +505,8 @@ def request_order_mass_status_capnp(
     return tes_message, get_order_mass_status
 
 
-def request_exchange_properties_capnp(exchange: str,
-                                      request_header: RequestHeader):
+def request_exchange_properties_capnp(request_header: RequestHeader,
+                                      exchange: str):
     """
     Generates a request to TES for supported currencies, symbols and their
     associated properties, timeInForces, and orderTypes on an exchange.

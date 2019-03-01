@@ -134,7 +134,7 @@ def test_place_order(fake_request_sender):
         leverage_type=LeverageType.none.name
     )
     order = fake_request_sender.place_order(
-        order=order, request_header=__FAKE_REQUEST_HEADER)
+        request_header=__FAKE_REQUEST_HEADER, order=order)
     assert type(order) == capnp.lib.capnp._DynamicStructBuilder
     assert order.accountInfo.accountID == 100
     assert order.symbol == 'BTC/USD'
@@ -148,8 +148,8 @@ def test_place_order(fake_request_sender):
 @pytest.mark.test_id(4)
 def test_replace_order(fake_request_sender):
     order = fake_request_sender.replace_order(
-        account_info=AccountInfo(account_id=100),
         request_header=__FAKE_REQUEST_HEADER,
+        account_info=AccountInfo(account_id=100),
         order_id='c137',
         quantity=1.1,
         order_type=OrderType.limit.name,
@@ -168,9 +168,9 @@ def test_replace_order(fake_request_sender):
 @pytest.mark.test_id(5)
 def test_cancel_order(fake_request_sender):
     order = fake_request_sender.cancel_order(
+        request_header=__FAKE_REQUEST_HEADER,
         account_info=AccountInfo(account_id=100),
-        order_id='c137',
-        request_header=__FAKE_REQUEST_HEADER
+        order_id='c137'
     )
     assert type(order) == capnp.lib.capnp._DynamicStructBuilder
     assert order.accountInfo.accountID == 100
@@ -180,8 +180,8 @@ def test_cancel_order(fake_request_sender):
 @pytest.mark.test_id(6)
 def test_request_account_data(fake_request_sender):
     order = fake_request_sender.request_account_data(
-        account_info=AccountInfo(account_id=100),
-        request_header=__FAKE_REQUEST_HEADER)
+        request_header=__FAKE_REQUEST_HEADER,
+        account_info=AccountInfo(account_id=100))
     assert type(order) == capnp.lib.capnp._DynamicStructBuilder
     assert order.accountInfo.accountID == 100
 
@@ -189,8 +189,8 @@ def test_request_account_data(fake_request_sender):
 @pytest.mark.test_id(7)
 def test_request_account_balances(fake_request_sender):
     order = fake_request_sender.request_account_balances(
-        account_info=AccountInfo(account_id=110),
-        request_header=__FAKE_REQUEST_HEADER)
+        request_header=__FAKE_REQUEST_HEADER,
+        account_info=AccountInfo(account_id=110))
     assert type(order) == capnp.lib.capnp._DynamicStructBuilder
     assert order.accountInfo.accountID == 110
 
@@ -198,9 +198,8 @@ def test_request_account_balances(fake_request_sender):
 @pytest.mark.test_id(8)
 def test_request_working_orders(fake_request_sender):
     order = fake_request_sender.request_working_orders(
-        account_info=AccountInfo(account_id=110),
-        request_header=__FAKE_REQUEST_HEADER
-    )
+        request_header=__FAKE_REQUEST_HEADER,
+        account_info=AccountInfo(account_id=110))
     assert type(order) == capnp.lib.capnp._DynamicStructBuilder
     assert order.accountInfo.accountID == 110
 
@@ -230,9 +229,9 @@ def test_tes_logon(fake_request_sender):
         )
     ]
     fake_request_sender._tes_credentials = creds
-    logon = fake_request_sender.logon(client_secret=__FAKE_CLIENT_SECRET,
-                                      credentials=creds,
-                                      request_header=__FAKE_REQUEST_HEADER)
+    logon = fake_request_sender.logon(request_header=__FAKE_REQUEST_HEADER,
+                                      client_secret=__FAKE_CLIENT_SECRET,
+                                      credentials=creds)
     assert type(logon) == capnp.lib.capnp._DynamicStructBuilder
     assert logon.clientSecret == __FAKE_CLIENT_SECRET
     assert logon.credentials[0].accountInfo.accountID == 100
@@ -260,9 +259,9 @@ def test_tes_logon(fake_request_sender):
         )
     ]
     fake_request_sender._tes_credentials = creds1
-    logon1 = fake_request_sender.logon(client_secret=__FAKE_CLIENT_SECRET,
-                                       credentials=creds1,
-                                       request_header=__FAKE_REQUEST_HEADER)
+    logon1 = fake_request_sender.logon(request_header=__FAKE_REQUEST_HEADER,
+                                       client_secret=__FAKE_CLIENT_SECRET,
+                                       credentials=creds1)
     assert type(logon) == capnp.lib.capnp._DynamicStructBuilder
     assert logon.clientSecret == __FAKE_CLIENT_SECRET
     assert logon1.credentials[0].accountInfo.accountID == 100
@@ -282,9 +281,9 @@ def test_tes_logon(fake_request_sender):
         ]
         fake_request_sender._tes_credentials = creds2
         logon2 = fake_request_sender.logon(
+            request_header=__FAKE_REQUEST_HEADER,
             client_secret=__FAKE_CLIENT_SECRET,
-            credentials=creds2,
-            request_header=__FAKE_REQUEST_HEADER)
+            credentials=creds2)
 
     # logon missing apiSecret - Attribute Error
     with pytest.raises(Exception or AttributeError):
@@ -296,9 +295,9 @@ def test_tes_logon(fake_request_sender):
         ]
         fake_request_sender._tes_credentials = creds3
         logon3 = fake_request_sender.logon(
+            request_header=__FAKE_REQUEST_HEADER,
             client_secret=__FAKE_CLIENT_SECRET,
-            credentials=creds3,
-            request_header=__FAKE_REQUEST_HEADER)
+            credentials=creds3)
     fake_request_sender._tes_credentials = TEST_ACCOUNT_CREDS_1
 
 
@@ -320,10 +319,9 @@ def test_tes_heartbeat(fake_request_sender):
 @pytest.mark.test_id(12)
 def test_request_order_status(fake_request_sender):
     order = fake_request_sender.request_order_status(
+        request_header=__FAKE_REQUEST_HEADER,
         account_info=AccountInfo(account_id=110),
-        order_id='poiuytrewq123',
-        request_header=__FAKE_REQUEST_HEADER
-    )
+        order_id='poiuytrewq123')
     assert type(order) == capnp.lib.capnp._DynamicStructBuilder
     assert order.accountInfo.accountID == 110
     assert order.orderID == 'poiuytrewq123'
@@ -333,8 +331,8 @@ def test_request_order_status(fake_request_sender):
 def test_request_completed_orders(fake_request_sender):
     # test including count and since
     order = fake_request_sender.request_completed_orders(
-        account_info=AccountInfo(account_id=110),
         request_header=__FAKE_REQUEST_HEADER,
+        account_info=AccountInfo(account_id=110),
         count=2,
         since=1536267034.
     )
@@ -345,8 +343,8 @@ def test_request_completed_orders(fake_request_sender):
 
     # test including count, not since
     order = fake_request_sender.request_completed_orders(
-        account_info=AccountInfo(account_id=110),
         request_header=__FAKE_REQUEST_HEADER,
+        account_info=AccountInfo(account_id=110),
         count=2
     )
     assert type(order) == capnp.lib.capnp._DynamicStructBuilder
@@ -355,19 +353,17 @@ def test_request_completed_orders(fake_request_sender):
 
     # test including since, not count
     order = fake_request_sender.request_completed_orders(
-        account_info=AccountInfo(account_id=110),
         request_header=__FAKE_REQUEST_HEADER,
-        since=1536267034.
-    )
+        account_info=AccountInfo(account_id=110),
+        since=1536267034.)
     assert type(order) == capnp.lib.capnp._DynamicStructBuilder
     assert order.accountInfo.accountID == 110
     assert order.since == pytest.approx(1536267034., rel=1e-2)
 
     # test excluding both count and since
     order = fake_request_sender.request_completed_orders(
-        account_info=AccountInfo(account_id=110),
-        request_header=__FAKE_REQUEST_HEADER
-    )
+        request_header=__FAKE_REQUEST_HEADER,
+        account_info=AccountInfo(account_id=110))
     assert type(order) == capnp.lib.capnp._DynamicStructBuilder
     assert order.accountInfo.accountID == 110
 
@@ -377,10 +373,9 @@ def test_request_order_mass_status(fake_request_sender):
     # empty order_info_list
     order_info_list = []
     order = fake_request_sender.request_order_mass_status(
+        request_header=__FAKE_REQUEST_HEADER,
         account_info=AccountInfo(account_id=110),
-        order_info=order_info_list,
-        request_header=__FAKE_REQUEST_HEADER
-    )
+        order_info=order_info_list)
     assert type(order) == capnp.lib.capnp._DynamicStructBuilder
     assert order.accountInfo.accountID == 110
     assert len(list(order.orderInfo)) == 0
@@ -388,10 +383,9 @@ def test_request_order_mass_status(fake_request_sender):
     # filled order_info_list
     order_info_list = [OrderInfo(order_id='poiuy9876')]
     order = fake_request_sender.request_order_mass_status(
+        request_header=__FAKE_REQUEST_HEADER,
         account_info=AccountInfo(account_id=110),
-        order_info=order_info_list,
-        request_header=__FAKE_REQUEST_HEADER
-    )
+        order_info=order_info_list)
     assert type(order) == capnp.lib.capnp._DynamicStructBuilder
     assert order.accountInfo.accountID == 110
     assert len(list(order.orderInfo)) == 1
@@ -423,8 +417,8 @@ def test_place_order_margin_default(fake_request_sender):
     )
     # exchange default margin
     order = fake_request_sender.place_order(
-        order=default_margin_order,
-        request_header=__FAKE_REQUEST_HEADER)
+        request_header=__FAKE_REQUEST_HEADER,
+        order=default_margin_order)
     assert type(order) == capnp.lib.capnp._DynamicStructBuilder
     assert order.accountInfo.accountID == 100
     assert order.symbol == 'BTC/USD'
@@ -454,8 +448,8 @@ def test_place_order_margin_custom(fake_request_sender):
     )
     # custom margin
     order = fake_request_sender.place_order(
-        order=custom_margin_order,
-        request_header=__FAKE_REQUEST_HEADER)
+        request_header=__FAKE_REQUEST_HEADER,
+        order=custom_margin_order)
     assert type(order) == capnp.lib.capnp._DynamicStructBuilder
     assert order.accountInfo.accountID == 100
     assert order.symbol == 'BTC/USD'
@@ -471,9 +465,8 @@ def test_place_order_margin_custom(fake_request_sender):
 @pytest.mark.test_id(17)
 def test_request_open_positions(fake_request_sender):
     open_pos = fake_request_sender.request_open_positions(
-        account_info=AccountInfo(account_id=110),
-        request_header=__FAKE_REQUEST_HEADER
-    )
+        request_header=__FAKE_REQUEST_HEADER,
+        account_info=AccountInfo(account_id=110))
     assert type(open_pos) == capnp.lib.capnp._DynamicStructBuilder
     assert open_pos.accountInfo.accountID == 110
 
@@ -482,9 +475,8 @@ def test_request_open_positions(fake_request_sender):
 def test_request_exchange_properties(fake_request_sender):
     # valid exchange test case
     exch_prop = fake_request_sender.request_exchange_properties(
-        exchange='gemini',
-        request_header=__FAKE_REQUEST_HEADER
-    )
+        request_header=__FAKE_REQUEST_HEADER,
+        exchange='gemini')
     assert type(exch_prop) == capnp.lib.capnp._DynamicStructBuilder
     assert exch_prop.exchange == exch_capnp.Exchange.gemini
 
@@ -493,9 +485,8 @@ def test_request_exchange_properties(fake_request_sender):
 def test_request_exchange_properties_invalid_case(fake_request_sender):
     # invalid exchange test case
     exch_prop = fake_request_sender.request_exchange_properties(
-        exchange='gdax',
-        request_header=__FAKE_REQUEST_HEADER
-    )
+        request_header=__FAKE_REQUEST_HEADER,
+        exchange='gdax')
     assert type(exch_prop) == capnp.lib.capnp._DynamicStructBuilder
     assert exch_prop.exchange == exch_capnp.Exchange.undefined
 

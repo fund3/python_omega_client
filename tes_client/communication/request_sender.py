@@ -126,21 +126,21 @@ class RequestSender(Thread):
     ###########################################################################
 
     def logon(self,
+              request_header: RequestHeader,
               client_secret: str,
-              credentials: List[AccountCredentials],
-              request_header: RequestHeader):
+              credentials: List[AccountCredentials]):
         """
         Logon to TES for a specific client_id and set of credentials.
+        :param request_header: Header parameter object for requests.
         :param client_secret: (str) client_secret key assigned by Fund3.
         :param credentials: (List[AccountCredentials]) List of exchange
             credentials in the form of AccountCredentials.
-        :param request_header: Header parameter object for requests.
         :return: (capnp._DynamicStructBuilder) Logon capnp object.
         """
         tes_message, logon = logon_capnp(
+            request_header=request_header,
             client_secret=client_secret,
-            credentials=credentials,
-            request_header=request_header
+            credentials=credentials
         )
         self._queue_message(tes_message)
         return logon
@@ -177,21 +177,22 @@ class RequestSender(Thread):
         self._queue_message(tes_message)
         return body
 
-    def place_order(self, order: Order, request_header: RequestHeader):
+    def place_order(self, request_header: RequestHeader, order: Order):
         """
         Sends a request to TES to place an order.
-        :param order: (Order) Python object containing all required fields.
         :param request_header: Header parameter object for requests.
+        :param order: (Order) Python object containing all required fields.
         :return: (capnp._DynamicStructBuilder) place_order capnp object.
         """
         tes_message, place_order = place_order_capnp(
-            order=order, request_header=request_header)
+            request_header=request_header, order=order)
         self._queue_message(tes_message)
         return place_order
 
-    def replace_order(self, account_info: AccountInfo,
-                      order_id: str,
+    def replace_order(self,
                       request_header: RequestHeader,
+                      account_info: AccountInfo,
+                      order_id: str,
                       # pylint: disable=E1101
                       order_type: str = OrderType.undefined.name,
                       quantity: float = -1.0,
@@ -201,9 +202,9 @@ class RequestSender(Thread):
                       ):
         """
         Sends a request to TES to replace an order.
+        :param request_header: Header parameter object for requests.
         :param account_info: (AccountInfo) Account on which to cancel order.
         :param order_id: (str) order_id as returned from the ExecutionReport.
-        :param request_header: Header parameter object for requests.
         :param order_type: (OrderType) (optional)
         :param quantity: (float) (optional)
         :param price: (float) (optional)
@@ -211,9 +212,9 @@ class RequestSender(Thread):
         :return: (capnp._DynamicStructBuilder) replaceOrder capnp object.
         """
         tes_message, replace_order = replace_order_capnp(
+            request_header=request_header,
             account_info=account_info,
             order_id=order_id,
-            request_header=request_header,
             order_type=order_type,
             quantity=quantity,
             price=price,
@@ -223,128 +224,125 @@ class RequestSender(Thread):
         return replace_order
 
     def cancel_order(self,
+                     request_header: RequestHeader,
                      account_info: AccountInfo,
-                     order_id: str,
-                     request_header: RequestHeader):
+                     order_id: str):
         """
         Sends a request to TES to cancel an order.
+        :param request_header: Header parameter object for requests.
         :param account_info: (AccountInfo) Account on which to cancel order.
         :param order_id: (str) order_id as returned from the ExecutionReport.
-        :param request_header: Header parameter object for requests.
         :return: (capnp._DynamicStructBuilder) cancel_order object.
         """
         tes_message, cancel_order = cancel_order_capnp(
+            request_header=request_header,
             account_info=account_info,
-            order_id=order_id,
-            request_header=request_header
+            order_id=order_id
         )
         self._queue_message(tes_message)
         return cancel_order
 
     def request_account_data(self,
-                             account_info: AccountInfo,
-                             request_header: RequestHeader):
+                             request_header: RequestHeader,
+                             account_info: AccountInfo):
         """
         Sends a request to TES for full account snapshot including balances,
         open positions, and working orders on specified account.
-        :param account_info: (AccountInfo) Account from which to retrieve data.
         :param request_header: Header parameter object for requests.
+        :param account_info: (AccountInfo) Account from which to retrieve data.
         :return: (capnp._DynamicStructBuilder) get_account_data capnp object.
         """
         tes_message, get_account_data = request_account_data_capnp(
-            account_info=account_info, request_header=request_header)
+            request_header=request_header, account_info=account_info)
         self._queue_message(tes_message)
         return get_account_data
 
     def request_open_positions(self,
-                               account_info: AccountInfo,
-                               request_header: RequestHeader):
+                               request_header: RequestHeader,
+                               account_info: AccountInfo):
         """
         Sends a request to TES for open positions on an Account.
-        :param account_info: (AccountInfo) Account from which to retrieve data.
         :param request_header: Header parameter object for requests.
+        :param account_info: (AccountInfo) Account from which to retrieve data.
         :return: (capnp._DynamicStructBuilder) get_open_positions capnp
         object.
         """
         tes_message, get_open_positions = request_open_positions_capnp(
-            account_info=account_info, request_header=request_header)
+            request_header=request_header, account_info=account_info)
         self._queue_message(tes_message)
         return get_open_positions
 
     def request_account_balances(self,
-                                 account_info: AccountInfo,
-                                 request_header: RequestHeader):
+                                 request_header: RequestHeader,
+                                 account_info: AccountInfo):
         """
         Sends a request to TES for full account balances snapshot on an
         Account.
-        :param account_info: (AccountInfo) Account from which to retrieve data.
         :param request_header: Header parameter object for requests.
+        :param account_info: (AccountInfo) Account from which to retrieve data.
         :return: (capnp._DynamicStructBuilder) get_account_balances capnp
         object.
         """
         tes_message, get_account_balances = request_account_balances_capnp(
-            account_info=account_info, request_header=request_header)
+            request_header=request_header, account_info=account_info)
         self._queue_message(tes_message)
         return get_account_balances
 
     def request_working_orders(self,
-                               account_info: AccountInfo,
-                               request_header: RequestHeader):
+                               request_header: RequestHeader,
+                               account_info: AccountInfo):
         """
         Sends a request to TES for all working orders snapshot on an
         Account.
-        :param account_info: (AccountInfo) Account from which to retrieve
-        data.
         :param request_header: Header parameter object for requests.
-        :return: (capnp._DynamicStructBuilder) get_working_orders capnp
-        object.
+        :param account_info: (AccountInfo) Account from which to retrieve data.
+        :return: (capnp._DynamicStructBuilder) get_working_orders capnp object.
         """
         tes_message, get_working_orders = request_working_orders_capnp(
-            account_info=account_info, request_header=request_header)
+            request_header=request_header, account_info=account_info)
         self._queue_message(tes_message)
         return get_working_orders
 
     def request_order_status(self,
+                             request_header: RequestHeader,
                              account_info: AccountInfo,
-                             order_id: str,
-                             request_header: RequestHeader):
+                             order_id: str):
         """
         Sends a request to TES to request status of a specific order.
+        :param request_header: Header parameter object for requests.
         :param account_info: (AccountInfo) Account from which to retrieve data.
         :param order_id: (str) The id of the order of interest.
-        :param request_header: Header parameter object for requests.
         :return: (capnp._DynamicStructBuilder) get_order_status capnp object.
         """
         tes_message, get_order_status = request_order_status_capnp(
+            request_header=request_header,
             account_info=account_info,
-            order_id=order_id,
-            request_header=request_header
+            order_id=order_id
         )
         self._queue_message(tes_message)
         return get_order_status
 
     def request_completed_orders(self,
-                                 account_info: AccountInfo,
                                  request_header: RequestHeader,
+                                 account_info: AccountInfo,
                                  count: int = None,
                                  since: float = None):
         """
         Sends a request to TES for all completed orders on specified
         account.  If both 'count' and 'from_unix' are None, returns orders
         for last 24h.
-        :param account_info: (AccountInfo) Account from which to retrieve data.
         :param request_header: Header parameter object for requests.
+        :param account_info: (AccountInfo) Account from which to retrieve data.
         :param count: (int) optional, number of returned orders (most recent
             ones).
-        :param since: (float) optional, returns all orders from provided
-        unix
+        :param since: (float) optional, returns all orders from provided unix
             timestamp to present.
         :return: (capnp._DynamicStructBuilder) get_completed_orders capnp
-        object.
+            object.
         """
         tes_message, get_completed_orders = request_completed_orders_capnp(
-            account_info=account_info,
             request_header=request_header,
+            account_info=account_info,
             count=count,
             since=since
         )
@@ -352,40 +350,40 @@ class RequestSender(Thread):
         return get_completed_orders
 
     def request_order_mass_status(self,
+                                  request_header: RequestHeader,
                                   account_info: AccountInfo,
-                                  order_info: List[OrderInfo],
-                                  request_header: RequestHeader):
+                                  order_info: List[OrderInfo]):
         """
         Sends a request to TES for status of multiple orders.
+        :param request_header: Header parameter object for requests.
         :param account_info: (AccountInfo) Account from which to retrieve data.
         :param order_info: (List[OrderInfo]) List of orderIDs to get status
             updates.
-        :param request_header: Header parameter object for requests.
         :return: (capnp._DynamicStructBuilder) get_order_mass_status capnp
         object.
         """
         tes_message, get_order_mass_status = request_order_mass_status_capnp(
+            request_header=request_header,
             account_info=account_info,
-            order_info=order_info,
-            request_header=request_header
+            order_info=order_info
         )
         self._queue_message(tes_message)
         return get_order_mass_status
 
     def request_exchange_properties(self,
-                                    exchange: str,
-                                    request_header: RequestHeader):
+                                    request_header: RequestHeader,
+                                    exchange: str):
         """
         Sends a request to TES for supported currencies, symbols and their
         associated properties, timeInForces, and orderTypes on an exchange.
-        :param exchange: (str) The exchange of interest.
         :param request_header: Header parameter object for requests.
+        :param exchange: (str) The exchange of interest.
         :return: (capnp._DynamicStructBuilder) get_exchange_properties capnp
             object.
         """
         tes_message, get_exchange_properties = (
-            request_exchange_properties_capnp(exchange=exchange,
-                                              request_header=request_header)
+            request_exchange_properties_capnp(
+                request_header=request_header, exchange=exchange)
         )
         self._queue_message(tes_message)
         return get_exchange_properties

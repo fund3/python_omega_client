@@ -32,6 +32,7 @@ __FAKE_REQUEST_HEADER = RequestHeader(client_id=123,
                                       sender_comp_id='987',
                                       access_token=__FAKE_ACCESS_TOKEN)
 
+
 def get_new_execution_report(body, include_cl_ord_link_id=True):
     er = body.init('executionReport')
     er.orderID = 'c137'
