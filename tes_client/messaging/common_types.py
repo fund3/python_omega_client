@@ -43,6 +43,10 @@ class OrderType(Enum):
     undefined = auto()
     market = auto()
     limit = auto()
+    stop = auto()
+    stopLimit = auto()
+    trailingStop = auto()
+    trailingStopLimit = auto()
 
 
 class OrderStatus(Enum):
@@ -62,6 +66,7 @@ class OrderStatus(Enum):
     canceled = auto()
     rejected = auto()
     expired = auto()
+    failed = auto()
 
 
 class TimeInForce(Enum):
@@ -200,14 +205,29 @@ class Order(CommonType):
         self.client_order_link_id = str(client_order_link_id or '')
 
 
+class Message(CommonType):
+    """
+    Message object containing code, body for Logon, Logoff,
+    AuthorizationGrant, System Message
+    """
+    def __init__(self, code: int, body: str = None):
+        """
+
+        :param code: int message code
+        :param body: str message body
+        """
+        self.code = int(code)
+        self.body = str(body)
+
+
 class RequestRejected(CommonType):
-    def __init__(self, rejection_code: int, message: str):
+    def __init__(self, rejection_code: int, message: Message):
         """
         :param rejection_code: (int) Rejection code.
-        :param message: (str) Rejection reason.
+        :param message: (Message) Rejection reason.
         """
         self.rejection_code = int(rejection_code)
-        self.message = str(message)
+        self.message = message
 
 
 class ExecutionReportType(CommonType):
@@ -276,6 +296,7 @@ class ExecutionReport(CommonType):
     """
 
     def __init__(self,
+                 request_id: int,
                  order_id: str,
                  client_order_id: int,
                  exchange_order_id: str,
@@ -291,11 +312,16 @@ class ExecutionReport(CommonType):
                  order_status: str,
                  filled_quantity: float,
                  avg_fill_price: float,
+                 fee: float,
+                 creation_time: float,
+                 submission_time: float,
+                 completion_time: float,
                  execution_report_type: ExecutionReportType,
-                 rejection_reason: str = None,
+                 rejection_reason: Message = None,
                  client_order_link_id: str = None):
         """
 
+        :param request_id: int request_id that requested this Report
         :param order_id: str order_id as assigned by TES
         :param client_order_id: int orderID generated on the client side
         :param exchange_order_id: str orderID as assigned by Exchange
@@ -312,10 +338,17 @@ class ExecutionReport(CommonType):
         :param filled_quantity: float amount of quantity which has been filled
         :param avg_fill_price: float average price at which the order has been
         filled thus far
+        :param fee: float exchange fee paid for order
+        :param creation_time: float unix timestamp when order was created on
+            TES server
+        :param submission_time: float unix timestamp when order was sent to
+            the exchange from TES server
+        :param completion_time: float unix timestamp when order was completed
         :param execution_report_type: str (see ExecutionReportType enum)
-        :param rejection_reason: str rejectionReason
-        :param client_order_link_id: str internal id used for
+        :param rejection_reason: Message rejectionReason
+        :param client_order_link_id: str internal id
         """
+        self.request_id = int(request_id)
         self.order_id = str(order_id)
         self.client_order_id = int(client_order_id)
         self.client_order_link_id = str(client_order_link_id or '')
@@ -332,8 +365,12 @@ class ExecutionReport(CommonType):
         self.order_status = str(order_status)
         self.filled_quantity = float(filled_quantity)
         self.avg_fill_price = float(avg_fill_price)
+        self.fee = float(fee)
+        self.creation_time = float(creation_time)
+        self.submission_time = float(submission_time)
+        self.completion_time = float(completion_time)
         self.execution_report_type = execution_report_type
-        self.rejection_reason = str(rejection_reason or '')
+        self.rejection_reason = rejection_reason
 
 
 class AccountDataReport(CommonType):
@@ -413,6 +450,7 @@ class CompletedOrdersReport(CommonType):
 
 class OrderInfo(CommonType):
     def __init__(self,
+                 request_id: int,
                  order_id: str,
                  client_order_id: int = None,
                  client_order_link_id: str = None,
@@ -420,12 +458,14 @@ class OrderInfo(CommonType):
                  symbol: str = None):
         """
 
+        :param request_id: int request_id that requested this Report
         :param order_id: int required
         :param client_order_id: int empty in client request
         :param client_order_link_id: str empty in client request
         :param exchange_order_id: str empty in client request
         :param symbol: str empty in client request
         """
+        self.request_id = request_id
         self.order_id = str(order_id)
         self.client_order_id = (int(client_order_id)
                                 if client_order_id is not None else None)
@@ -485,17 +525,20 @@ class ExchangePropertiesReport(CommonType):
 
 class ReplaceOrder(CommonType):
     def __init__(self,
+                 request_id: int,
                  order_id: str,
                  order_type: str = OrderType.market.name,
                  quantity: float = -1.0,
                  price: float = -1.0,
                  time_in_force: str = TimeInForce.gtc.name):
         """
+        :param request_id: int request_id that requested this Report
         :param order_type: str (see OrderType enum)
         :param quantity: float
         :param price: float
         :param time_in_force: str (see TimeInForce enum)
         """
+        self.request_id = request_id
         self.order_id = str(order_id)
         self.order_type = str(order_type)
         self.quantity = float(quantity)
@@ -506,12 +549,12 @@ class ReplaceOrder(CommonType):
 class AuthorizationGrant(CommonType):
     def __init__(self,
                  success: bool,
-                 message: str,
+                 message: Message,
                  access_token: str,
                  refresh_token: str,
                  expire_at: float):
         self.success = bool(success)
-        self.message = str(message)
+        self.message = message
         self.access_token = str(access_token)
         self.refresh_token = str(refresh_token)
         self.expire_at = float(expire_at)
@@ -520,11 +563,11 @@ class AuthorizationGrant(CommonType):
 class LogonAck(CommonType):
     def __init__(self,
                  success: bool,
-                 message: str,
+                 message: Message,
                  client_accounts: List[AccountInfo],
                  authorization_grant: AuthorizationGrant):
         self.success = bool(success)
-        self.message = str(message)
+        self.message = message
         self.client_accounts = client_accounts
         self.authorization_grant = authorization_grant
 
@@ -532,33 +575,37 @@ class LogonAck(CommonType):
 class LogoffAck(CommonType):
     def __init__(self,
                  success: bool,
-                 message: str):
+                 message: Message):
         self.success = bool(success)
-        self.message = str(message)
+        self.message = message
 
 
 class SystemMessage(CommonType):
     def __init__(self,
                  account_info: AccountInfo,
                  error_code: int,
-                 message: str):
+                 message: Message):
         self.account_info = account_info
         self.error_code = int(error_code)
-        self.message = str(message)
+        self.message = message
 
 
 class RequestHeader(CommonType):
     def __init__(self,
                  client_id: int,
                  sender_comp_id: str,
-                 access_token: str):
+                 access_token: str,
+                 request_id: int):
         """
         Header parameter object for requests.
         :param client_id: (int) The assigned client_id.
         :param sender_comp_id: (str) uuid unique to the user session.
         :param access_token: (str) Access token granted by TES.  Note that
             access_token is ignored in logon.
+        :param request_id: (int) sequential, monotonically increasing integer
+            request identifier
         """
         self.client_id = client_id
         self.sender_comp_id = sender_comp_id
         self.access_token = access_token
+        self.request_id = request_id
