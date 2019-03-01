@@ -4,8 +4,8 @@ from typing import List
 
 from tes_client.messaging.common_types import AccountBalancesReport, \
     AccountCredentials, AccountDataReport, CompletedOrdersReport, \
-    ExchangePropertiesReport, ExecutionReport, OpenPositionsReport, \
-    WorkingOrdersReport
+    ExchangePropertiesReport, ExecutionReport, LogoffAck, LogonAck, \
+    OpenPositionsReport, SystemMessage, WorkingOrdersReport
 from tes_client.messaging.response_unpacker import unpack_response
 
 logger = logging.getLogger(__name__)
@@ -21,6 +21,7 @@ class ResponseHandler:
         self._command_dispatcher = {
             'heartbeat': self.on_heartbeat,
             'test': self.on_test_message,
+            'serverTime': self.on_server_time,
             'system': self.on_system_message,
             'logonAck': self.on_logon_ack,
             'logoffAck': self.on_logoff_ack,
@@ -58,47 +59,49 @@ class ResponseHandler:
         """
 
     @abstractmethod
+    def on_server_time(self,
+                       server_time: float,
+                       client_id: int,
+                       sender_comp_id: str):
+        """
+        Override in subclass to handle TES test message response.
+        :param server_time: (float) Server time from TES.
+        :param client_id: (int) client_id of the response.
+        :param sender_comp_id: (str) sender_comp_id of the response.
+        """
+
+    @abstractmethod
     def on_system_message(self,
-                          error_code: int,
-                          message: str,
+                          system_message: SystemMessage,
                           client_id: int,
                           sender_comp_id: str):
         """
         Override in subclass to handle TES system message response.
-        :param error_code: (int) The error_code from TES.
-        :param message: (str) The error message from TES.
+        :param system_message: (SystemMessage) The system message from TES.
         :param client_id: (int) client_id of the response.
         :param sender_comp_id: (str) sender_comp_id of the response.
         """
 
     @abstractmethod
     def on_logon_ack(self,
-                     success: bool,
-                     message: str,
-                     client_accounts: List[int],
+                     logon_ack: LogonAck,
                      client_id: int,
                      sender_comp_id: str):
         """
         Override in subclass to handle TES logonAck response.
-        :param success: (bool) True if logon is successful, False otherwise.
-        :param message: (str) Logon message from TES.
-        :param client_accounts: (List[int]) A list of *all* account_ids that are
-            logged on in the current logon request, including accounts that are
-            logged on in previous logon requests.
+        :param logon_ack: (LogonAck) LogonAck message from TES.
         :param client_id: (int) client_id of the response.
         :param sender_comp_id: (str) sender_comp_id of the response.
         """
 
     @abstractmethod
     def on_logoff_ack(self,
-                      success: bool,
-                      message: str,
+                      logoff_ack: LogoffAck,
                       client_id: int,
                       sender_comp_id: str):
         """
         Override in subclass to handle TES logoffAck response.
-        :param success: (bool) If True, logoff is successful, False otherwise.
-        :param message: (str) Logoff message from TES.
+        :param logoff_ack: (LogoffAck) LogoffAck from TES.
         :param client_id: (int) client_id of the response.
         :param sender_comp_id: (str) sender_comp_id of the response.
         """

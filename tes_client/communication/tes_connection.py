@@ -171,7 +171,7 @@ class TesConnection(Thread):
         request_listener_socket.close()
         self._request_sender.cleanup()
         response_forwarding_socket.close()
-        self._response_receiver.cleanup()
+        self._response_receiver.stop()
 
 
 def configure_default_tes_connection(tes_endpoint: str,
