@@ -15,9 +15,9 @@ import communication_protocol.TradeMessage_capnp as msgs_capnp
 from tes_client.messaging.common_types import AccountBalancesReport, \
     AccountCredentials, AccountDataReport, AccountInfo, AuthorizationGrant, \
     Balance, CompletedOrdersReport, Exchange,\
-    ExchangePropertiesReport, ExecutionReport, ExecutionReportType, \
+    ExchangePropertiesReport, ExecutionReport, \
     LogoffAck,  LogonAck, Message, OpenPosition, OpenPositionsReport, Order, \
-    OrderInfo,  OrderType, RequestHeader, RequestRejected, SymbolProperties, \
+    OrderInfo,  OrderType, RequestHeader, SymbolProperties, \
     SystemMessage, TimeInForce, WorkingOrdersReport
 
 logger = logging.getLogger(__name__)
@@ -38,7 +38,7 @@ EXCHANGE_ENUM_MAPPING = {
 # pylint: enable=E1101
 
 
-def build_py_message(msg):
+def _build_py_message(msg):
     """
 
     :param msg: (capnp._DynamicStructBuilder) Message object
@@ -66,7 +66,7 @@ def system_message_py(system_message):
     :param system_message: (capnp._DynamicStructBuilder) system message.
     :return: (int) error code, (str) system message.
     """
-    py_message = build_py_message(system_message.message)
+    py_message = _build_py_message(system_message.message)
     return SystemMessage(account_info=account_info_py(
                              system_message.accountInfo),
                          error_code=system_message.errorCode,
@@ -80,7 +80,7 @@ def authorization_grant_py(authorization_grant):
         capnp AuthorizationGrant message
     :return: AuthorizationGrant
     """
-    py_message = build_py_message(authorization_grant.message)
+    py_message = _build_py_message(authorization_grant.message)
     return AuthorizationGrant(success=authorization_grant.success,
                               message=py_message,
                               access_token=authorization_grant.accessToken,
@@ -96,7 +96,7 @@ def logon_ack_py(logon_ack):
     """
     client_accounts = list([account_info_py(account) for account in
                             logon_ack.clientAccounts])
-    py_message = build_py_message(logon_ack.message)
+    py_message = _build_py_message(logon_ack.message)
     return LogonAck(success=logon_ack.success,
                     message=py_message,
                     client_accounts=client_accounts,
@@ -110,7 +110,7 @@ def logoff_ack_py(logoff_ack):
     :param logoff_ack: (capnp._DynamicStructBuilder) LogoffAck object.
     :return: LogoffAck
     """
-    py_message = build_py_message(logoff_ack.message)
+    py_message = _build_py_message(logoff_ack.message)
     return LogoffAck(bool(logoff_ack.success), py_message)
 
 
@@ -629,7 +629,7 @@ def _build_py_execution_report_from_capnp(execution_report):
         submission_time=execution_report.submissionTime,
         completion_time=execution_report.completionTime,
         execution_report_type=execution_report.type,
-        rejection_reason=build_py_message(execution_report.rejectionReason)
+        rejection_reason=_build_py_message(execution_report.rejectionReason)
     )
 
 
