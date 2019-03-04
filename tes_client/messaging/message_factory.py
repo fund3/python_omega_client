@@ -37,9 +37,6 @@ EXCHANGE_ENUM_MAPPING = {
 }
 # pylint: enable=E1101
 
-# TODO request_id in request (_generate_tes_request) and response decoding
-# TODO add extra fields for ExecutionReport
-
 
 def build_py_message(msg):
     """
@@ -611,7 +608,6 @@ def _build_py_execution_report_from_capnp(execution_report):
     :return: (ExecutionReport) Populated Python object.
     """
     return ExecutionReport(
-        request_id=execution_report.requestID,
         order_id=execution_report.orderID,
         client_order_id=execution_report.clientOrderID,
         exchange_order_id=execution_report.exchangeOrderID,

@@ -272,7 +272,6 @@ class ExecutionReport(CommonType):
     """
 
     def __init__(self,
-                 request_id: int,
                  order_id: str,
                  client_order_id: int,
                  exchange_order_id: str,
@@ -297,7 +296,6 @@ class ExecutionReport(CommonType):
                  client_order_link_id: str = None):
         """
 
-        :param request_id: int request_id that requested this Report
         :param order_id: str order_id as assigned by TES
         :param client_order_id: int orderID generated on the client side
         :param exchange_order_id: str orderID as assigned by Exchange
@@ -324,7 +322,6 @@ class ExecutionReport(CommonType):
         :param rejection_reason: Message rejectionReason
         :param client_order_link_id: str internal id
         """
-        self.request_id = int(request_id)
         self.order_id = str(order_id)
         self.client_order_id = int(client_order_id)
         self.client_order_link_id = str(client_order_link_id or '')
@@ -426,7 +423,6 @@ class CompletedOrdersReport(CommonType):
 
 class OrderInfo(CommonType):
     def __init__(self,
-                 request_id: int,
                  order_id: str,
                  client_order_id: int = None,
                  client_order_link_id: str = None,
@@ -434,14 +430,12 @@ class OrderInfo(CommonType):
                  symbol: str = None):
         """
 
-        :param request_id: int request_id that requested this Report
         :param order_id: int required
         :param client_order_id: int empty in client request
         :param client_order_link_id: str empty in client request
         :param exchange_order_id: str empty in client request
         :param symbol: str empty in client request
         """
-        self.request_id = request_id
         self.order_id = str(order_id)
         self.client_order_id = (int(client_order_id)
                                 if client_order_id is not None else None)
@@ -501,20 +495,17 @@ class ExchangePropertiesReport(CommonType):
 
 class ReplaceOrder(CommonType):
     def __init__(self,
-                 request_id: int,
                  order_id: str,
                  order_type: str = OrderType.market.name,
                  quantity: float = -1.0,
                  price: float = -1.0,
                  time_in_force: str = TimeInForce.gtc.name):
         """
-        :param request_id: int request_id that requested this Report
         :param order_type: str (see OrderType enum)
         :param quantity: float
         :param price: float
         :param time_in_force: str (see TimeInForce enum)
         """
-        self.request_id = request_id
         self.order_id = str(order_id)
         self.order_type = str(order_type)
         self.quantity = float(quantity)
