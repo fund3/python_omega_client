@@ -603,11 +603,6 @@ def _build_py_balance_from_capnp(balance):
     )
 
 
-def _request_rejected_py(request_rejected):
-    return RequestRejected(rejection_code=request_rejected.rejectionCode,
-                           message=request_rejected.message)
-
-
 def _build_py_execution_report_from_capnp(execution_report):
     """
     Converts a capnp ExecutionReport to Python object.
@@ -664,6 +659,7 @@ def _generate_tes_request(request_header: RequestHeader):
     """
     tes_message = msgs_capnp.TradeMessage.new_message()
     request = tes_message.init('type').init('request')
+    request.requestID = request_header.request_id
     request.clientID = request_header.client_id
     request.senderCompID = request_header.sender_comp_id
     request.accessToken = request_header.access_token
