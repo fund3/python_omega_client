@@ -650,12 +650,12 @@ def _build_py_execution_report_from_capnp(execution_report):
         object.
     :return: (ExecutionReport) Populated Python object.
     """
-    # TODO update
     return ExecutionReport(
+        request_id=execution_report.requestID,
         order_id=execution_report.orderID,
         client_order_id=execution_report.clientOrderID,
-        client_order_link_id=execution_report.clientOrderLinkID,
         exchange_order_id=execution_report.exchangeOrderID,
+        client_order_link_id=execution_report.clientOrderLinkID,
         account_info=account_info_py(
             execution_report.accountInfo),
         symbol=execution_report.symbol,
@@ -669,8 +669,11 @@ def _build_py_execution_report_from_capnp(execution_report):
         order_status=execution_report.orderStatus,
         filled_quantity=execution_report.filledQuantity,
         avg_fill_price=execution_report.avgFillPrice,
+        creation_time=execution_report.creationTime,
+        submission_time=execution_report.submissionTime,
+        completion_time=execution_report.completionTime,
         execution_report_type=_execution_report_type_py(execution_report.type),
-        rejection_reason=execution_report.rejectionReason
+        rejection_reason=build_py_message(execution_report.rejectionReason)
     )
 
 
