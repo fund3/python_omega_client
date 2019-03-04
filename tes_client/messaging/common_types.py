@@ -220,30 +220,6 @@ class Message(CommonType):
         self.body = str(body)
 
 
-class RequestRejected(CommonType):
-    def __init__(self, rejection_code: int, message: Message):
-        """
-        :param rejection_code: (int) Rejection code.
-        :param message: (Message) Rejection reason.
-        """
-        self.rejection_code = int(rejection_code)
-        self.message = message
-
-
-class ExecutionReportType(CommonType):
-    def __init__(self,
-                 name: str,
-                 request_rejected: RequestRejected = None):
-        """
-
-        :param name: (str) Name of the ExecutionReportType.
-        :param request_rejected: RequestRejected object.
-        """
-        self.name = str(name)
-        if request_rejected:
-            self.request_rejected = request_rejected
-
-
 class Balance(CommonType):
     def __init__(self,
                  currency: str,
@@ -316,7 +292,7 @@ class ExecutionReport(CommonType):
                  creation_time: float,
                  submission_time: float,
                  completion_time: float,
-                 execution_report_type: ExecutionReportType,
+                 execution_report_type: str,
                  rejection_reason: Message = None,
                  client_order_link_id: str = None):
         """
@@ -369,7 +345,7 @@ class ExecutionReport(CommonType):
         self.creation_time = float(creation_time)
         self.submission_time = float(submission_time)
         self.completion_time = float(completion_time)
-        self.execution_report_type = execution_report_type
+        self.execution_report_type = str(execution_report_type)
         self.rejection_reason = rejection_reason
 
 

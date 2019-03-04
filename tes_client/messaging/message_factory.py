@@ -608,41 +608,6 @@ def _request_rejected_py(request_rejected):
                            message=request_rejected.message)
 
 
-def _execution_report_type_py(execution_report_type):
-    """
-    Determines rejection message by switching on different rejectionReason
-    types.
-    :param execution_report_type: (capnp._DynamicStructBuilder)
-        execution_report_type object.
-    :return: (ExecutionReportType) ExecutionReportType.
-    """
-    execution_report_type_name = str(execution_report_type.which())
-    # process rejectionCode
-    # https://github.com/fund3/tes_python_client/issues/40
-    if execution_report_type_name == 'orderRejected':
-        return ExecutionReportType(
-            name=execution_report_type_name,
-            request_rejected=_request_rejected_py(
-                execution_report_type.orderRejected))
-    elif execution_report_type_name == 'replaceRejected':
-        return ExecutionReportType(
-            name=execution_report_type_name,
-            request_rejected=_request_rejected_py(
-                execution_report_type.replaceRejected))
-    elif execution_report_type_name == 'cancelRejected':
-        return ExecutionReportType(
-            name=execution_report_type_name,
-            request_rejected=_request_rejected_py(
-                execution_report_type.cancelRejected))
-    elif execution_report_type_name == 'statusUpdateRejected':
-        return ExecutionReportType(
-            name=execution_report_type_name,
-            request_rejected=_request_rejected_py(
-                execution_report_type.statusUpdateRejected))
-    else:
-        return ExecutionReportType(name=execution_report_type_name)
-
-
 def _build_py_execution_report_from_capnp(execution_report):
     """
     Converts a capnp ExecutionReport to Python object.
@@ -672,33 +637,9 @@ def _build_py_execution_report_from_capnp(execution_report):
         creation_time=execution_report.creationTime,
         submission_time=execution_report.submissionTime,
         completion_time=execution_report.completionTime,
-        execution_report_type=_execution_report_type_py(execution_report.type),
+        execution_report_type=execution_report.type,
         rejection_reason=build_py_message(execution_report.rejectionReason)
     )
-
-
-def _determine_rejection_reason(order):
-    """
-    Determines rejection message by switching on different rejectionReason
-    types.
-    :param order: (capnp._DynamicStructBuilder) Order object.
-    :return: (str) Rejection reason message.
-    """
-    rejection_type = order.type.which()
-    # process rejectionCode
-    # https://github.com/fund3/tes_python_client/issues/40
-    logger.debug('Determining order rejection reason.',
-                 extra={'type': rejection_type})
-    if rejection_type == 'orderRejected':
-        return order.type.orderRejected.message
-    elif rejection_type == 'replaceRejected':
-        return order.type.replaceRejected.message
-    elif rejection_type == 'cancelRejected':
-        return order.type.cancelRejected.message
-    elif rejection_type == 'statusUpdateRejected':
-        return order.type.statusUpdateRejected.message
-    else:
-        return None
 
 
 def _determine_order_price(order_price: float, order_type: str):
