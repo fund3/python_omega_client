@@ -16,7 +16,7 @@ from tes_client.messaging.common_types import AccountBalancesReport, \
     AccountCredentials, AccountDataReport, AccountInfo, AuthorizationGrant, \
     Balance, CompletedOrdersReport, Exchange,\
     ExchangePropertiesReport, ExecutionReport, ExecutionReportType, \
-    LogoffAck,  LogonAck, OpenPosition, OpenPositionsReport, Order, \
+    LogoffAck,  LogonAck, Message, OpenPosition, OpenPositionsReport, Order, \
     OrderInfo,  OrderType, RequestHeader, RequestRejected, SymbolProperties, \
     SystemMessage, TimeInForce, WorkingOrdersReport
 
@@ -36,6 +36,18 @@ EXCHANGE_ENUM_MAPPING = {
     Exchange.itBit.name: exch_capnp.Exchange.itBit
 }
 # pylint: enable=E1101
+
+# TODO request_id in request (_generate_tes_request) and response decoding
+# TODO add extra fields for ExecutionReport
+
+
+def build_py_message(msg):
+    """
+
+    :param msg: (capnp._DynamicStructBuilder) Message object
+    :return: Message python object
+    """
+    return Message(msg.code, msg.body)
 
 
 def tes_test_message_py(test_message):
@@ -57,10 +69,11 @@ def system_message_py(system_message):
     :param system_message: (capnp._DynamicStructBuilder) system message.
     :return: (int) error code, (str) system message.
     """
+    py_message = build_py_message(system_message.message)
     return SystemMessage(account_info=account_info_py(
                              system_message.accountInfo),
                          error_code=system_message.errorCode,
-                         message=system_message.message)
+                         message=py_message)
 
 
 def authorization_grant_py(authorization_grant):
@@ -70,8 +83,9 @@ def authorization_grant_py(authorization_grant):
         capnp AuthorizationGrant message
     :return: AuthorizationGrant
     """
+    py_message = build_py_message(authorization_grant.message)
     return AuthorizationGrant(success=authorization_grant.success,
-                              message=authorization_grant.message,
+                              message=py_message,
                               access_token=authorization_grant.accessToken,
                               refresh_token=authorization_grant.refreshToken,
                               expire_at=authorization_grant.expireAt)
@@ -85,8 +99,9 @@ def logon_ack_py(logon_ack):
     """
     client_accounts = list([account_info_py(account) for account in
                             logon_ack.clientAccounts])
+    py_message = build_py_message(logon_ack.message)
     return LogonAck(success=logon_ack.success,
-                    message=logon_ack.message,
+                    message=py_message,
                     client_accounts=client_accounts,
                     authorization_grant=authorization_grant_py(
                         logon_ack.authorizationGrant))
@@ -98,7 +113,8 @@ def logoff_ack_py(logoff_ack):
     :param logoff_ack: (capnp._DynamicStructBuilder) LogoffAck object.
     :return: LogoffAck
     """
-    return LogoffAck(bool(logoff_ack.success), str(logoff_ack.message))
+    py_message = build_py_message(logoff_ack.message)
+    return LogoffAck(bool(logoff_ack.success), py_message)
 
 
 def execution_report_py(execution_report):
@@ -634,6 +650,7 @@ def _build_py_execution_report_from_capnp(execution_report):
         object.
     :return: (ExecutionReport) Populated Python object.
     """
+    # TODO update
     return ExecutionReport(
         order_id=execution_report.orderID,
         client_order_id=execution_report.clientOrderID,
