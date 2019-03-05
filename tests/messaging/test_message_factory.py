@@ -396,7 +396,13 @@ def test_handle_tes_message_completed_orders_report():
     orders[0].orderStatus = 'filled'
     orders[0].filledQuantity = 0.20
     orders[0].avgFillPrice = 10000.0
-    orders[0].type.statusUpdate = None
+    orders[0].fee = 14.15
+    orders[0].creationTime = 1551761395.0
+    orders[0].submissionTime = 1551761395.30
+    orders[0].completionTime = 1551761395.712
+    orders[0].rejectionReason.code = 0
+    orders[0].rejectionReason.body = '<NONE>'
+    orders[0].executionType = 'statusUpdate'
 
     orders[1].orderID = 'c138'
     orders[1].clientOrderID = 1235
@@ -412,7 +418,13 @@ def test_handle_tes_message_completed_orders_report():
     orders[1].orderStatus = 'replaced'
     orders[1].filledQuantity = 0.0
     orders[1].avgFillPrice = 0.0
-    orders[1].type.statusUpdate = None
+    orders[1].fee = 14.15
+    orders[1].creationTime = 1551761395.0
+    orders[1].submissionTime = 1551761395.30
+    orders[1].completionTime = 1551761395.712
+    orders[1].rejectionReason.code = 0
+    orders[1].rejectionReason.body = '<NONE>'
+    orders[1].executionType = 'statusUpdate'
 
     cos_reports = completed_orders_report_py(
         tes_mess.type.response.body.completedOrdersReport)
@@ -421,10 +433,10 @@ def test_handle_tes_message_completed_orders_report():
 
     exec_reports = cos_reports.orders
     assert type(exec_reports) == list
-    assert type(exec_reports[0].execution_report_type) == ExecutionReportType
-    assert exec_reports[0].execution_report_type.name == 'statusUpdate'
-    assert type(exec_reports[1].execution_report_type) == ExecutionReportType
-    assert exec_reports[1].execution_report_type.name == 'statusUpdate'
+    assert type(exec_reports[0].executionType) == str
+    assert exec_reports[0].executionType == 'statusUpdate'
+    assert type(exec_reports[1].executionType) == str
+    assert exec_reports[1].executionType == 'statusUpdate'
 
 
 @pytest.mark.test_id(8)
