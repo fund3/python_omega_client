@@ -240,7 +240,13 @@ def test_handle_tes_message_account_data_report():
     orders[0].orderStatus = OrderStatus.partiallyFilled.name
     orders[0].filledQuantity = 0.20
     orders[0].avgFillPrice = 10000.0
-    orders[0].type.statusUpdate = None
+    orders[0].fee = 14.15
+    orders[0].creationTime = 1551761395.0
+    orders[0].submissionTime = 1551761395.30
+    orders[0].completionTime = 1551761395.712
+    orders[0].rejectionReason.code = 0
+    orders[0].rejectionReason.body = '<NONE>'
+    orders[0].executionType = 'statusUpdate'
 
     ops = adr.init('openPositions', 1)
     ops[0].symbol = 'ETH/USD'
@@ -251,6 +257,7 @@ def test_handle_tes_message_account_data_report():
 
     acct_data_report = account_data_report_py(
         account_data_report=tes_mess.type.response.body.accountDataReport)
+    # TODO AttributeError: capnp/schema.c++:486: failed: struct has no such member; name = type
     assert type(acct_data_report == AccountDataReport)
     assert type(acct_data_report.account_info == AccountInfo)
     assert type(acct_data_report.orders == List[ExecutionReport])
@@ -270,7 +277,6 @@ def test_handle_tes_message_working_orders_report():
     account = adr.init('accountInfo')
     account.accountID = 101
 
-    # TODO
     orders = adr.init('orders', 2)
     orders[0].orderID = 'c137'
     orders[0].clientOrderID = 1234
@@ -320,6 +326,10 @@ def test_handle_tes_message_working_orders_report():
 
     wos_reports = working_orders_report_py(
         tes_mess.type.response.body.workingOrdersReport)
+    # TODO
+    """ 
+    AttributeError: capnp/schema.c++:486: failed: struct has no such member; name = type
+    """
     assert type(wos_reports) == WorkingOrdersReport
     assert type(wos_reports.account_info) == AccountInfo
 
@@ -356,6 +366,7 @@ def test_handle_tes_message_account_balances_report():
 
     acct_bals = account_balances_report_py(
         tes_mess.type.response.body.accountDataReport)
+    # TODO AttributeError: capnp/schema.c++:486: failed: struct has no such member; name = type
     assert type(acct_bals == AccountBalancesReport)
     assert type(acct_bals.account_info == AccountInfo)
     assert type(acct_bals.balances == List[Balance])
@@ -428,6 +439,7 @@ def test_handle_tes_message_completed_orders_report():
 
     cos_reports = completed_orders_report_py(
         tes_mess.type.response.body.completedOrdersReport)
+    # TODO AttributeError: capnp/schema.c++:486: failed: struct has no such member; name = type
     assert type(cos_reports) == CompletedOrdersReport
     assert type(cos_reports.account_info) == AccountInfo
 
@@ -553,18 +565,18 @@ def test_on_account_balances():
 
 @pytest.mark.test_id(11)
 def test_handle_tes_message_execution_report():
-    # TODO
     # order accepted
     tes_mess = msgs_capnp.TradeMessage.new_message()
     exec_report_resp = tes_mess.init('type').init('response')
     exec_report_resp.clientID = 123
     exec_report_resp.senderCompID = str(987)
+    exec_report_resp.requestID = 100001
     body = exec_report_resp.init('body')
     er = get_new_execution_report(body=body)
-    er.type.orderAccepted = None
+    er.executionType = 'orderAccepted'
     er_type = execution_report_py(
         tes_mess.type.response.body.executionReport)
-    assert type(er_type == ExecutionReport)
+    # TODO AttributeError: capnp/schema.c++:486: failed: struct has no such member; name = type
     assert er_type.execution_report_type.name == 'orderAccepted'
 
     # order rejected
@@ -572,12 +584,14 @@ def test_handle_tes_message_execution_report():
     exec_report_resp1 = tes_mess1.init('type').init('response')
     exec_report_resp1.clientID = 123
     exec_report_resp1.senderCompID = str(987)
+    exec_report_resp1.requestID = 100002
     body1 = exec_report_resp1.init('body')
     er1 = get_new_execution_report(body=body1, include_cl_ord_link_id=False)
-    order_rejected = er1.type.init('orderRejected')
-    order_rejected.message = 'too silly'
-    order_rejected.rejectionCode = 123
+    er1.executionType = 'orderRejected'
+    er1.rejectionReason.body = 'too silly'
+    er1.rejectionReason.code = 123
     er_type1 = execution_report_py(tes_mess1.type.response.body.executionReport)
+    # TODO AttributeError: capnp/schema.c++:486: failed: struct has no such member; name = type
     assert type(er_type1 == ExecutionReport)
     assert er_type1.execution_report_type.name == 'orderRejected'
 
@@ -586,10 +600,12 @@ def test_handle_tes_message_execution_report():
     exec_report_resp2 = tes_mess2.init('type').init('response')
     exec_report_resp2.clientID = 123
     exec_report_resp2.senderCompID = str(987)
+    exec_report_resp2.requestID = 100003
     body2 = exec_report_resp2.init('body')
     er2 = get_new_execution_report(body=body2)
-    er2.type.orderReplaced = None
+    er2.executionType = 'orderReplaced'
     er_type2 = execution_report_py(tes_mess2.type.response.body.executionReport)
+    # TODO AttributeError: capnp/schema.c++:486: failed: struct has no such member; name = type
     assert type(er_type2 == ExecutionReport)
     assert er_type2.execution_report_type.name == 'orderReplaced'
 
@@ -598,12 +614,14 @@ def test_handle_tes_message_execution_report():
     exec_report_resp3 = tes_mess3.init('type').init('response')
     exec_report_resp3.clientID = 123
     exec_report_resp3.senderCompID = str(987)
+    exec_report_resp3.requestID = 100004
     body3 = exec_report_resp3.init('body')
     er3 = get_new_execution_report(body=body3)
-    order_rejected = er3.type.init('replaceRejected')
-    order_rejected.message = 'way too silly'
-    order_rejected.rejectionCode = 321
+    er3.executionType = 'replaceRejected'
+    er3.rejectionReason.body = 'too silly'
+    er3.rejectionReason.code = 321
     er_type3 = execution_report_py(tes_mess3.type.response.body.executionReport)
+    # TODO AttributeError: capnp/schema.c++:486: failed: struct has no such member; name = type
     assert type(er_type3 == ExecutionReport)
     assert er_type3.execution_report_type.name == 'replaceRejected'
 
@@ -612,10 +630,12 @@ def test_handle_tes_message_execution_report():
     exec_report_resp4 = tes_mess4.init('type').init('response')
     exec_report_resp4.clientID = 123
     exec_report_resp4.senderCompID = str(987)
+    exec_report_resp4.requestID = 100005
     body4 = exec_report_resp4.init('body')
     er4 = get_new_execution_report(body=body4)
-    er4.type.orderCanceled = None
+    er4.executionType = 'orderCanceled'
     er_type4 = execution_report_py(tes_mess4.type.response.body.executionReport)
+    # TODO AttributeError: capnp/schema.c++:486: failed: struct has no such member; name = type
     assert type(er_type4 == ExecutionReport)
     assert er_type4.execution_report_type.name == 'orderCanceled'
 
@@ -624,12 +644,14 @@ def test_handle_tes_message_execution_report():
     exec_report_resp5 = tes_mess5.init('type').init('response')
     exec_report_resp5.clientID = 123
     exec_report_resp5.senderCompID = str(987)
+    exec_report_resp5.requestID = 100006
     body5 = exec_report_resp5.init('body')
     er5 = get_new_execution_report(body=body5)
-    order_rejected = er5.type.init('cancelRejected')
-    order_rejected.message = 'way too silly'
-    order_rejected.rejectionCode = 9987
+    er5.executionType = 'cancelRejected'
+    er5.rejectionReason.body = 'too silly'
+    er5.rejectionReason.code = 9987
     er_type5 = execution_report_py(tes_mess5.type.response.body.executionReport)
+    # TODO AttributeError: capnp/schema.c++:486: failed: struct has no such member; name = type
     assert type(er_type5 == ExecutionReport)
     assert er_type5.execution_report_type.name == 'cancelRejected'
 
@@ -638,10 +660,12 @@ def test_handle_tes_message_execution_report():
     exec_report_resp6 = tes_mess6.init('type').init('response')
     exec_report_resp6.clientID = 123
     exec_report_resp6.senderCompID = str(987)
+    exec_report_resp6.requestID = 100007
     body6 = exec_report_resp6.init('body')
     er6 = get_new_execution_report(body=body6)
-    er6.type.orderFilled = None
+    er6.executionType = 'orderFilled'
     er_type6 = execution_report_py(tes_mess6.type.response.body.executionReport)
+    # TODO AttributeError: capnp/schema.c++:486: failed: struct has no such member; name = type
     assert type(er_type6 == ExecutionReport)
     assert er_type6.execution_report_type.name == 'orderFilled'
 
@@ -650,10 +674,12 @@ def test_handle_tes_message_execution_report():
     exec_report_resp7 = tes_mess7.init('type').init('response')
     exec_report_resp7.clientID = 123
     exec_report_resp7.senderCompID = str(987)
+    exec_report_resp7.requestID = 100008
     body7 = exec_report_resp7.init('body')
     er7 = get_new_execution_report(body=body7)
-    er7.type.statusUpdate = None
+    er7.executionType = 'statusUpdate'
     er_type7 = execution_report_py(tes_mess7.type.response.body.executionReport)
+    # TODO AttributeError: capnp/schema.c++:486: failed: struct has no such member; name = type
     assert type(er_type7 == ExecutionReport)
     assert er_type7.execution_report_type.name == 'statusUpdate'
 
