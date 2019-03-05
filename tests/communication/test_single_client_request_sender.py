@@ -29,7 +29,8 @@ __FAKE_CLIENT_SECRET = ('2B24_ih9IFVdWgxR2sEA3rj0fKlY212Ec_TwTNVCD663ktYb1' +
 __FAKE_ACCESS_TOKEN = 'FakeAccessToken'
 __FAKE_REQUEST_HEADER = RequestHeader(client_id=123,
                                       sender_comp_id='987',
-                                      access_token=__FAKE_ACCESS_TOKEN)
+                                      access_token=__FAKE_ACCESS_TOKEN,
+                                      request_id=100001)
 
 
 @pytest.fixture(scope="session")

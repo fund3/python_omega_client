@@ -28,36 +28,48 @@ class FakeResponseHandler(ResponseHandler):
         self.message_list = message_list
         super().__init__()
 
-    def on_heartbeat(self, client_id: int, sender_comp_id: str):
-        self.message_list.append(('heartbeat', client_id, sender_comp_id))
+    def on_heartbeat(self,
+                     client_id: int,
+                     sender_comp_id: str,
+                     request_id: int):
+        self.message_list.append(
+            ('heartbeat', client_id, sender_comp_id, request_id))
 
     def on_test_message(self,
                         string: str,
                         client_id: int,
-                        sender_comp_id: str):
-        self.message_list.append(('test', string, client_id, sender_comp_id))
+                        sender_comp_id: str,
+                        request_id: int):
+        self.message_list.append(
+            ('test', string, client_id, sender_comp_id, request_id))
 
     def on_system_message(self,
                           system_message: SystemMessage,
                           client_id: int,
-                          sender_comp_id: str):
+                          sender_comp_id: str,
+                          request_id: int):
+        # TODO message
         self.message_list.append(('system',
                                   system_message.error_code,
                                   system_message.message,
                                   client_id,
-                                  sender_comp_id))
+                                  sender_comp_id,
+                                  request_id))
 
     def on_logon_ack(self,
                      logon_ack: LogonAck,
                      client_id: int,
-                     sender_comp_id: str):
+                     sender_comp_id: str,
+                     request_id: int):
+        # TODO message
         self.message_list.append(('logonAck',
                                   logon_ack.success,
                                   logon_ack.message,
                                   [client_account.account_id for client_account
                                    in logon_ack.client_accounts],
                                   client_id,
-                                  sender_comp_id))
+                                  sender_comp_id,
+                                  request_id))
 
 
 @pytest.fixture(scope="session")
@@ -165,6 +177,7 @@ def test_heartbeat_handling(fake_response_receiver_from_dealer,
     heartbeat_resp = tes_mess.init('type').init('response')
     heartbeat_resp.clientID = 123
     heartbeat_resp.senderCompID = str(987)
+    heartbeat_resp.requestID = 100001
     body = heartbeat_resp.init('body')
     body.heartbeat = None
 
@@ -175,7 +188,7 @@ def test_heartbeat_handling(fake_response_receiver_from_dealer,
 
     assert len(fake_response_handler.message_list) == 1
     assert fake_response_handler.message_list[0] == (
-        'heartbeat', 123, '987')
+        'heartbeat', 123, '987', 100001)
 
 
 @pytest.mark.test_id(4)
@@ -185,6 +198,7 @@ def test_test_message_handling(fake_response_receiver_from_dealer,
     test_response = tes_mess.init('type').init('response')
     test_response.clientID = 123
     test_response.senderCompID = str(987)
+    test_response.requestID = 100001
     body = test_response.init('body')
     test = body.init('test')
     test.string = 'test_string'
@@ -195,7 +209,7 @@ def test_test_message_handling(fake_response_receiver_from_dealer,
         tes_mess.to_bytes())
     assert len(fake_response_handler.message_list) == 1
     assert fake_response_handler.message_list[0] == ('test', 'test_string',
-                                                     123, '987')
+                                                     123, '987', 100001)
 
 
 @pytest.mark.test_id(5)
@@ -205,11 +219,13 @@ def test_system_message_handling(fake_response_receiver_from_dealer,
     heartbeat_resp = tes_mess.init('type').init('response')
     heartbeat_resp.clientID = 123
     heartbeat_resp.senderCompID = str(987)
+    heartbeat_resp.requestID = 100001
     body = heartbeat_resp.init('body')
     system = body.init('system')
     account = system.init('accountInfo')
     account.accountID = 100
     system.errorCode = 0
+    # TODO message
     system.message = ('The Times 03/Jan/2009 Chancellor on brink of second ' +
                       'bailout for banks')
 
@@ -219,7 +235,7 @@ def test_system_message_handling(fake_response_receiver_from_dealer,
         tes_mess.to_bytes())
     assert len(fake_response_handler.message_list) == 1
     assert fake_response_handler.message_list[0] == (
-        'system', system.errorCode, system.message, 123, '987')
+        'system', system.errorCode, system.message, 123, '987', 100001)
 
 
 @pytest.mark.test_id(6)
@@ -229,9 +245,11 @@ def test_logon_ack_handling(fake_response_receiver_from_dealer,
     logon_ack_resp = tes_mess.init('type').init('response')
     logon_ack_resp.clientID = 123
     logon_ack_resp.senderCompID = str(987)
+    logon_ack_resp.requestID = 100001
     body = logon_ack_resp.init('body')
     logon_ack_capnp = body.init('logonAck')
     logon_ack_capnp.success = True
+    # TODO message
     logon_ack_capnp.message = ('The Times 03/Jan/2009 Chancellor on brink ' +
                                'of second bailout for banks')
     client_accounts = logon_ack_capnp.init('clientAccounts', 2)
@@ -255,7 +273,9 @@ def test_logon_ack_handling(fake_response_receiver_from_dealer,
         logon_ack_capnp.message,
         [100, 101],
         123,
-        '987')
+        '987',
+        100001
+    )
 
 
 # TODO: complete mock response handler tests
