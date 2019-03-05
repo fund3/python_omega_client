@@ -343,7 +343,7 @@ def test_handle_tes_message_working_orders_report():
     assert exec_reports[1].execution_report_type == 'cancelRejected'
     request_rejected = orders[1].rejectionReason.body
     assert type(request_rejected) == str
-    assert request_rejected.message == 'way too silly'
+    assert request_rejected == 'way too silly'
     assert orders[1].rejectionReason.code == 1
 
 
