@@ -315,8 +315,8 @@ class ExecutionReport(CommonType):
         :param fee: float exchange fee paid for order
         :param creation_time: float unix timestamp when order was created on
             TES server
-        :param submission_time: float unix timestamp when order was sent to
-            the exchange from TES server
+        :param submission_time: float unix timestamp when order was received
+            by the exchange
         :param completion_time: float unix timestamp when order was completed
         :param execution_report_type: str (see ExecutionReportType enum)
         :param rejection_reason: Message rejectionReason
