@@ -35,7 +35,6 @@ __FAKE_REQUEST_HEADER = RequestHeader(client_id=123,
 
 
 def get_new_execution_report(body, include_cl_ord_link_id=True):
-    # TODO add fees
     er = body.init('executionReport')
     er.orderID = 'c137'
     er.clientOrderID = 123456789000000
@@ -53,6 +52,13 @@ def get_new_execution_report(body, include_cl_ord_link_id=True):
     er.orderStatus = 'adopted'
     er.filledQuantity = 0.0
     er.avgFillPrice = 0.0
+    er.fee = 14.15
+    er.creationTime = 1551761395.0
+    er.submissionTime = 1551761395.30
+    er.completionTime = 1551761395.712
+    er.rejectionReason.code = 0
+    er.rejectionReason.body = '<NONE>'
+    er.executionType = 'statusUpdate'
     return er
 
 
@@ -281,9 +287,14 @@ def test_handle_tes_message_working_orders_report():
     orders[0].orderStatus = 'partiallyFilled'
     orders[0].filledQuantity = 0.20
     orders[0].avgFillPrice = 10000.0
-    orders[0].type.statusUpdate = None
+    orders[0].fee = 14.15
+    orders[0].creationTime = 1551761395.0
+    orders[0].submissionTime = 1551761395.30
+    orders[0].completionTime = 1551761395.712
+    orders[0].rejectionReason.code = 0
+    orders[0].rejectionReason.body = '<NONE>'
+    orders[0].executionType = 'statusUpdate'
 
-    # TODO
     orders[1].orderID = 'c138'
     orders[1].clientOrderID = 1235
     orders[1].clientOrderLinkID = 'b123'
@@ -299,9 +310,13 @@ def test_handle_tes_message_working_orders_report():
     orders[1].orderStatus = 'rejected'
     orders[1].filledQuantity = 0.0
     orders[1].avgFillPrice = 0.0
-    order_rejected = orders[1].type.init('cancelRejected')
-    order_rejected.message = 'way too silly'
-    order_rejected.rejectionCode = 1
+    orders[1].fee = 14.15
+    orders[1].creationTime = 1551761395.0
+    orders[1].submissionTime = 1551761395.30
+    orders[1].completionTime = 1551761395.712
+    orders[1].rejectionReason.code = 1
+    orders[1].rejectionReason.body = 'way too silly'
+    orders[1].executionType = 'cancelRejected'
 
     wos_reports = working_orders_report_py(
         tes_mess.type.response.body.workingOrdersReport)
@@ -310,14 +325,14 @@ def test_handle_tes_message_working_orders_report():
 
     exec_reports = wos_reports.orders
     assert type(exec_reports) == list
-    assert type(exec_reports[0].execution_report_type) == ExecutionReportType
-    assert exec_reports[0].execution_report_type.name == 'statusUpdate'
-    assert type(exec_reports[1].execution_report_type) == ExecutionReportType
-    assert exec_reports[1].execution_report_type.name == 'cancelRejected'
-    request_rejected = exec_reports[1].execution_report_type.request_rejected
-    assert type(request_rejected) == RequestRejected
+    assert type(exec_reports[0].executionType) == str
+    assert exec_reports[0].executionType == 'statusUpdate'
+    assert type(exec_reports[1].executionType) == str
+    assert exec_reports[1].executionType == 'cancelRejected'
+    request_rejected = orders[1].rejectionReason.body
+    assert type(request_rejected) == str
     assert request_rejected.message == 'way too silly'
-    assert request_rejected.rejection_code == 1
+    assert orders[1].rejectionReason.code == 1
 
 
 @pytest.mark.test_id(6)
