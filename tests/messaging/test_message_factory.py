@@ -255,14 +255,14 @@ def test_handle_tes_message_account_data_report():
     ops[0].initialPrice = 450.3
     ops[0].unrealizedPL = 503.1
 
-    acct_data_report = account_data_report_py(
-        account_data_report=tes_mess.type.response.body.accountDataReport)
+    print('account data report: ', adr)
+    acct_data_report = account_data_report_py(account_data_report=adr)
     # TODO AttributeError: capnp/schema.c++:486: failed: struct has no such member; name = type
-    assert type(acct_data_report == AccountDataReport)
-    assert type(acct_data_report.account_info == AccountInfo)
-    assert type(acct_data_report.orders == List[ExecutionReport])
-    assert type(acct_data_report.open_positions == List[OpenPosition])
-    assert type(acct_data_report.balances == List[Balance])
+    assert type(acct_data_report) == AccountDataReport
+    assert type(acct_data_report.account_info) == AccountInfo
+    assert type(acct_data_report.orders) == List[ExecutionReport]
+    assert type(acct_data_report.open_positions) == List[OpenPosition]
+    assert type(acct_data_report.balances) == List[Balance]
 
 
 @pytest.mark.test_id(5)
@@ -273,11 +273,11 @@ def test_handle_tes_message_working_orders_report():
     working_orders_resp.senderCompID = str(987)
     working_orders_resp.requestID = 100001
     body = working_orders_resp.init('body')
-    adr = body.init('workingOrdersReport')
-    account = adr.init('accountInfo')
+    wor = body.init('workingOrdersReport')
+    account = wor.init('accountInfo')
     account.accountID = 101
 
-    orders = adr.init('orders', 2)
+    orders = wor.init('orders', 2)
     orders[0].orderID = 'c137'
     orders[0].clientOrderID = 1234
     orders[0].clientOrderLinkID = 'a123'
@@ -324,8 +324,7 @@ def test_handle_tes_message_working_orders_report():
     orders[1].rejectionReason.body = 'way too silly'
     orders[1].executionType = 'cancelRejected'
 
-    wos_reports = working_orders_report_py(
-        tes_mess.type.response.body.workingOrdersReport)
+    wos_reports = working_orders_report_py(working_orders_report=wor)
     # TODO
     """ 
     AttributeError: capnp/schema.c++:486: failed: struct has no such member; name = type
@@ -353,10 +352,10 @@ def test_handle_tes_message_account_balances_report():
     account_balances_resp.senderCompID = str(987)
     account_balances_resp.requestID = 100001
     body = account_balances_resp.init('body')
-    adr = body.init('accountDataReport')
-    account = adr.init('accountInfo')
+    abr = body.init('accountBalancesReport')
+    account = abr.init('accountInfo')
     account.accountID = 101
-    balances = adr.init('balances', 2)
+    balances = abr.init('balances', 2)
     balances[0].currency = 'ETH'
     balances[0].fullBalance = 100.1
     balances[0].availableBalance = 97.3
@@ -364,12 +363,11 @@ def test_handle_tes_message_account_balances_report():
     balances[1].fullBalance = 1005002.02
     balances[1].availableBalance = 915002.02
 
-    acct_bals = account_balances_report_py(
-        tes_mess.type.response.body.accountDataReport)
+    acct_bals = account_balances_report_py(account_balances_report=abr)
     # TODO AttributeError: capnp/schema.c++:486: failed: struct has no such member; name = type
-    assert type(acct_bals == AccountBalancesReport)
-    assert type(acct_bals.account_info == AccountInfo)
-    assert type(acct_bals.balances == List[Balance])
+    assert type(acct_bals) == AccountBalancesReport
+    assert type(acct_bals.account_info) == AccountInfo
+    assert type(acct_bals.balances) == List[Balance]
 
     assert acct_bals.balances[0].currency == 'ETH'
     assert acct_bals.balances[1].currency == 'USD'
@@ -437,8 +435,7 @@ def test_handle_tes_message_completed_orders_report():
     orders[1].rejectionReason.body = '<NONE>'
     orders[1].executionType = 'statusUpdate'
 
-    cos_reports = completed_orders_report_py(
-        tes_mess.type.response.body.completedOrdersReport)
+    cos_reports = completed_orders_report_py(completed_orders_report=cor)
     # TODO AttributeError: capnp/schema.c++:486: failed: struct has no such member; name = type
     assert type(cos_reports) == CompletedOrdersReport
     assert type(cos_reports.account_info) == AccountInfo
