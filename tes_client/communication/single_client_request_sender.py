@@ -24,7 +24,9 @@ class SingleClientRequestSender:
             outgoing_message_queue=outgoing_message_queue)
         self._request_header = RequestHeader(client_id=client_id,
                                              sender_comp_id=sender_comp_id,
-                                             access_token='')
+                                             access_token='',
+                                             request_id=100001)
+        # TODO (low priority) change _request_header to use variable request_id
 
     def set_access_token(self, access_token: str):
         """
