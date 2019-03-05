@@ -262,7 +262,7 @@ def test_handle_tes_message_account_data_report():
     assert type(acct_data_report.orders) == list
     assert acct_data_report.orders[0].fee == 14.15
     assert type(acct_data_report.open_positions) == list
-    assert acct_data_report.open_positions[0].initialPrice == 450.3
+    assert acct_data_report.open_positions[0].initial_price == 450.3
     assert type(acct_data_report.balances) == list
     assert len(acct_data_report.balances) == 2
 
@@ -337,10 +337,10 @@ def test_handle_tes_message_working_orders_report():
 
     exec_reports = wos_reports.orders
     assert type(exec_reports) == list
-    assert type(exec_reports[0].executionType) == str
-    assert exec_reports[0].executionType == 'statusUpdate'
-    assert type(exec_reports[1].executionType) == str
-    assert exec_reports[1].executionType == 'cancelRejected'
+    assert type(exec_reports[0].execution_report_type) == str
+    assert exec_reports[0].execution_report_type == 'statusUpdate'
+    assert type(exec_reports[1].execution_report_type) == str
+    assert exec_reports[1].execution_report_type == 'cancelRejected'
     request_rejected = orders[1].rejectionReason.body
     assert type(request_rejected) == str
     assert request_rejected.message == 'way too silly'
@@ -445,10 +445,10 @@ def test_handle_tes_message_completed_orders_report():
 
     exec_reports = cos_reports.orders
     assert type(exec_reports) == list
-    assert type(exec_reports[0].executionType) == str
-    assert exec_reports[0].executionType == 'statusUpdate'
-    assert type(exec_reports[1].executionType) == str
-    assert exec_reports[1].executionType == 'statusUpdate'
+    assert type(exec_reports[0].execution_report_type) == str
+    assert exec_reports[0].execution_report_type == 'statusUpdate'
+    assert type(exec_reports[1].execution_report_type) == str
+    assert exec_reports[1].execution_report_type == 'statusUpdate'
 
 
 @pytest.mark.test_id(8)
@@ -576,7 +576,7 @@ def test_handle_tes_message_execution_report():
     er.executionType = 'orderAccepted'
     er_type = execution_report_py(tes_mess.type.response.body.executionReport)
     assert type(er_type) == ExecutionReport
-    assert er_type.executionType == 'orderAccepted'
+    assert er_type.execution_report_type == 'orderAccepted'
 
     # order rejected
     tes_mess1 = msgs_capnp.TradeMessage.new_message()
@@ -591,7 +591,7 @@ def test_handle_tes_message_execution_report():
     er1.rejectionReason.code = 123
     er_type1 = execution_report_py(tes_mess1.type.response.body.executionReport)
     assert type(er_type1) == ExecutionReport
-    assert er_type1.executionType == 'orderRejected'
+    assert er_type1.execution_report_type == 'orderRejected'
 
     # order replaced
     tes_mess2 = msgs_capnp.TradeMessage.new_message()
@@ -604,7 +604,7 @@ def test_handle_tes_message_execution_report():
     er2.executionType = 'orderReplaced'
     er_type2 = execution_report_py(tes_mess2.type.response.body.executionReport)
     assert type(er_type2) == ExecutionReport
-    assert er_type2.executionType == 'orderReplaced'
+    assert er_type2.execution_report_type == 'orderReplaced'
 
     # replace rejected
     tes_mess3 = msgs_capnp.TradeMessage.new_message()
@@ -619,7 +619,7 @@ def test_handle_tes_message_execution_report():
     er3.rejectionReason.code = 321
     er_type3 = execution_report_py(tes_mess3.type.response.body.executionReport)
     assert type(er_type3) == ExecutionReport
-    assert er_type3.executionType == 'replaceRejected'
+    assert er_type3.execution_report_type == 'replaceRejected'
 
     # order cancelled
     tes_mess4 = msgs_capnp.TradeMessage.new_message()
@@ -632,7 +632,7 @@ def test_handle_tes_message_execution_report():
     er4.executionType = 'orderCanceled'
     er_type4 = execution_report_py(tes_mess4.type.response.body.executionReport)
     assert type(er_type4) == ExecutionReport
-    assert er_type4.executionType == 'orderCanceled'
+    assert er_type4.execution_report_type == 'orderCanceled'
 
     # cancel rejected
     tes_mess5 = msgs_capnp.TradeMessage.new_message()
@@ -647,7 +647,7 @@ def test_handle_tes_message_execution_report():
     er5.rejectionReason.code = 9987
     er_type5 = execution_report_py(tes_mess5.type.response.body.executionReport)
     assert type(er_type5) == ExecutionReport
-    assert er_type5.executionType == 'cancelRejected'
+    assert er_type5.execution_report_type == 'cancelRejected'
 
     # order filled
     tes_mess6 = msgs_capnp.TradeMessage.new_message()
@@ -660,7 +660,7 @@ def test_handle_tes_message_execution_report():
     er6.executionType = 'orderFilled'
     er_type6 = execution_report_py(tes_mess6.type.response.body.executionReport)
     assert type(er_type6) == ExecutionReport
-    assert er_type6.executionType == 'orderFilled'
+    assert er_type6.execution_report_type == 'orderFilled'
 
     # status update
     tes_mess7 = msgs_capnp.TradeMessage.new_message()
@@ -673,7 +673,7 @@ def test_handle_tes_message_execution_report():
     er7.executionType = 'statusUpdate'
     er_type7 = execution_report_py(tes_mess7.type.response.body.executionReport)
     assert type(er_type7) == ExecutionReport
-    assert er_type7.executionType == 'statusUpdate'
+    assert er_type7.execution_report_type == 'statusUpdate'
 
 
 @pytest.mark.test_id(12)
