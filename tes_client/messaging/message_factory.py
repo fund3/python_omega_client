@@ -627,7 +627,7 @@ def _build_py_execution_report_from_capnp(execution_report):
         creation_time=execution_report.creationTime,
         submission_time=execution_report.submissionTime,
         completion_time=execution_report.completionTime,
-        execution_report_type=execution_report.type,
+        execution_report_type=execution_report.executionType,
         rejection_reason=_build_py_message(execution_report.rejectionReason)
     )
 
