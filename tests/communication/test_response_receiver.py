@@ -17,7 +17,6 @@ from tes_client.messaging.common_types import LogonAck, SystemMessage
 from tes_client.messaging.response_handler import ResponseHandler
 
 
-
 __FAKE_ROUTER_SOCKET_ENDPOINT = 'inproc://FAKE_ROUTER_SOCKET'
 __FAKE_DEALER_SOCKET_ENDPOINT = 'inproc://FAKE_DEALER_SOCKET'
 __RESPONSE_RECEIVER_IDENTITY = b'A'
@@ -224,10 +223,9 @@ def test_system_message_handling(fake_response_receiver_from_dealer,
     system = body.init('system')
     account = system.init('accountInfo')
     account.accountID = 100
-    system.errorCode = 0
-    # TODO message
-    system.message = ('The Times 03/Jan/2009 Chancellor on brink of second ' +
-                      'bailout for banks')
+    system.message.code = 0
+    system.message.body = ('The Times 03/Jan/2009 Chancellor on brink of ' +
+                           'second bailout for banks')
 
     fake_response_receiver_from_dealer.set_response_handler(
         fake_response_handler)
@@ -235,7 +233,7 @@ def test_system_message_handling(fake_response_receiver_from_dealer,
         tes_mess.to_bytes())
     assert len(fake_response_handler.message_list) == 1
     assert fake_response_handler.message_list[0] == (
-        'system', system.errorCode, system.message, 123, '987', 100001)
+        'system', system.message.code, system.message.body, 123, '987', 100001)
 
 
 @pytest.mark.test_id(6)
@@ -249,9 +247,9 @@ def test_logon_ack_handling(fake_response_receiver_from_dealer,
     body = logon_ack_resp.init('body')
     logon_ack_capnp = body.init('logonAck')
     logon_ack_capnp.success = True
-    # TODO message
-    logon_ack_capnp.message = ('The Times 03/Jan/2009 Chancellor on brink ' +
-                               'of second bailout for banks')
+    logon_ack_capnp.message.code = 0
+    logon_ack_capnp.message.body = ('The Times 03/Jan/2009 Chancellor on ' +
+                                    'brink of second bailout for banks')
     client_accounts = logon_ack_capnp.init('clientAccounts', 2)
     client_accounts[0].accountID = 100
     client_accounts[1].accountID = 101
@@ -270,7 +268,8 @@ def test_logon_ack_handling(fake_response_receiver_from_dealer,
     assert fake_response_handler.message_list[0] == (
         'logonAck',
         logon_ack_capnp.success,
-        logon_ack_capnp.message,
+        logon_ack_capnp.message.code,
+        logon_ack_capnp.message.bodyr,
         [100, 101],
         123,
         '987',
