@@ -705,7 +705,7 @@ def test_heartbeat_capnp():
     heartbeat_req.clientID = 123
     heartbeat_req.senderCompID = str(987)
     heartbeat_req.accessToken = __FAKE_ACCESS_TOKEN
-    heartbeat_req.requestId = 100001
+    heartbeat_req.requestID = 100001
     body = heartbeat_req.init('body')
     body.heartbeat = None
 
@@ -727,7 +727,7 @@ def test_request_server_time_capnp():
     request_server_time = expected_tes_message.init('type').init('request')
     request_server_time.clientID = 123
     request_server_time.senderCompID = str(987)
-    request_server_time.requestId = 100001
+    request_server_time.requestID = 100001
     request_server_time.accessToken = __FAKE_ACCESS_TOKEN
     body = request_server_time.init('body')
     body.getServerTime = None
