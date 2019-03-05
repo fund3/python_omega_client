@@ -624,6 +624,7 @@ def _build_py_execution_report_from_capnp(execution_report):
         order_status=execution_report.orderStatus,
         filled_quantity=execution_report.filledQuantity,
         avg_fill_price=execution_report.avgFillPrice,
+        fee=execution_report.fee,
         creation_time=execution_report.creationTime,
         submission_time=execution_report.submissionTime,
         completion_time=execution_report.completionTime,
