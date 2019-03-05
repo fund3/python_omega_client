@@ -73,7 +73,6 @@ def test_handle_tes_message_system():
     system_msg = system_message_py(tes_mess.type.response.body.system)
     assert type(system_msg.message.code) == int
     assert type(system_msg.message.body) == str
-    assert system_msg.error_code == 0
     assert system_msg.message.body == ('The Times 03/Jan/2009 Chancellor on ' +
                                        'brink of second bailout for banks')
 
@@ -137,6 +136,7 @@ def test_handle_tes_message_logon():
     client_accounts[1].accountID = 101
     grant = logon_ack_capnp.init('authorizationGrant')
     grant.success = False
+    grant.message.code = 1
     grant.message.body = "Authorization failed"
     expected_auth_grant = AuthorizationGrant(
         success=False,
@@ -150,6 +150,7 @@ def test_handle_tes_message_logon():
     assert type(logon_ack.success) == bool
     assert not logon_ack.success
     assert logon_ack.authorization_grant == expected_auth_grant
+
 
 # Test cases where there are no passphrase or other params,
 # coupled with the logic change requested in AccountCredentials above.
