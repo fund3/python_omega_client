@@ -137,7 +137,7 @@ def test_handle_tes_message_logon():
     client_accounts[1].accountID = 101
     grant = logon_ack_capnp.init('authorizationGrant')
     grant.success = False
-    grant.message = "Authorization failed"
+    grant.message.body = "Authorization failed"
     expected_auth_grant = AuthorizationGrant(
         success=False,
         message=Message(body="Authorization failed", code=1),
@@ -174,8 +174,8 @@ def test_handle_tes_message_logoff():
                            'second bailout for banks')
     logoff_ack = logoff_ack_py(tes_mess.type.response.body.logoffAck)
     assert type(logoff_ack.message.body) == str
-    assert logoff_ack.message == ('The Times 03/Jan/2009 Chancellor on ' +
-                                  'brink of second bailout for banks')
+    assert logoff_ack.message.body == ('The Times 03/Jan/2009 Chancellor on ' +
+                                       'brink of second bailout for banks')
     assert type(logoff_ack.success) == bool
     assert logoff_ack.success
 
@@ -193,7 +193,7 @@ def test_handle_tes_message_logoff():
     logoff1.message.body = 'Jamie Dimon has denied you access'
     logoff_ack = logoff_ack_py(tes_mess1.type.response.body.logoffAck)
     assert type(logoff_ack.message.body) == str
-    assert logoff_ack.message == 'Jamie Dimon has denied you access'
+    assert logoff_ack.message.body == 'Jamie Dimon has denied you access'
     assert type(logoff_ack.success) == bool
     assert not logoff_ack.success
 

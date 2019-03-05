@@ -64,12 +64,11 @@ def system_message_py(system_message):
     """
     Builds system message Python object from capnp object.
     :param system_message: (capnp._DynamicStructBuilder) system message.
-    :return: (int) error code, (str) system message.
+    :return: SystemMessage.
     """
     py_message = _build_py_message(system_message.message)
     return SystemMessage(account_info=account_info_py(
                              system_message.accountInfo),
-                         error_code=system_message.errorCode,
                          message=py_message)
 
 

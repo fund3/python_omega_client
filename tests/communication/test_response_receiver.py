@@ -47,10 +47,8 @@ class FakeResponseHandler(ResponseHandler):
                           client_id: int,
                           sender_comp_id: str,
                           request_id: int):
-        # TODO message
         self.message_list.append(('system',
-                                  system_message.error_code,
-                                  system_message.message,
+                                  system_message,
                                   client_id,
                                   sender_comp_id,
                                   request_id))
@@ -60,7 +58,6 @@ class FakeResponseHandler(ResponseHandler):
                      client_id: int,
                      sender_comp_id: str,
                      request_id: int):
-        # TODO message
         self.message_list.append(('logonAck',
                                   logon_ack.success,
                                   logon_ack.message,
@@ -232,17 +229,8 @@ def test_system_message_handling(fake_response_receiver_from_dealer,
     fake_response_receiver_from_dealer._handle_binary_tes_message(
         tes_mess.to_bytes())
     assert len(fake_response_handler.message_list) == 1
-    # TODO
-    """
-    >       assert len(fake_response_handler.message_list) == 1
-E       assert 0 == 1
-E        +  where 0 = len([])
-E        +    where [] = <test_response_receiver.FakeResponseHandler object at 0x7f95a8537cc0>.message_list
-
-tests/communication/test_response_receiver.py:234: AssertionError
-    """
     assert fake_response_handler.message_list[0] == (
-        'system', system.message.code, system.message.body, 123, '987', 100001)
+        'system', system.message.code, system.message, 123, '987', 100001)
 
 
 @pytest.mark.test_id(6)
@@ -277,8 +265,7 @@ def test_logon_ack_handling(fake_response_receiver_from_dealer,
     assert fake_response_handler.message_list[0] == (
         'logonAck',
         logon_ack_capnp.success,
-        logon_ack_capnp.message.code,
-        logon_ack_capnp.message.bodyr,
+        logon_ack_capnp.message,
         [100, 101],
         123,
         '987',

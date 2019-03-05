@@ -550,10 +550,8 @@ class LogoffAck(CommonType):
 class SystemMessage(CommonType):
     def __init__(self,
                  account_info: AccountInfo,
-                 error_code: int,
                  message: Message):
         self.account_info = account_info
-        self.error_code = int(error_code)
         self.message = message
 
 
