@@ -67,16 +67,15 @@ def test_handle_tes_message_system():
     system = body.init('system')
     account = system.init('accountInfo')
     account.accountID = 100
-    system.errorCode = 0
-    # TODO update message
-    system.message = ('The Times 03/Jan/2009 Chancellor on brink of second ' +
-                      'bailout for banks')
+    system.message.code = 0
+    system.message.body = ('The Times 03/Jan/2009 Chancellor on brink of ' +
+                           'second bailout for banks')
     system_msg = system_message_py(tes_mess.type.response.body.system)
-    assert type(system_msg.error_code) == int
-    assert type(system_msg.message == str)
+    assert type(system_msg.message.code) == int
+    assert type(system_msg.message.body) == str
     assert system_msg.error_code == 0
-    assert system_msg.message == ('The Times 03/Jan/2009 Chancellor on ' +
-                                  'brink of second bailout for banks')
+    assert system_msg.message.body == ('The Times 03/Jan/2009 Chancellor on ' +
+                                       'brink of second bailout for banks')
 
 
 @pytest.mark.test_id(2)
@@ -90,30 +89,30 @@ def test_handle_tes_message_logon():
     body = logon_ack_resp.init('body')
     logon_ack_capnp = body.init('logonAck')
     logon_ack_capnp.success = True
-    # TODO update message
-    logon_ack_capnp.message = ('The Times 03/Jan/2009 Chancellor on brink ' +
-                               'of second bailout for banks')
+    logon_ack_capnp.message.code = 0
+    logon_ack_capnp.message.body = ('The Times 03/Jan/2009 Chancellor on ' +
+                                    'brink of second bailout for banks')
     client_accounts = logon_ack_capnp.init('clientAccounts', 2)
     client_accounts[0].accountID = 100
     client_accounts[1].accountID = 101
     grant = logon_ack_capnp.init('authorizationGrant')
     grant.success = True
-    # TODO update message
-    grant.message = "Granted"
+    grant.message.code = 0
+    grant.message.body = "Granted"
     grant.accessToken = "AccessToken"
     grant.refreshToken = "refreshToken"
     grant.expireAt = 1551288929.0
     logon_ack = logon_ack_py(tes_mess.type.response.body.logonAck)
     expected_auth_grant = AuthorizationGrant(
         success=True,
-        message="Granted",
+        message=Message(body="Granted", code=0),
         access_token="AccessToken",
         refresh_token="refreshToken",
         expire_at=1551288929.0)
-    assert type(logon_ack.message == str)
-    # TODO update message
-    assert logon_ack.message == ('The Times 03/Jan/2009 Chancellor on brink ' +
-                                 'of second bailout for banks')
+    assert type(logon_ack.message.body) == str
+    assert type(logon_ack.message.code) == int
+    assert logon_ack.message.body == ('The Times 03/Jan/2009 Chancellor on ' +
+                                      'brink of second bailout for banks')
     assert type(logon_ack.success) == bool
     assert logon_ack.success
     accts = [acct for acct in logon_ack.client_accounts]
@@ -131,8 +130,8 @@ def test_handle_tes_message_logon():
     body = logon_ack_resp1.init('body')
     logon_ack_capnp = body.init('logonAck')
     logon_ack_capnp.success = False
-    # TODO update message
-    logon_ack_capnp.message = 'Jamie Dimon has denied you access'
+    logon_ack_capnp.message.code = 1
+    logon_ack_capnp.message.body = 'Jamie Dimon has denied you access'
     client_accounts = logon_ack_capnp.init('clientAccounts', 2)
     client_accounts[0].accountID = 100
     client_accounts[1].accountID = 101
@@ -141,13 +140,13 @@ def test_handle_tes_message_logon():
     grant.message = "Authorization failed"
     expected_auth_grant = AuthorizationGrant(
         success=False,
-        message="Authorization failed",
+        message=Message(body="Authorization failed", code=1),
         access_token="",
         refresh_token="",
         expire_at=0.0)
     logon_ack = logon_ack_py(tes_mess1.type.response.body.logonAck)
-    assert type(logon_ack.message == str)
-    assert logon_ack.message == 'Jamie Dimon has denied you access'
+    assert type(logon_ack.message.body) == str
+    assert logon_ack.message.body == 'Jamie Dimon has denied you access'
     assert type(logon_ack.success) == bool
     assert not logon_ack.success
     assert logon_ack.authorization_grant == expected_auth_grant
@@ -160,7 +159,6 @@ def test_handle_tes_message_logon():
 
 @pytest.mark.test_id(3)
 def test_handle_tes_message_logoff():
-    # TODO
     tes_mess = msgs_capnp.TradeMessage.new_message()
     logoff_resp = tes_mess.init('type').init('response')
     logoff_resp.clientID = 123
@@ -171,12 +169,13 @@ def test_handle_tes_message_logoff():
     # logoff success
     logoff = body.init('logoffAck')
     logoff.success = True
-    logoff.message = ('The Times 03/Jan/2009 Chancellor on brink of second ' +
-                      'bailout for banks')
+    logoff.message.code = 0
+    logoff.message.body = ('The Times 03/Jan/2009 Chancellor on brink of ' +
+                           'second bailout for banks')
     logoff_ack = logoff_ack_py(tes_mess.type.response.body.logoffAck)
-    assert type(logoff_ack.message == str)
+    assert type(logoff_ack.message.body) == str
     assert logoff_ack.message == ('The Times 03/Jan/2009 Chancellor on ' +
-                                   'brink of second bailout for banks')
+                                  'brink of second bailout for banks')
     assert type(logoff_ack.success) == bool
     assert logoff_ack.success
 
@@ -190,9 +189,10 @@ def test_handle_tes_message_logoff():
     # logoff failure
     logoff1 = body1.init('logoffAck')
     logoff1.success = False
-    logoff1.message = 'Jamie Dimon has denied you access'
+    logoff1.message.code = 1
+    logoff1.message.body = 'Jamie Dimon has denied you access'
     logoff_ack = logoff_ack_py(tes_mess1.type.response.body.logoffAck)
-    assert type(logoff_ack.message == str)
+    assert type(logoff_ack.message.body) == str
     assert logoff_ack.message == 'Jamie Dimon has denied you access'
     assert type(logoff_ack.success) == bool
     assert not logoff_ack.success
