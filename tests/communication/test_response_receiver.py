@@ -48,7 +48,8 @@ class FakeResponseHandler(ResponseHandler):
                           sender_comp_id: str,
                           request_id: int):
         self.message_list.append(('system',
-                                  system_message,
+                                  system_message.message.code,
+                                  system_message.message.body,
                                   client_id,
                                   sender_comp_id,
                                   request_id))
@@ -60,7 +61,8 @@ class FakeResponseHandler(ResponseHandler):
                      request_id: int):
         self.message_list.append(('logonAck',
                                   logon_ack.success,
-                                  logon_ack.message,
+                                  logon_ack.message.code,
+                                  logon_ack.message.body,
                                   [client_account.account_id for client_account
                                    in logon_ack.client_accounts],
                                   client_id,
@@ -230,7 +232,7 @@ def test_system_message_handling(fake_response_receiver_from_dealer,
         tes_mess.to_bytes())
     assert len(fake_response_handler.message_list) == 1
     assert fake_response_handler.message_list[0] == (
-        'system', system.message.code, system.message, 123, '987', 100001)
+        'system', system.message.code, system.message.body, 123, '987', 100001)
 
 
 @pytest.mark.test_id(6)
@@ -265,7 +267,8 @@ def test_logon_ack_handling(fake_response_receiver_from_dealer,
     assert fake_response_handler.message_list[0] == (
         'logonAck',
         logon_ack_capnp.success,
-        logon_ack_capnp.message,
+        logon_ack_capnp.message.code,
+        logon_ack_capnp.message.body,
         [100, 101],
         123,
         '987',
