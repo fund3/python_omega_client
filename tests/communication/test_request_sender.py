@@ -145,9 +145,9 @@ def test_place_order(fake_request_sender):
     assert order.orderType == 'limit'
     assert order.quantity == 1.1
     assert order.price == 6000.01
-    assert order.stop_price == 0.0
+    assert order.stopPrice == 0.0
     assert order.timeInForce == 'gtc'
-    assert order.expire_at == 0.0
+    assert order.expireAt == 0.0
 
 
 @pytest.mark.test_id(4)
@@ -169,9 +169,9 @@ def test_replace_order(fake_request_sender):
     assert order.orderType == 'limit'
     assert order.quantity == 1.1
     assert order.price == 6000.01
-    assert order.stop_price == 0.0
+    assert order.stopPrice == 0.0
     assert order.timeInForce == 'gtc'
-    assert order.expire_at == 0.0
+    assert order.expireAt == 0.0
 
 
 @pytest.mark.test_id(5)

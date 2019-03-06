@@ -606,6 +606,7 @@ def _build_py_execution_report_from_capnp(execution_report):
         price=execution_report.price,
         stop_price=execution_report.stopPrice,
         time_in_force=execution_report.timeInForce,
+        expire_at=execution_report.expireAt,
         leverage_type=execution_report.leverageType,
         leverage=execution_report.leverage,
         order_status=execution_report.orderStatus,
