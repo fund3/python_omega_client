@@ -422,7 +422,7 @@ def test_place_order_margin_custom(fake_request_sender):
         account_info=AccountInfo(account_id=100),
         client_order_id=str(9876),
         client_order_link_id='a123',
-        symbol='BTC/USD',t
+        symbol='BTC/USD',
         side=Side.buy.name,
         order_type=OrderType.market.name,
         quantity=1.1,
