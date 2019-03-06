@@ -58,14 +58,16 @@ def fake_request_sender(fake_zmq_context):
 def test_place_order(fake_request_sender):
     order = Order(
         account_info=AccountInfo(account_id=100),
-        client_order_id=8675309,
+        client_order_id=str(8675309),
         client_order_link_id='a123',
         symbol='BTC/USD',
         side=Side.buy.name,
         order_type=OrderType.limit.name,
         quantity=1.1,
         price=6000.01,
+        stop_price=0.0,
         time_in_force=TimeInForce.gtc.name,
+        expire_at=0.0,
         leverage_type=LeverageType.none.name
     )
     order = fake_request_sender.place_order(order=order)
@@ -77,6 +79,8 @@ def test_place_order(fake_request_sender):
     assert order.quantity == 1.1
     assert order.price == 6000.01
     assert order.timeInForce == 'gtc'
+    assert order.stop_price == 0.0
+    assert order.expire_at == 0.0
 
 
 @pytest.mark.test_id(2)
@@ -84,7 +88,8 @@ def test_replace_order(fake_request_sender):
     order = fake_request_sender.replace_order(
         account_info=AccountInfo(account_id=100),
         order_id='c137', quantity=1.1, order_type=OrderType.limit.name,
-        price=6000.01, time_in_force=TimeInForce.gtc.name
+        price=6000.01, stop_price=0.0, time_in_force=TimeInForce.gtc.name,
+        expire_at=0.0
     )
     assert type(order) == capnp.lib.capnp._DynamicStructBuilder
     assert order.accountInfo.accountID == 100
@@ -93,6 +98,8 @@ def test_replace_order(fake_request_sender):
     assert order.quantity == 1.1
     assert order.price == 6000.01
     assert order.timeInForce == 'gtc'
+    assert order.stop_price == 0.0
+    assert order.expire_at == 0.0
 
 
 @pytest.mark.test_id(3)
@@ -292,14 +299,16 @@ def test_request_working_orders(fake_request_sender):
 def test_place_order_margin_default(fake_request_sender):
     default_margin_order = Order(
         account_info=AccountInfo(account_id=100),
-        client_order_id=9876,
+        client_order_id=str(9876),
         client_order_link_id='a123',
         symbol='BTC/USD',
         side=Side.buy.name,
         order_type=OrderType.market.name,
         quantity=1.1,
         price=0.0,
+        stop_price=0.0,
         time_in_force=TimeInForce.gtc.name,
+        expire_at=0.0,
         leverage_type=LeverageType.exchangeDefault.name
     )
     # exchange default margin
@@ -314,20 +323,24 @@ def test_place_order_margin_default(fake_request_sender):
     assert order.timeInForce == 'gtc'
     assert order.leverageType == msgs_capnp.LeverageType.exchangeDefault
     assert order.leverage == 0.0
+    assert order.stop_price == 0.0
+    assert order.expire_at == 0.0
 
 
 @pytest.mark.test_id(14)
 def test_place_order_margin_custom(fake_request_sender):
     custom_margin_order = Order(
         account_info=AccountInfo(account_id=100),
-        client_order_id=9876,
+        client_order_id=str(9876),
         client_order_link_id='a123',
         symbol='BTC/USD',
         side=Side.buy.name,
         order_type=OrderType.market.name,
         quantity=1.1,
         price=0.0,
+        stop_price=0.0,
         time_in_force=TimeInForce.gtc.name,
+        expire_at=0.0,
         leverage_type=LeverageType.custom.name,
         leverage=2.0
     )
@@ -343,6 +356,8 @@ def test_place_order_margin_custom(fake_request_sender):
     assert order.timeInForce == 'gtc'
     assert order.leverageType == msgs_capnp.LeverageType.custom
     assert order.leverage == 2.0
+    assert order.stop_price == 0.0
+    assert order.expire_at == 0.0
 
 
 @pytest.mark.test_id(15)
