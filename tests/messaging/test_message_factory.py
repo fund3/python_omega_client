@@ -37,7 +37,7 @@ __FAKE_REQUEST_HEADER = RequestHeader(client_id=123,
 def get_new_execution_report(body, include_cl_ord_link_id=True):
     er = body.init('executionReport')
     er.orderID = 'c137'
-    er.clientOrderID = 123456789000000
+    er.clientOrderID = str(123456789000000)
     if include_cl_ord_link_id:
         er.clientOrderLinkID = 'a123'
     er.exchangeOrderID = 'c137'
@@ -229,7 +229,7 @@ def test_handle_tes_message_account_data_report():
 
     orders = adr.init('orders', 1)
     orders[0].orderID = 'c137'
-    orders[0].clientOrderID = 1234
+    orders[0].clientOrderID = str(1234)
     orders[0].exchangeOrderID = 'asdf1234'
     account0 = orders[0].init('accountInfo')
     account0.accountID = 101
@@ -285,7 +285,7 @@ def test_handle_tes_message_working_orders_report():
 
     orders = wor.init('orders', 2)
     orders[0].orderID = 'c137'
-    orders[0].clientOrderID = 1234
+    orders[0].clientOrderID = str(1234)
     orders[0].clientOrderLinkID = 'a123'
     orders[0].exchangeOrderID = 'asdf1234'
     account0 = orders[0].init('accountInfo')
@@ -310,7 +310,7 @@ def test_handle_tes_message_working_orders_report():
     orders[0].executionType = 'statusUpdate'
 
     orders[1].orderID = 'c138'
-    orders[1].clientOrderID = 1235
+    orders[1].clientOrderID = str(1235)
     orders[1].clientOrderLinkID = 'b123'
     orders[1].exchangeOrderID = 'asdf1235'
     account1 = orders[1].init('accountInfo')
@@ -399,7 +399,7 @@ def test_handle_tes_message_completed_orders_report():
 
     orders = cor.init('orders', 2)
     orders[0].orderID = 'c137'
-    orders[0].clientOrderID = 1234
+    orders[0].clientOrderID = str(1234)
     orders[0].exchangeOrderID = 'asdf1234'
     account0 = orders[0].init('accountInfo')
     account0.accountID = 101
@@ -423,7 +423,7 @@ def test_handle_tes_message_completed_orders_report():
     orders[0].executionType = 'statusUpdate'
 
     orders[1].orderID = 'c138'
-    orders[1].clientOrderID = 1235
+    orders[1].clientOrderID = str(1235)
     orders[1].exchangeOrderID = 'asdf1235'
     account1 = orders[1].init('accountInfo')
     account1.accountID = 101
@@ -711,10 +711,10 @@ def test_generate_tes_request():
 def test_generate_client_order_id():
     import time
     cl_oid = generate_client_order_id()
-    assert type(cl_oid) == int
+    assert type(cl_oid) == str
     # assuming time between generation and testing is < 60 seconds
-    assert cl_oid <= int(time.time()*1000000)
-    assert cl_oid > int(time.time()*1000000 - 60000000)
+    assert int(cl_oid) <= int(time.time()*1000000)
+    assert int(cl_oid) > int(time.time()*1000000 - 60000000)
 
 
 @pytest.mark.test_id(15)
