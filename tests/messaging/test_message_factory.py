@@ -713,8 +713,8 @@ def test_generate_client_order_id():
     cl_oid = generate_client_order_id()
     assert type(cl_oid) == str
     # assuming time between generation and testing is < 60 seconds
-    assert int(cl_oid) <= int(time.time()*1000000)
-    assert int(cl_oid) > int(time.time()*1000000 - 60000000)
+    assert float(cl_oid) <= float(time.time()*1000000)
+    assert float(cl_oid) > float(time.time()*1000000 - 60000000)
 
 
 @pytest.mark.test_id(15)
