@@ -328,10 +328,6 @@ def test_handle_tes_message_working_orders_report():
 
     wos_reports = working_orders_report_py(
         working_orders_report=tes_mess.type.response.body.workingOrdersReport)
-    # TODO
-    """ 
-    AttributeError: capnp/schema.c++:486: failed: struct has no such member; name = type
-    """
     assert type(wos_reports) == WorkingOrdersReport
     assert type(wos_reports.account_info) == AccountInfo
 

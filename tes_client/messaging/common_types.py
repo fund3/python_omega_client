@@ -164,12 +164,13 @@ class Order(CommonType):
     """
     def __init__(self,
                  account_info: AccountInfo,
-                 client_order_id: int,
+                 client_order_id: str,
                  symbol: str,
                  side: str,
                  order_type: str,
                  quantity: float,
                  price: float,
+                 stop_price: float = 0.0,
                  # pylint: disable=E1101
                  time_in_force: str = TimeInForce.gtc.name,
                  leverage_type: str = LeverageType.none.name,
@@ -179,13 +180,14 @@ class Order(CommonType):
         """
 
         :param account_info: AccountInfo
-        :param client_order_id: int orderID generated on the client side
+        :param client_order_id: str orderID generated on the client side
         :param account_info: accountInfo
         :param symbol: str
         :param side: str (see Side enum)
         :param order_type: str (see OrderType enum)
         :param quantity: float
         :param price: float
+        :param stop_price: float required for STOP, STOP_LIMIT orders
         :param time_in_force: str (see TimeInForce enum)
         :param leverage_type: str (see LeverageType enum)
         :param leverage: float leverage being used on this specific order
@@ -193,12 +195,13 @@ class Order(CommonType):
         multiple strategies are trading on the same account)
         """
         self.account_info = account_info
-        self.client_order_id = int(client_order_id)
+        self.client_order_id = str(client_order_id)
         self.symbol = str(symbol)
         self.side = str(side)
         self.order_type = str(order_type)
         self.quantity = float(quantity)
         self.price = float(price)
+        self.stop_price = float(stop_price)
         self.time_in_force = str(time_in_force)
         self.leverage_type = str(leverage_type)
         self.leverage = float(leverage)
@@ -273,7 +276,7 @@ class ExecutionReport(CommonType):
 
     def __init__(self,
                  order_id: str,
-                 client_order_id: int,
+                 client_order_id: str,
                  exchange_order_id: str,
                  account_info: AccountInfo,
                  symbol: str,
@@ -297,7 +300,7 @@ class ExecutionReport(CommonType):
         """
 
         :param order_id: str order_id as assigned by TES
-        :param client_order_id: int orderID generated on the client side
+        :param client_order_id: str orderID generated on the client side
         :param exchange_order_id: str orderID as assigned by Exchange
         :param account_info: accountInfo
         :param symbol: str
@@ -323,7 +326,7 @@ class ExecutionReport(CommonType):
         :param client_order_link_id: str internal id
         """
         self.order_id = str(order_id)
-        self.client_order_id = int(client_order_id)
+        self.client_order_id = str(client_order_id)
         self.client_order_link_id = str(client_order_link_id or '')
         self.exchange_order_id = str(exchange_order_id)
         self.account_info = account_info
@@ -424,20 +427,20 @@ class CompletedOrdersReport(CommonType):
 class OrderInfo(CommonType):
     def __init__(self,
                  order_id: str,
-                 client_order_id: int = None,
+                 client_order_id: str = None,
                  client_order_link_id: str = None,
                  exchange_order_id: str = None,
                  symbol: str = None):
         """
 
         :param order_id: int required
-        :param client_order_id: int empty in client request
+        :param client_order_id: str empty in client request
         :param client_order_link_id: str empty in client request
         :param exchange_order_id: str empty in client request
         :param symbol: str empty in client request
         """
         self.order_id = str(order_id)
-        self.client_order_id = (int(client_order_id)
+        self.client_order_id = (str(client_order_id)
                                 if client_order_id is not None else None)
         self.client_order_link_id = str(client_order_link_id or '')
         self.exchange_order_id = str(exchange_order_id or '')
