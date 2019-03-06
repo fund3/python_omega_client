@@ -302,7 +302,7 @@ def place_order_capnp(request_header: RequestHeader, order: Order):
              (capnp._DynamicStructBuilder) placeOrder capnp object.
     """
     tes_message, body = _generate_tes_request(request_header=request_header)
-    place_order = body.init('placeOrder')
+    place_order = body.init('placeSingleOrder')
     acct = place_order.init('accountInfo')
     acct.accountID = order.account_info.account_id
     place_order.clientOrderID = order.client_order_id
@@ -312,6 +312,7 @@ def place_order_capnp(request_header: RequestHeader, order: Order):
     place_order.orderType = order.order_type
     place_order.quantity = order.quantity
     place_order.price = order.price
+    place_order.stopPrice = order.stop_price
     place_order.timeInForce = order.time_in_force
     place_order.leverageType = order.leverage_type
     place_order.leverage = order.leverage
@@ -326,6 +327,7 @@ def replace_order_capnp(
         order_type: str = OrderType.market.name,
         quantity: float = -1.0,
         price: float = -1.0,
+        stop_price: float = 0.0,
         time_in_force: str = TimeInForce.gtc.name
         # pylint: enable=E1101
         ):
@@ -337,6 +339,7 @@ def replace_order_capnp(
     :param order_type: (OrderType) (OPTIONAL)
     :param quantity: (float) (OPTIONAL)
     :param price: (float) (OPTIONAL)
+    :param stop_price: (float) (OPTIONAL)
     :param time_in_force: (TimeInForce) (OPTIONAL)
     :return: (capnp._DynamicStructBuilder) TradeMessage capnp object,
              (capnp._DynamicStructBuilder) replaceOrder capnp object.
@@ -354,6 +357,7 @@ def replace_order_capnp(
     # price values
     replace_order.price = _determine_order_price(
         order_price=price, order_type=order_type)
+    replace_order.stopPrice = stop_price
     replace_order.timeInForce = time_in_force
     return tes_message, replace_order
 
@@ -618,6 +622,7 @@ def _build_py_execution_report_from_capnp(execution_report):
         order_type=execution_report.orderType,
         quantity=execution_report.quantity,
         price=execution_report.price,
+        stop_price=execution_report.stopPrice,
         time_in_force=execution_report.timeInForce,
         leverage_type=execution_report.leverageType,
         leverage=execution_report.leverage,

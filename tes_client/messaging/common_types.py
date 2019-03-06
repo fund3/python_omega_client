@@ -284,6 +284,7 @@ class ExecutionReport(CommonType):
                  order_type: str,
                  quantity: float,
                  price: float,
+                 stop_price: float,
                  time_in_force: str,
                  leverage_type: str,
                  leverage: float,
@@ -308,6 +309,7 @@ class ExecutionReport(CommonType):
         :param order_type: str (see OrderType enum)
         :param quantity: float
         :param price: float
+        :param stop_price: float
         :param time_in_force: str (see TimeInForce enum)
         :param leverage_type: str (see LeverageType enum)
         :param leverage: float leverage being used on this specific order
@@ -335,6 +337,7 @@ class ExecutionReport(CommonType):
         self.order_type = str(order_type)
         self.quantity = float(quantity)
         self.price = float(price)
+        self.stop_price = float(stop_price)
         self.time_in_force = str(time_in_force)
         self.leverage_type = str(leverage_type)
         self.leverage = float(leverage)
