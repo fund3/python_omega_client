@@ -654,7 +654,7 @@ def generate_client_order_id():
     """
     Simple way to generate client_order_id.  The client can generate their
     own unique order id as they wish.
-    :return: (int) Client order_id based on the microsecond timestamp.
+    :return: (str) Client order_id based on the microsecond timestamp.
     """
-    client_order_id = int(time.time()*1000000)
+    client_order_id = str(time.time()*1000000)
     return client_order_id

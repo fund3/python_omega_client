@@ -5,7 +5,6 @@ from tes_client.messaging.message_factory import account_balances_report_py, \
     tes_test_message_py, working_orders_report_py
 
 
-# TODO add requestID
 def _heartbeat_message_unpacker(response):
     return response.clientID, response.senderCompID, response.requestID
 
