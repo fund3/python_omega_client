@@ -499,28 +499,6 @@ def request_completed_orders_capnp(
     return tes_message, get_completed_orders
 
 
-def request_order_mass_status_capnp(
-        request_header: RequestHeader,
-        account_info: AccountInfo,
-        order_info: List[OrderInfo]):
-    """
-    Generates a request to TES for status of multiple orders.
-    :param account_info: (AccountInfo) Account from which to retrieve data.
-    :param order_info: (List[OrderInfo]) List of orderIDs to get status updates.
-    :param request_header: Header parameter object for requests.
-    :return: (capnp._DynamicStructBuilder) TradeMessage capnp object,
-             (capnp._DynamicStructBuilder) getOrderMassStatus capnp object.
-    """
-    tes_message, body = _generate_tes_request(request_header=request_header)
-    get_order_mass_status = body.init('getOrderMassStatus')
-    acct = get_order_mass_status.init('accountInfo')
-    acct.accountID = account_info.account_id
-    oi = get_order_mass_status.init('orderInfo', len(order_info))
-    for oii in zip(oi, order_info):
-        oii[0].orderID = oii[1].order_id
-    return tes_message, get_order_mass_status
-
-
 def request_exchange_properties_capnp(request_header: RequestHeader,
                                       exchange: str):
     """

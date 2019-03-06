@@ -135,13 +135,6 @@ class SingleClientRequestSender:
             count=count,
             since=since)
 
-    def request_order_mass_status(self, account_info: AccountInfo,
-                                  order_info: List[OrderInfo]):
-        return self._request_sender.request_order_mass_status(
-            request_header=self._request_header,
-            account_info=account_info,
-            order_info=order_info)
-
     def request_exchange_properties(self, exchange: str):
         return self._request_sender.request_exchange_properties(
             request_header=self._request_header, exchange=exchange)

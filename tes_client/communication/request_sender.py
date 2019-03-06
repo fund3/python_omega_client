@@ -197,6 +197,7 @@ class RequestSender(Thread):
                       order_type: str = OrderType.undefined.name,
                       quantity: float = -1.0,
                       price: float = -1.0,
+                      stop_price: float = 0.0,
                       time_in_force: str = TimeInForce.gtc.name
                       # pylint: enable=E1101
                       ):
@@ -208,6 +209,7 @@ class RequestSender(Thread):
         :param order_type: (OrderType) (optional)
         :param quantity: (float) (optional)
         :param price: (float) (optional)
+        :param stop_price: (float) (optional)
         :param time_in_force: (TimeInForce) (optional)
         :return: (capnp._DynamicStructBuilder) replaceOrder capnp object.
         """
@@ -218,6 +220,7 @@ class RequestSender(Thread):
             order_type=order_type,
             quantity=quantity,
             price=price,
+            stop_price=stop_price,
             time_in_force=time_in_force
         )
         self._queue_message(tes_message)
@@ -348,27 +351,6 @@ class RequestSender(Thread):
         )
         self._queue_message(tes_message)
         return get_completed_orders
-
-    def request_order_mass_status(self,
-                                  request_header: RequestHeader,
-                                  account_info: AccountInfo,
-                                  order_info: List[OrderInfo]):
-        """
-        Sends a request to TES for status of multiple orders.
-        :param request_header: Header parameter object for requests.
-        :param account_info: (AccountInfo) Account from which to retrieve data.
-        :param order_info: (List[OrderInfo]) List of orderIDs to get status
-            updates.
-        :return: (capnp._DynamicStructBuilder) get_order_mass_status capnp
-        object.
-        """
-        tes_message, get_order_mass_status = request_order_mass_status_capnp(
-            request_header=request_header,
-            account_info=account_info,
-            order_info=order_info
-        )
-        self._queue_message(tes_message)
-        return get_order_mass_status
 
     def request_exchange_properties(self,
                                     request_header: RequestHeader,
