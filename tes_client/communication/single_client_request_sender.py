@@ -86,6 +86,7 @@ class SingleClientRequestSender:
                       order_type: str=OrderType.market.name,
                       quantity: float = 0.0,
                       price: float = 0.0,
+                      stop_price: float = 0.0,
                       time_in_force: str = TimeInForce.gtc.name,
                       expire_at: float = 0.0):
         return self._request_sender.replace_order(
@@ -95,6 +96,7 @@ class SingleClientRequestSender:
             order_type=order_type,
             quantity=quantity,
             price=price,
+            stop_price=stop_price,
             time_in_force=time_in_force,
             expire_at=expire_at
         )

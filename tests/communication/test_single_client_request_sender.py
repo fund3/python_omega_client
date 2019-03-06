@@ -79,8 +79,8 @@ def test_place_order(fake_request_sender):
     assert order.quantity == 1.1
     assert order.price == 6000.01
     assert order.timeInForce == 'gtc'
-    assert order.stop_price == 0.0
-    assert order.expire_at == 0.0
+    assert order.stopPrice == 0.0
+    assert order.expireAt == 0.0
 
 
 @pytest.mark.test_id(2)
@@ -97,9 +97,10 @@ def test_replace_order(fake_request_sender):
     assert order.orderType == 'limit'
     assert order.quantity == 1.1
     assert order.price == 6000.01
-    assert order.timeInForce == 'gtc'
     assert order.stop_price == 0.0
-    assert order.expire_at == 0.0
+    assert order.timeInForce == 'gtc'
+    assert order.stopPrice == 0.0
+    assert order.expireAt == 0.0
 
 
 @pytest.mark.test_id(3)
@@ -323,8 +324,8 @@ def test_place_order_margin_default(fake_request_sender):
     assert order.timeInForce == 'gtc'
     assert order.leverageType == msgs_capnp.LeverageType.exchangeDefault
     assert order.leverage == 0.0
-    assert order.stop_price == 0.0
-    assert order.expire_at == 0.0
+    assert order.stopPrice == 0.0
+    assert order.expireAt == 0.0
 
 
 @pytest.mark.test_id(14)
@@ -356,8 +357,8 @@ def test_place_order_margin_custom(fake_request_sender):
     assert order.timeInForce == 'gtc'
     assert order.leverageType == msgs_capnp.LeverageType.custom
     assert order.leverage == 2.0
-    assert order.stop_price == 0.0
-    assert order.expire_at == 0.0
+    assert order.stopPrice == 0.0
+    assert order.expireAt == 0.0
 
 
 @pytest.mark.test_id(15)
