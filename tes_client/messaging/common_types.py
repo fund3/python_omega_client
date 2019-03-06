@@ -173,6 +173,7 @@ class Order(CommonType):
                  stop_price: float = 0.0,
                  # pylint: disable=E1101
                  time_in_force: str = TimeInForce.gtc.name,
+                 expire_at: float = 0.0,
                  leverage_type: str = LeverageType.none.name,
                  # pylint: enable=E1101
                  leverage: float = 0.0,
@@ -189,6 +190,7 @@ class Order(CommonType):
         :param price: float
         :param stop_price: float required for STOP, STOP_LIMIT orders
         :param time_in_force: str (see TimeInForce enum)
+        :param expire_at: float utc timestamp gtt order expires at (default 0.0)
         :param leverage_type: str (see LeverageType enum)
         :param leverage: float leverage being used on this specific order
         :param client_order_link_id: str used for identifying strategy (when
@@ -203,6 +205,7 @@ class Order(CommonType):
         self.price = float(price)
         self.stop_price = float(stop_price)
         self.time_in_force = str(time_in_force)
+        self.expire_at = float(expire_at)
         self.leverage_type = str(leverage_type)
         self.leverage = float(leverage)
         self.client_order_link_id = str(client_order_link_id or '')
@@ -286,6 +289,7 @@ class ExecutionReport(CommonType):
                  price: float,
                  stop_price: float,
                  time_in_force: str,
+                 expire_at: float,
                  leverage_type: str,
                  leverage: float,
                  order_status: str,
@@ -311,6 +315,7 @@ class ExecutionReport(CommonType):
         :param price: float
         :param stop_price: float
         :param time_in_force: str (see TimeInForce enum)
+        :param expire_at: float utc timestamp order expires at
         :param leverage_type: str (see LeverageType enum)
         :param leverage: float leverage being used on this specific order
         :param order_status: str (see OrderStatus enum)
@@ -339,6 +344,7 @@ class ExecutionReport(CommonType):
         self.price = float(price)
         self.stop_price = float(stop_price)
         self.time_in_force = str(time_in_force)
+        self.expire_at = float(expire_at)
         self.leverage_type = str(leverage_type)
         self.leverage = float(leverage)
         self.order_status = str(order_status)
@@ -503,20 +509,23 @@ class ReplaceOrder(CommonType):
     def __init__(self,
                  order_id: str,
                  order_type: str = OrderType.market.name,
-                 quantity: float = -1.0,
-                 price: float = -1.0,
-                 time_in_force: str = TimeInForce.gtc.name):
+                 quantity: float = 0.0,
+                 price: float = 0.0,
+                 time_in_force: str = TimeInForce.gtc.name,
+                 expire_at: float = 0.0):
         """
         :param order_type: str (see OrderType enum)
         :param quantity: float
         :param price: float
         :param time_in_force: str (see TimeInForce enum)
+        :param expire_at: float (optional) utc timestamp gtt orders expire at
         """
         self.order_id = str(order_id)
         self.order_type = str(order_type)
         self.quantity = float(quantity)
         self.price = float(price)
         self.time_in_force = str(time_in_force)
+        self.expire_at = float(expire_at)
 
 
 class AuthorizationGrant(CommonType):
@@ -526,6 +535,14 @@ class AuthorizationGrant(CommonType):
                  access_token: str,
                  refresh_token: str,
                  expire_at: float):
+        """
+
+        :param success: bool
+        :param message: Message
+        :param access_token: str token used for current TES session
+        :param refresh_token: str token to send to receive a new access_token
+        :param expire_at: float utc timestamp at which access_token expires
+        """
         self.success = bool(success)
         self.message = message
         self.access_token = str(access_token)
@@ -539,6 +556,13 @@ class LogonAck(CommonType):
                  message: Message,
                  client_accounts: List[AccountInfo],
                  authorization_grant: AuthorizationGrant):
+        """
+
+        :param success: bool
+        :param message: Message
+        :param client_accounts: list of client accounts you can trade on
+        :param authorization_grant: AuthorizationGrant (see class definition)
+        """
         self.success = bool(success)
         self.message = message
         self.client_accounts = client_accounts
@@ -549,6 +573,11 @@ class LogoffAck(CommonType):
     def __init__(self,
                  success: bool,
                  message: Message):
+        """
+
+        :param success: bool
+        :param message: Message
+        """
         self.success = bool(success)
         self.message = message
 
@@ -557,6 +586,11 @@ class SystemMessage(CommonType):
     def __init__(self,
                  account_info: AccountInfo,
                  message: Message):
+        """
+
+        :param account_info: AccountInfo
+        :param message: Message
+        """
         self.account_info = account_info
         self.message = message
 

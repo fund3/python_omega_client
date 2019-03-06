@@ -84,9 +84,10 @@ class SingleClientRequestSender:
     def replace_order(self, account_info: AccountInfo,
                       order_id: str,
                       order_type: str=OrderType.market.name,
-                      quantity: float = -1.0,
-                      price: float = -1.0,
-                      time_in_force: str = TimeInForce.gtc.name):
+                      quantity: float = 0.0,
+                      price: float = 0.0,
+                      time_in_force: str = TimeInForce.gtc.name,
+                      expire_at: float = 0.0):
         return self._request_sender.replace_order(
             request_header=self._request_header,
             account_info=account_info,
@@ -94,7 +95,9 @@ class SingleClientRequestSender:
             order_type=order_type,
             quantity=quantity,
             price=price,
-            time_in_force=time_in_force)
+            time_in_force=time_in_force,
+            expire_at=expire_at
+        )
 
     def cancel_order(self, account_info: AccountInfo,
                      order_id: str):

@@ -314,6 +314,7 @@ def place_order_capnp(request_header: RequestHeader, order: Order):
     place_order.price = order.price
     place_order.stopPrice = order.stop_price
     place_order.timeInForce = order.time_in_force
+    place_order.expireAt = order.expire_at
     place_order.leverageType = order.leverage_type
     place_order.leverage = order.leverage
     return tes_message, place_order
@@ -325,11 +326,12 @@ def replace_order_capnp(
         order_id: str,
         # pylint: disable=E1101
         order_type: str = OrderType.market.name,
-        quantity: float = -1.0,
-        price: float = -1.0,
+        quantity: float = 0.0,
+        price: float = 0.0,
         stop_price: float = 0.0,
-        time_in_force: str = TimeInForce.gtc.name
+        time_in_force: str = TimeInForce.gtc.name,
         # pylint: enable=E1101
+        expire_at: float = 0.0
         ):
     """
     Generates a request to TES to replace an order.
@@ -341,6 +343,7 @@ def replace_order_capnp(
     :param price: (float) (OPTIONAL)
     :param stop_price: (float) (OPTIONAL)
     :param time_in_force: (TimeInForce) (OPTIONAL)
+    :param expire_at: (float) (OPTIONAL) utc timestamp gtt orders expire at
     :return: (capnp._DynamicStructBuilder) TradeMessage capnp object,
              (capnp._DynamicStructBuilder) replaceOrder capnp object.
     """
@@ -359,6 +362,7 @@ def replace_order_capnp(
         order_price=price, order_type=order_type)
     replace_order.stopPrice = stop_price
     replace_order.timeInForce = time_in_force
+    replace_order.expireAt = expire_at
     return tes_message, replace_order
 
 

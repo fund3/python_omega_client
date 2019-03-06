@@ -195,12 +195,12 @@ class RequestSender(Thread):
                       order_id: str,
                       # pylint: disable=E1101
                       order_type: str = OrderType.undefined.name,
-                      quantity: float = -1.0,
-                      price: float = -1.0,
+                      quantity: float = 0.0,
+                      price: float = 0.0,
                       stop_price: float = 0.0,
-                      time_in_force: str = TimeInForce.gtc.name
+                      time_in_force: str = TimeInForce.gtc.name,
                       # pylint: enable=E1101
-                      ):
+                      expire_at: float = 0.0):
         """
         Sends a request to TES to replace an order.
         :param request_header: Header parameter object for requests.
@@ -211,6 +211,7 @@ class RequestSender(Thread):
         :param price: (float) (optional)
         :param stop_price: (float) (optional)
         :param time_in_force: (TimeInForce) (optional)
+        :param expire_at: (float) (optional)
         :return: (capnp._DynamicStructBuilder) replaceOrder capnp object.
         """
         tes_message, replace_order = replace_order_capnp(
@@ -221,7 +222,8 @@ class RequestSender(Thread):
             quantity=quantity,
             price=price,
             stop_price=stop_price,
-            time_in_force=time_in_force
+            time_in_force=time_in_force,
+            expire_at=expire_at
         )
         self._queue_message(tes_message)
         return replace_order
