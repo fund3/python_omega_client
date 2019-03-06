@@ -279,30 +279,6 @@ def test_request_working_orders(fake_request_sender):
     assert order.accountInfo.accountID == 110
 
 
-@pytest.mark.test_id(12)
-def test_request_order_mass_status(fake_request_sender):
-    # empty order_info_list
-    order_info_list = []
-    order = fake_request_sender.request_order_mass_status(
-        account_info=AccountInfo(account_id=110),
-        order_info=order_info_list
-    )
-    assert type(order) == capnp.lib.capnp._DynamicStructBuilder
-    assert order.accountInfo.accountID == 110
-    assert len(list(order.orderInfo)) == 0
-
-    # filled order_info_list
-    order_info_list = [OrderInfo(order_id='poiuy9876')]
-    order = fake_request_sender.request_order_mass_status(
-        account_info=AccountInfo(account_id=110),
-        order_info=order_info_list
-    )
-    assert type(order) == capnp.lib.capnp._DynamicStructBuilder
-    assert order.accountInfo.accountID == 110
-    assert len(list(order.orderInfo)) == 1
-    assert order.orderInfo[0].orderID == 'poiuy9876'
-
-
 """
 ############################################################################
 
