@@ -25,8 +25,10 @@ class SingleClientRequestSender:
         self._request_header = RequestHeader(client_id=client_id,
                                              sender_comp_id=sender_comp_id,
                                              access_token='',
-                                             request_id=100001)
+                                             request_id=0)
         # TODO (low priority) change _request_header to use variable request_id
+        # client should override self._request_header in their implementation
+        #  and use their own method for generating request_ids
 
     def set_access_token(self, access_token: str):
         """
