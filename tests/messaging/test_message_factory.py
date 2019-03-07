@@ -146,6 +146,8 @@ def test_handle_tes_message_logon():
     grant.success = False
     grant.message.code = 1
     grant.message.body = "Authorization failed"
+    grant.accessToken = ""
+    grant.refreshToken = ""
     grant.expireAt = 0.0
     expected_auth_grant = AuthorizationGrant(
         success=False,
