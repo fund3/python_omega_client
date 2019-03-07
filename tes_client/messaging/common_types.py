@@ -43,8 +43,10 @@ class OrderType(Enum):
     undefined = auto()
     market = auto()
     limit = auto()
-    stop = auto()
-    stopLimit = auto()
+    stopLoss = auto()
+    stopLossLimit = auto()
+    takeProfit = auto()
+    takeProfitLimit = auto()
     trailingStop = auto()
     trailingStopLimit = auto()
 

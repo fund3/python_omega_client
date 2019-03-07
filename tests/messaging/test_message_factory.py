@@ -432,7 +432,7 @@ def test_handle_tes_message_completed_orders_report():
     account1.accountID = 101
     orders[1].symbol = 'BTC/USD'
     orders[1].side = 'buy'
-    orders[1].orderType = 'stopLimit'
+    orders[1].orderType = 'stopLossLimit'
     orders[1].quantity = 1000.0
     orders[1].price = 10.0
     orders[1].stopPrice = 7.0
