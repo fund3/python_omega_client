@@ -17,7 +17,7 @@ from tes_client.messaging.message_factory import \
     place_order_capnp, replace_order_capnp, request_account_balances_capnp, \
     request_account_data_capnp, request_completed_orders_capnp, \
     request_exchange_properties_capnp, request_open_positions_capnp, \
-    request_order_mass_status_capnp, request_order_status_capnp, \
+    request_order_status_capnp, \
     request_server_time_capnp, request_working_orders_capnp
 
 logger = logging.getLogger(__name__)
@@ -195,11 +195,12 @@ class RequestSender(Thread):
                       order_id: str,
                       # pylint: disable=E1101
                       order_type: str = OrderType.undefined.name,
-                      quantity: float = -1.0,
-                      price: float = -1.0,
-                      time_in_force: str = TimeInForce.gtc.name
+                      quantity: float = 0.0,
+                      price: float = 0.0,
+                      stop_price: float = 0.0,
+                      time_in_force: str = TimeInForce.gtc.name,
                       # pylint: enable=E1101
-                      ):
+                      expire_at: float = 0.0):
         """
         Sends a request to TES to replace an order.
         :param request_header: Header parameter object for requests.
@@ -208,7 +209,9 @@ class RequestSender(Thread):
         :param order_type: (OrderType) (optional)
         :param quantity: (float) (optional)
         :param price: (float) (optional)
+        :param stop_price: (float) (optional)
         :param time_in_force: (TimeInForce) (optional)
+        :param expire_at: (float) (optional)
         :return: (capnp._DynamicStructBuilder) replaceOrder capnp object.
         """
         tes_message, replace_order = replace_order_capnp(
@@ -218,7 +221,9 @@ class RequestSender(Thread):
             order_type=order_type,
             quantity=quantity,
             price=price,
-            time_in_force=time_in_force
+            stop_price=stop_price,
+            time_in_force=time_in_force,
+            expire_at=expire_at
         )
         self._queue_message(tes_message)
         return replace_order
@@ -348,27 +353,6 @@ class RequestSender(Thread):
         )
         self._queue_message(tes_message)
         return get_completed_orders
-
-    def request_order_mass_status(self,
-                                  request_header: RequestHeader,
-                                  account_info: AccountInfo,
-                                  order_info: List[OrderInfo]):
-        """
-        Sends a request to TES for status of multiple orders.
-        :param request_header: Header parameter object for requests.
-        :param account_info: (AccountInfo) Account from which to retrieve data.
-        :param order_info: (List[OrderInfo]) List of orderIDs to get status
-            updates.
-        :return: (capnp._DynamicStructBuilder) get_order_mass_status capnp
-        object.
-        """
-        tes_message, get_order_mass_status = request_order_mass_status_capnp(
-            request_header=request_header,
-            account_info=account_info,
-            order_info=order_info
-        )
-        self._queue_message(tes_message)
-        return get_order_mass_status
 
     def request_exchange_properties(self,
                                     request_header: RequestHeader,

@@ -22,7 +22,7 @@ from tes_client.messaging.message_factory import account_balances_report_py, \
     logoff_capnp, logon_capnp, place_order_capnp, replace_order_capnp, \
     request_account_balances_capnp, request_account_data_capnp, \
     request_completed_orders_capnp, request_exchange_properties_capnp, \
-    request_open_positions_capnp, request_order_mass_status_capnp, \
+    request_open_positions_capnp, \
     request_order_status_capnp, request_server_time_capnp, \
     request_working_orders_capnp,  _determine_order_price, \
     _generate_tes_request
@@ -37,7 +37,7 @@ __FAKE_REQUEST_HEADER = RequestHeader(client_id=123,
 def get_new_execution_report(body, include_cl_ord_link_id=True):
     er = body.init('executionReport')
     er.orderID = 'c137'
-    er.clientOrderID = 123456789000000
+    er.clientOrderID = str(123456789000000)
     if include_cl_ord_link_id:
         er.clientOrderLinkID = 'a123'
     er.exchangeOrderID = 'c137'
@@ -48,7 +48,9 @@ def get_new_execution_report(body, include_cl_ord_link_id=True):
     er.orderType = 'limit'
     er.quantity = 1.1
     er.price = 512.0
+    er.stopPrice = 0.0
     er.timeInForce = 'gtc'
+    er.expireAt = 0.0
     er.orderStatus = 'adopted'
     er.filledQuantity = 0.0
     er.avgFillPrice = 0.0
@@ -144,6 +146,9 @@ def test_handle_tes_message_logon():
     grant.success = False
     grant.message.code = 1
     grant.message.body = "Authorization failed"
+    grant.accessToken = ""
+    grant.refreshToken = ""
+    grant.expireAt = 0.0
     expected_auth_grant = AuthorizationGrant(
         success=False,
         message=Message(body="Authorization failed", code=1),
@@ -227,7 +232,7 @@ def test_handle_tes_message_account_data_report():
 
     orders = adr.init('orders', 1)
     orders[0].orderID = 'c137'
-    orders[0].clientOrderID = 1234
+    orders[0].clientOrderID = str(1234)
     orders[0].exchangeOrderID = 'asdf1234'
     account0 = orders[0].init('accountInfo')
     account0.accountID = 101
@@ -236,7 +241,9 @@ def test_handle_tes_message_account_data_report():
     orders[0].orderType = OrderType.limit.name
     orders[0].quantity = 0.1
     orders[0].price = 10000.0
+    orders[0].stopPrice = 0.0
     orders[0].timeInForce = TimeInForce.gtc.name
+    orders[0].expireAt = 0.0
     orders[0].orderStatus = OrderStatus.partiallyFilled.name
     orders[0].filledQuantity = 0.20
     orders[0].avgFillPrice = 10000.0
@@ -281,7 +288,7 @@ def test_handle_tes_message_working_orders_report():
 
     orders = wor.init('orders', 2)
     orders[0].orderID = 'c137'
-    orders[0].clientOrderID = 1234
+    orders[0].clientOrderID = str(1234)
     orders[0].clientOrderLinkID = 'a123'
     orders[0].exchangeOrderID = 'asdf1234'
     account0 = orders[0].init('accountInfo')
@@ -291,7 +298,9 @@ def test_handle_tes_message_working_orders_report():
     orders[0].orderType = 'limit'
     orders[0].quantity = 0.1
     orders[0].price = 10000.0
+    orders[0].stopPrice = 0.0
     orders[0].timeInForce = 'gtc'
+    orders[0].expireAt = 0.0
     orders[0].orderStatus = 'partiallyFilled'
     orders[0].filledQuantity = 0.20
     orders[0].avgFillPrice = 10000.0
@@ -304,7 +313,7 @@ def test_handle_tes_message_working_orders_report():
     orders[0].executionType = 'statusUpdate'
 
     orders[1].orderID = 'c138'
-    orders[1].clientOrderID = 1235
+    orders[1].clientOrderID = str(1235)
     orders[1].clientOrderLinkID = 'b123'
     orders[1].exchangeOrderID = 'asdf1235'
     account1 = orders[1].init('accountInfo')
@@ -314,7 +323,9 @@ def test_handle_tes_message_working_orders_report():
     orders[1].orderType = 'limit'
     orders[1].quantity = 1000.0
     orders[1].price = 10.0
-    orders[1].timeInForce = 'gtc'
+    orders[1].stopPrice = 0.0
+    orders[1].timeInForce = 'gtt'
+    orders[1].expireAt = 1551769395.0
     orders[1].orderStatus = 'rejected'
     orders[1].filledQuantity = 0.0
     orders[1].avgFillPrice = 0.0
@@ -328,10 +339,6 @@ def test_handle_tes_message_working_orders_report():
 
     wos_reports = working_orders_report_py(
         working_orders_report=tes_mess.type.response.body.workingOrdersReport)
-    # TODO
-    """ 
-    AttributeError: capnp/schema.c++:486: failed: struct has no such member; name = type
-    """
     assert type(wos_reports) == WorkingOrdersReport
     assert type(wos_reports.account_info) == AccountInfo
 
@@ -395,7 +402,7 @@ def test_handle_tes_message_completed_orders_report():
 
     orders = cor.init('orders', 2)
     orders[0].orderID = 'c137'
-    orders[0].clientOrderID = 1234
+    orders[0].clientOrderID = str(1234)
     orders[0].exchangeOrderID = 'asdf1234'
     account0 = orders[0].init('accountInfo')
     account0.accountID = 101
@@ -404,7 +411,9 @@ def test_handle_tes_message_completed_orders_report():
     orders[0].orderType = 'limit'
     orders[0].quantity = 0.1
     orders[0].price = 10000.0
+    orders[0].stopPrice = 0.0
     orders[0].timeInForce = 'gtc'
+    orders[0].expireAt = 0.0
     orders[0].orderStatus = 'filled'
     orders[0].filledQuantity = 0.20
     orders[0].avgFillPrice = 10000.0
@@ -417,16 +426,18 @@ def test_handle_tes_message_completed_orders_report():
     orders[0].executionType = 'statusUpdate'
 
     orders[1].orderID = 'c138'
-    orders[1].clientOrderID = 1235
+    orders[1].clientOrderID = str(1235)
     orders[1].exchangeOrderID = 'asdf1235'
     account1 = orders[1].init('accountInfo')
     account1.accountID = 101
     orders[1].symbol = 'BTC/USD'
     orders[1].side = 'buy'
-    orders[1].orderType = 'limit'
+    orders[1].orderType = 'stopLossLimit'
     orders[1].quantity = 1000.0
     orders[1].price = 10.0
+    orders[1].stopPrice = 7.0
     orders[1].timeInForce = 'gtc'
+    orders[0].expireAt = 0.0
     orders[1].orderStatus = 'replaced'
     orders[1].filledQuantity = 0.0
     orders[1].avgFillPrice = 0.0
@@ -703,10 +714,10 @@ def test_generate_tes_request():
 def test_generate_client_order_id():
     import time
     cl_oid = generate_client_order_id()
-    assert type(cl_oid) == int
+    assert type(cl_oid) == str
     # assuming time between generation and testing is < 60 seconds
-    assert cl_oid <= int(time.time()*1000000)
-    assert cl_oid > int(time.time()*1000000 - 60000000)
+    assert float(cl_oid) <= float(time.time()*1000000)
+    assert float(cl_oid) > float(time.time()*1000000 - 60000000)
 
 
 @pytest.mark.test_id(15)

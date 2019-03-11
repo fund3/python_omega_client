@@ -302,7 +302,7 @@ def place_order_capnp(request_header: RequestHeader, order: Order):
              (capnp._DynamicStructBuilder) placeOrder capnp object.
     """
     tes_message, body = _generate_tes_request(request_header=request_header)
-    place_order = body.init('placeOrder')
+    place_order = body.init('placeSingleOrder')
     acct = place_order.init('accountInfo')
     acct.accountID = order.account_info.account_id
     place_order.clientOrderID = order.client_order_id
@@ -312,7 +312,9 @@ def place_order_capnp(request_header: RequestHeader, order: Order):
     place_order.orderType = order.order_type
     place_order.quantity = order.quantity
     place_order.price = order.price
+    place_order.stopPrice = order.stop_price
     place_order.timeInForce = order.time_in_force
+    place_order.expireAt = order.expire_at
     place_order.leverageType = order.leverage_type
     place_order.leverage = order.leverage
     return tes_message, place_order
@@ -324,10 +326,12 @@ def replace_order_capnp(
         order_id: str,
         # pylint: disable=E1101
         order_type: str = OrderType.market.name,
-        quantity: float = -1.0,
-        price: float = -1.0,
-        time_in_force: str = TimeInForce.gtc.name
+        quantity: float = 0.0,
+        price: float = 0.0,
+        stop_price: float = 0.0,
+        time_in_force: str = TimeInForce.gtc.name,
         # pylint: enable=E1101
+        expire_at: float = 0.0
         ):
     """
     Generates a request to TES to replace an order.
@@ -337,7 +341,9 @@ def replace_order_capnp(
     :param order_type: (OrderType) (OPTIONAL)
     :param quantity: (float) (OPTIONAL)
     :param price: (float) (OPTIONAL)
+    :param stop_price: (float) (OPTIONAL)
     :param time_in_force: (TimeInForce) (OPTIONAL)
+    :param expire_at: (float) (OPTIONAL) utc timestamp gtt orders expire at
     :return: (capnp._DynamicStructBuilder) TradeMessage capnp object,
              (capnp._DynamicStructBuilder) replaceOrder capnp object.
     """
@@ -354,7 +360,9 @@ def replace_order_capnp(
     # price values
     replace_order.price = _determine_order_price(
         order_price=price, order_type=order_type)
+    replace_order.stopPrice = stop_price
     replace_order.timeInForce = time_in_force
+    replace_order.expireAt = expire_at
     return tes_message, replace_order
 
 
@@ -495,28 +503,6 @@ def request_completed_orders_capnp(
     return tes_message, get_completed_orders
 
 
-def request_order_mass_status_capnp(
-        request_header: RequestHeader,
-        account_info: AccountInfo,
-        order_info: List[OrderInfo]):
-    """
-    Generates a request to TES for status of multiple orders.
-    :param account_info: (AccountInfo) Account from which to retrieve data.
-    :param order_info: (List[OrderInfo]) List of orderIDs to get status updates.
-    :param request_header: Header parameter object for requests.
-    :return: (capnp._DynamicStructBuilder) TradeMessage capnp object,
-             (capnp._DynamicStructBuilder) getOrderMassStatus capnp object.
-    """
-    tes_message, body = _generate_tes_request(request_header=request_header)
-    get_order_mass_status = body.init('getOrderMassStatus')
-    acct = get_order_mass_status.init('accountInfo')
-    acct.accountID = account_info.account_id
-    oi = get_order_mass_status.init('orderInfo', len(order_info))
-    for oii in zip(oi, order_info):
-        oii[0].orderID = oii[1].order_id
-    return tes_message, get_order_mass_status
-
-
 def request_exchange_properties_capnp(request_header: RequestHeader,
                                       exchange: str):
     """
@@ -618,7 +604,9 @@ def _build_py_execution_report_from_capnp(execution_report):
         order_type=execution_report.orderType,
         quantity=execution_report.quantity,
         price=execution_report.price,
+        stop_price=execution_report.stopPrice,
         time_in_force=execution_report.timeInForce,
+        expire_at=execution_report.expireAt,
         leverage_type=execution_report.leverageType,
         leverage=execution_report.leverage,
         order_status=execution_report.orderStatus,
@@ -667,7 +655,7 @@ def generate_client_order_id():
     """
     Simple way to generate client_order_id.  The client can generate their
     own unique order id as they wish.
-    :return: (int) Client order_id based on the microsecond timestamp.
+    :return: (str) Client order_id based on the microsecond timestamp.
     """
-    client_order_id = int(time.time()*1000000)
+    client_order_id = str(time.time()*1000000)
     return client_order_id
