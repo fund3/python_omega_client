@@ -15,9 +15,9 @@ import communication_protocol.TradeMessage_capnp as msgs_capnp
 from tes_client.messaging.common_types import AccountBalancesReport, \
     AccountCredentials, AccountDataReport, AccountInfo, AuthorizationGrant, \
     Balance, CompletedOrdersReport, Exchange,\
-    ExchangePropertiesReport, ExecutionReport, ExecutionReportType, \
-    LogoffAck,  LogonAck, OpenPosition, OpenPositionsReport, Order, \
-    OrderInfo,  OrderType, RequestHeader, RequestRejected, SymbolProperties, \
+    ExchangePropertiesReport, ExecutionReport, \
+    LogoffAck,  LogonAck, Message, OpenPosition, OpenPositionsReport, Order, \
+    OrderInfo,  OrderType, RequestHeader, SymbolProperties, \
     SystemMessage, TimeInForce, WorkingOrdersReport
 
 logger = logging.getLogger(__name__)
@@ -38,6 +38,15 @@ EXCHANGE_ENUM_MAPPING = {
 # pylint: enable=E1101
 
 
+def _build_py_message(msg):
+    """
+
+    :param msg: (capnp._DynamicStructBuilder) Message object
+    :return: Message python object
+    """
+    return Message(msg.code, msg.body)
+
+
 def tes_test_message_py(test_message):
     """
     TODO: the naming gets rid of 'test' as a function prefix since pytest
@@ -55,12 +64,12 @@ def system_message_py(system_message):
     """
     Builds system message Python object from capnp object.
     :param system_message: (capnp._DynamicStructBuilder) system message.
-    :return: (int) error code, (str) system message.
+    :return: SystemMessage.
     """
+    py_message = _build_py_message(system_message.message)
     return SystemMessage(account_info=account_info_py(
                              system_message.accountInfo),
-                         error_code=system_message.errorCode,
-                         message=system_message.message)
+                         message=py_message)
 
 
 def authorization_grant_py(authorization_grant):
@@ -70,8 +79,9 @@ def authorization_grant_py(authorization_grant):
         capnp AuthorizationGrant message
     :return: AuthorizationGrant
     """
+    py_message = _build_py_message(authorization_grant.message)
     return AuthorizationGrant(success=authorization_grant.success,
-                              message=authorization_grant.message,
+                              message=py_message,
                               access_token=authorization_grant.accessToken,
                               refresh_token=authorization_grant.refreshToken,
                               expire_at=authorization_grant.expireAt)
@@ -85,8 +95,9 @@ def logon_ack_py(logon_ack):
     """
     client_accounts = list([account_info_py(account) for account in
                             logon_ack.clientAccounts])
+    py_message = _build_py_message(logon_ack.message)
     return LogonAck(success=logon_ack.success,
-                    message=logon_ack.message,
+                    message=py_message,
                     client_accounts=client_accounts,
                     authorization_grant=authorization_grant_py(
                         logon_ack.authorizationGrant))
@@ -98,7 +109,8 @@ def logoff_ack_py(logoff_ack):
     :param logoff_ack: (capnp._DynamicStructBuilder) LogoffAck object.
     :return: LogoffAck
     """
-    return LogoffAck(bool(logoff_ack.success), str(logoff_ack.message))
+    py_message = _build_py_message(logoff_ack.message)
+    return LogoffAck(bool(logoff_ack.success), py_message)
 
 
 def execution_report_py(execution_report):
@@ -290,7 +302,7 @@ def place_order_capnp(request_header: RequestHeader, order: Order):
              (capnp._DynamicStructBuilder) placeOrder capnp object.
     """
     tes_message, body = _generate_tes_request(request_header=request_header)
-    place_order = body.init('placeOrder')
+    place_order = body.init('placeSingleOrder')
     acct = place_order.init('accountInfo')
     acct.accountID = order.account_info.account_id
     place_order.clientOrderID = order.client_order_id
@@ -300,7 +312,9 @@ def place_order_capnp(request_header: RequestHeader, order: Order):
     place_order.orderType = order.order_type
     place_order.quantity = order.quantity
     place_order.price = order.price
+    place_order.stopPrice = order.stop_price
     place_order.timeInForce = order.time_in_force
+    place_order.expireAt = order.expire_at
     place_order.leverageType = order.leverage_type
     place_order.leverage = order.leverage
     return tes_message, place_order
@@ -312,10 +326,12 @@ def replace_order_capnp(
         order_id: str,
         # pylint: disable=E1101
         order_type: str = OrderType.market.name,
-        quantity: float = -1.0,
-        price: float = -1.0,
-        time_in_force: str = TimeInForce.gtc.name
+        quantity: float = 0.0,
+        price: float = 0.0,
+        stop_price: float = 0.0,
+        time_in_force: str = TimeInForce.gtc.name,
         # pylint: enable=E1101
+        expire_at: float = 0.0
         ):
     """
     Generates a request to TES to replace an order.
@@ -325,7 +341,9 @@ def replace_order_capnp(
     :param order_type: (OrderType) (OPTIONAL)
     :param quantity: (float) (OPTIONAL)
     :param price: (float) (OPTIONAL)
+    :param stop_price: (float) (OPTIONAL)
     :param time_in_force: (TimeInForce) (OPTIONAL)
+    :param expire_at: (float) (OPTIONAL) utc timestamp gtt orders expire at
     :return: (capnp._DynamicStructBuilder) TradeMessage capnp object,
              (capnp._DynamicStructBuilder) replaceOrder capnp object.
     """
@@ -342,7 +360,9 @@ def replace_order_capnp(
     # price values
     replace_order.price = _determine_order_price(
         order_price=price, order_type=order_type)
+    replace_order.stopPrice = stop_price
     replace_order.timeInForce = time_in_force
+    replace_order.expireAt = expire_at
     return tes_message, replace_order
 
 
@@ -483,28 +503,6 @@ def request_completed_orders_capnp(
     return tes_message, get_completed_orders
 
 
-def request_order_mass_status_capnp(
-        request_header: RequestHeader,
-        account_info: AccountInfo,
-        order_info: List[OrderInfo]):
-    """
-    Generates a request to TES for status of multiple orders.
-    :param account_info: (AccountInfo) Account from which to retrieve data.
-    :param order_info: (List[OrderInfo]) List of orderIDs to get status updates.
-    :param request_header: Header parameter object for requests.
-    :return: (capnp._DynamicStructBuilder) TradeMessage capnp object,
-             (capnp._DynamicStructBuilder) getOrderMassStatus capnp object.
-    """
-    tes_message, body = _generate_tes_request(request_header=request_header)
-    get_order_mass_status = body.init('getOrderMassStatus')
-    acct = get_order_mass_status.init('accountInfo')
-    acct.accountID = account_info.account_id
-    oi = get_order_mass_status.init('orderInfo', len(order_info))
-    for oii in zip(oi, order_info):
-        oii[0].orderID = oii[1].order_id
-    return tes_message, get_order_mass_status
-
-
 def request_exchange_properties_capnp(request_header: RequestHeader,
                                       exchange: str):
     """
@@ -587,46 +585,6 @@ def _build_py_balance_from_capnp(balance):
     )
 
 
-def _request_rejected_py(request_rejected):
-    return RequestRejected(rejection_code=request_rejected.rejectionCode,
-                           message=request_rejected.message)
-
-
-def _execution_report_type_py(execution_report_type):
-    """
-    Determines rejection message by switching on different rejectionReason
-    types.
-    :param execution_report_type: (capnp._DynamicStructBuilder)
-        execution_report_type object.
-    :return: (ExecutionReportType) ExecutionReportType.
-    """
-    execution_report_type_name = str(execution_report_type.which())
-    # process rejectionCode
-    # https://github.com/fund3/tes_python_client/issues/40
-    if execution_report_type_name == 'orderRejected':
-        return ExecutionReportType(
-            name=execution_report_type_name,
-            request_rejected=_request_rejected_py(
-                execution_report_type.orderRejected))
-    elif execution_report_type_name == 'replaceRejected':
-        return ExecutionReportType(
-            name=execution_report_type_name,
-            request_rejected=_request_rejected_py(
-                execution_report_type.replaceRejected))
-    elif execution_report_type_name == 'cancelRejected':
-        return ExecutionReportType(
-            name=execution_report_type_name,
-            request_rejected=_request_rejected_py(
-                execution_report_type.cancelRejected))
-    elif execution_report_type_name == 'statusUpdateRejected':
-        return ExecutionReportType(
-            name=execution_report_type_name,
-            request_rejected=_request_rejected_py(
-                execution_report_type.statusUpdateRejected))
-    else:
-        return ExecutionReportType(name=execution_report_type_name)
-
-
 def _build_py_execution_report_from_capnp(execution_report):
     """
     Converts a capnp ExecutionReport to Python object.
@@ -637,8 +595,8 @@ def _build_py_execution_report_from_capnp(execution_report):
     return ExecutionReport(
         order_id=execution_report.orderID,
         client_order_id=execution_report.clientOrderID,
-        client_order_link_id=execution_report.clientOrderLinkID,
         exchange_order_id=execution_report.exchangeOrderID,
+        client_order_link_id=execution_report.clientOrderLinkID,
         account_info=account_info_py(
             execution_report.accountInfo),
         symbol=execution_report.symbol,
@@ -646,39 +604,21 @@ def _build_py_execution_report_from_capnp(execution_report):
         order_type=execution_report.orderType,
         quantity=execution_report.quantity,
         price=execution_report.price,
+        stop_price=execution_report.stopPrice,
         time_in_force=execution_report.timeInForce,
+        expire_at=execution_report.expireAt,
         leverage_type=execution_report.leverageType,
         leverage=execution_report.leverage,
         order_status=execution_report.orderStatus,
         filled_quantity=execution_report.filledQuantity,
         avg_fill_price=execution_report.avgFillPrice,
-        execution_report_type=_execution_report_type_py(execution_report.type),
-        rejection_reason=execution_report.rejectionReason
+        fee=execution_report.fee,
+        creation_time=execution_report.creationTime,
+        submission_time=execution_report.submissionTime,
+        completion_time=execution_report.completionTime,
+        execution_report_type=execution_report.executionType,
+        rejection_reason=_build_py_message(execution_report.rejectionReason)
     )
-
-
-def _determine_rejection_reason(order):
-    """
-    Determines rejection message by switching on different rejectionReason
-    types.
-    :param order: (capnp._DynamicStructBuilder) Order object.
-    :return: (str) Rejection reason message.
-    """
-    rejection_type = order.type.which()
-    # process rejectionCode
-    # https://github.com/fund3/tes_python_client/issues/40
-    logger.debug('Determining order rejection reason.',
-                 extra={'type': rejection_type})
-    if rejection_type == 'orderRejected':
-        return order.type.orderRejected.message
-    elif rejection_type == 'replaceRejected':
-        return order.type.replaceRejected.message
-    elif rejection_type == 'cancelRejected':
-        return order.type.cancelRejected.message
-    elif rejection_type == 'statusUpdateRejected':
-        return order.type.statusUpdateRejected.message
-    else:
-        return None
 
 
 def _determine_order_price(order_price: float, order_type: str):
@@ -703,6 +643,7 @@ def _generate_tes_request(request_header: RequestHeader):
     """
     tes_message = msgs_capnp.TradeMessage.new_message()
     request = tes_message.init('type').init('request')
+    request.requestID = request_header.request_id
     request.clientID = request_header.client_id
     request.senderCompID = request_header.sender_comp_id
     request.accessToken = request_header.access_token
@@ -714,7 +655,7 @@ def generate_client_order_id():
     """
     Simple way to generate client_order_id.  The client can generate their
     own unique order id as they wish.
-    :return: (int) Client order_id based on the microsecond timestamp.
+    :return: (str) Client order_id based on the microsecond timestamp.
     """
-    client_order_id = int(time.time()*1000000)
+    client_order_id = str(time.time()*1000000)
     return client_order_id

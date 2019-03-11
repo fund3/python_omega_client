@@ -32,7 +32,8 @@ __FAKE_CLIENT_SECRET = ('2B24_ih9IFVdWgxR2sEA3rj0fKlY212Ec_TwTNVCD663ktYb1' +
 __FAKE_ACCESS_TOKEN = 'FakeAccessToken'
 __FAKE_REQUEST_HEADER = RequestHeader(client_id=123,
                                       sender_comp_id='987',
-                                      access_token=__FAKE_ACCESS_TOKEN)
+                                      access_token=__FAKE_ACCESS_TOKEN,
+                                      request_id=100001)
 # TODO: Integration Testing
 
 
@@ -123,14 +124,16 @@ def test_message_sending_to_router(fake_router_socket,
 def test_place_order(fake_request_sender):
     order = Order(
         account_info=AccountInfo(account_id=100),
-        client_order_id=8675309,
+        client_order_id=str(8675309),
         client_order_link_id='a123',
         symbol='BTC/USD',
         side=Side.buy.name,
         order_type=OrderType.limit.name,
         quantity=1.1,
         price=6000.01,
+        stop_price=0.0,
         time_in_force=TimeInForce.gtc.name,
+        expire_at=0.0,
         leverage_type=LeverageType.none.name
     )
     order = fake_request_sender.place_order(
@@ -142,7 +145,9 @@ def test_place_order(fake_request_sender):
     assert order.orderType == 'limit'
     assert order.quantity == 1.1
     assert order.price == 6000.01
+    assert order.stopPrice == 0.0
     assert order.timeInForce == 'gtc'
+    assert order.expireAt == 0.0
 
 
 @pytest.mark.test_id(4)
@@ -154,7 +159,9 @@ def test_replace_order(fake_request_sender):
         quantity=1.1,
         order_type=OrderType.limit.name,
         price=6000.01,
-        time_in_force=TimeInForce.gtc.name
+        stop_price=0.0,
+        time_in_force=TimeInForce.gtc.name,
+        expire_at=0.0
     )
     assert type(order) == capnp.lib.capnp._DynamicStructBuilder
     assert order.accountInfo.accountID == 100
@@ -162,7 +169,9 @@ def test_replace_order(fake_request_sender):
     assert order.orderType == 'limit'
     assert order.quantity == 1.1
     assert order.price == 6000.01
+    assert order.stopPrice == 0.0
     assert order.timeInForce == 'gtc'
+    assert order.expireAt == 0.0
 
 
 @pytest.mark.test_id(5)
@@ -368,30 +377,6 @@ def test_request_completed_orders(fake_request_sender):
     assert order.accountInfo.accountID == 110
 
 
-@pytest.mark.test_id(14)
-def test_request_order_mass_status(fake_request_sender):
-    # empty order_info_list
-    order_info_list = []
-    order = fake_request_sender.request_order_mass_status(
-        request_header=__FAKE_REQUEST_HEADER,
-        account_info=AccountInfo(account_id=110),
-        order_info=order_info_list)
-    assert type(order) == capnp.lib.capnp._DynamicStructBuilder
-    assert order.accountInfo.accountID == 110
-    assert len(list(order.orderInfo)) == 0
-
-    # filled order_info_list
-    order_info_list = [OrderInfo(order_id='poiuy9876')]
-    order = fake_request_sender.request_order_mass_status(
-        request_header=__FAKE_REQUEST_HEADER,
-        account_info=AccountInfo(account_id=110),
-        order_info=order_info_list)
-    assert type(order) == capnp.lib.capnp._DynamicStructBuilder
-    assert order.accountInfo.accountID == 110
-    assert len(list(order.orderInfo)) == 1
-    assert order.orderInfo[0].orderID == 'poiuy9876'
-
-
 """
 ############################################################################
 
@@ -405,7 +390,7 @@ def test_request_order_mass_status(fake_request_sender):
 def test_place_order_margin_default(fake_request_sender):
     default_margin_order = Order(
         account_info=AccountInfo(account_id=100),
-        client_order_id=9876,
+        client_order_id=str(9876),
         client_order_link_id='a123',
         symbol='BTC/USD',
         side=Side.buy.name,
@@ -435,7 +420,7 @@ def test_place_order_margin_default(fake_request_sender):
 def test_place_order_margin_custom(fake_request_sender):
     custom_margin_order = Order(
         account_info=AccountInfo(account_id=100),
-        client_order_id=9876,
+        client_order_id=str(9876),
         client_order_link_id='a123',
         symbol='BTC/USD',
         side=Side.buy.name,

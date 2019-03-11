@@ -24,7 +24,11 @@ class SingleClientRequestSender:
             outgoing_message_queue=outgoing_message_queue)
         self._request_header = RequestHeader(client_id=client_id,
                                              sender_comp_id=sender_comp_id,
-                                             access_token='')
+                                             access_token='',
+                                             request_id=0)
+        # TODO (low priority) change _request_header to use variable request_id
+        # client should override self._request_header in their implementation
+        #  and use their own method for generating request_ids
 
     def set_access_token(self, access_token: str):
         """
@@ -82,9 +86,11 @@ class SingleClientRequestSender:
     def replace_order(self, account_info: AccountInfo,
                       order_id: str,
                       order_type: str=OrderType.market.name,
-                      quantity: float = -1.0,
-                      price: float = -1.0,
-                      time_in_force: str = TimeInForce.gtc.name):
+                      quantity: float = 0.0,
+                      price: float = 0.0,
+                      stop_price: float = 0.0,
+                      time_in_force: str = TimeInForce.gtc.name,
+                      expire_at: float = 0.0):
         return self._request_sender.replace_order(
             request_header=self._request_header,
             account_info=account_info,
@@ -92,7 +98,10 @@ class SingleClientRequestSender:
             order_type=order_type,
             quantity=quantity,
             price=price,
-            time_in_force=time_in_force)
+            stop_price=stop_price,
+            time_in_force=time_in_force,
+            expire_at=expire_at
+        )
 
     def cancel_order(self, account_info: AccountInfo,
                      order_id: str):
@@ -132,13 +141,6 @@ class SingleClientRequestSender:
             account_info=account_info,
             count=count,
             since=since)
-
-    def request_order_mass_status(self, account_info: AccountInfo,
-                                  order_info: List[OrderInfo]):
-        return self._request_sender.request_order_mass_status(
-            request_header=self._request_header,
-            account_info=account_info,
-            order_info=order_info)
 
     def request_exchange_properties(self, exchange: str):
         return self._request_sender.request_exchange_properties(
