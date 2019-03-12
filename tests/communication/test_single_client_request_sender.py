@@ -9,8 +9,8 @@ from tes_client.messaging.common_types import AccountBalancesReport, \
     AccountCredentials, AccountDataReport, AccountInfo, Balance, \
     CompletedOrdersReport, Exchange, ExchangePropertiesReport, LeverageType, \
     ExecutionReport, OpenPosition, OpenPositionsReport, Order, OrderInfo, \
-    OrderStatus, OrderType, Side, SymbolProperties, TimeInForce, \
-    WorkingOrdersReport
+    OrderStatus, OrderType, RequestHeader, Side, SymbolProperties, \
+    TimeInForce, WorkingOrdersReport
 from tes_client.communication.single_client_request_sender import \
     SingleClientRequestSender
 
@@ -24,6 +24,13 @@ TEST_CLIENT_ID = 123
 TEST_SENDER_COMP_ID = str(987)
 TEST_ZMQ_ENCRYPTION_KEY = b'encryptionkeyencryptionkeyencryptionkeye'
 __FAKE_REQUEST_SENDER_CONNECTION_STR = 'inproc://FAKE_REQUEST_SENDER'
+__FAKE_CLIENT_SECRET = ('2B24_ih9IFVdWgxR2sEA3rj0fKlY212Ec_TwTNVCD663ktYb1' +
+                        'ABPz4qJy0Ouze6O9vgdueei0XmZ6uGGFM34nw')
+__FAKE_ACCESS_TOKEN = 'FakeAccessToken'
+__FAKE_REQUEST_HEADER = RequestHeader(client_id=123,
+                                      sender_comp_id='987',
+                                      access_token=__FAKE_ACCESS_TOKEN,
+                                      request_id=100001)
 
 
 @pytest.fixture(scope="session")
@@ -41,6 +48,7 @@ def fake_request_sender(fake_zmq_context):
         sender_comp_id=TEST_SENDER_COMP_ID
     )
     request_sender._queue_message = lambda message: None
+    request_sender._request_header = __FAKE_REQUEST_HEADER
     request_sender.start()
     yield request_sender
     request_sender.cleanup()
@@ -50,14 +58,16 @@ def fake_request_sender(fake_zmq_context):
 def test_place_order(fake_request_sender):
     order = Order(
         account_info=AccountInfo(account_id=100),
-        client_order_id=8675309,
+        client_order_id=str(8675309),
         client_order_link_id='a123',
         symbol='BTC/USD',
         side=Side.buy.name,
         order_type=OrderType.limit.name,
         quantity=1.1,
         price=6000.01,
+        stop_price=0.0,
         time_in_force=TimeInForce.gtc.name,
+        expire_at=0.0,
         leverage_type=LeverageType.none.name
     )
     order = fake_request_sender.place_order(order=order)
@@ -69,6 +79,8 @@ def test_place_order(fake_request_sender):
     assert order.quantity == 1.1
     assert order.price == 6000.01
     assert order.timeInForce == 'gtc'
+    assert order.stopPrice == 0.0
+    assert order.expireAt == 0.0
 
 
 @pytest.mark.test_id(2)
@@ -76,7 +88,8 @@ def test_replace_order(fake_request_sender):
     order = fake_request_sender.replace_order(
         account_info=AccountInfo(account_id=100),
         order_id='c137', quantity=1.1, order_type=OrderType.limit.name,
-        price=6000.01, time_in_force=TimeInForce.gtc.name
+        price=6000.01, stop_price=0.0, time_in_force=TimeInForce.gtc.name,
+        expire_at=0.0
     )
     assert type(order) == capnp.lib.capnp._DynamicStructBuilder
     assert order.accountInfo.accountID == 100
@@ -84,7 +97,9 @@ def test_replace_order(fake_request_sender):
     assert order.orderType == 'limit'
     assert order.quantity == 1.1
     assert order.price == 6000.01
+    assert order.stopPrice == 0.0
     assert order.timeInForce == 'gtc'
+    assert order.expireAt == 0.0
 
 
 @pytest.mark.test_id(3)
@@ -147,7 +162,8 @@ def test_tes_logon(fake_request_sender):
         )
     ]
     fake_request_sender._tes_credentials = creds
-    logon = fake_request_sender.logon(credentials=creds)
+    logon = fake_request_sender.logon(credentials=creds,
+                                      client_secret=__FAKE_CLIENT_SECRET)
     assert type(logon) == capnp.lib.capnp._DynamicStructBuilder
     assert logon.credentials[0].accountInfo.accountID == 100
     assert logon.credentials[0].apiKey == 'fakeApiKey'
@@ -174,7 +190,8 @@ def test_tes_logon(fake_request_sender):
         )
     ]
     fake_request_sender._tes_credentials = creds1
-    logon1 = fake_request_sender.logon(credentials=creds1)
+    logon1 = fake_request_sender.logon(credentials=creds1,
+                                       client_secret=__FAKE_CLIENT_SECRET)
     assert type(logon) == capnp.lib.capnp._DynamicStructBuilder
     assert logon1.credentials[0].accountInfo.accountID == 100
     assert logon1.credentials[0].apiKey == 'fakeApiKey'
@@ -187,12 +204,13 @@ def test_tes_logon(fake_request_sender):
     with pytest.raises(Exception or AttributeError):
         creds2 = [
             AccountCredentials(
-                accountInfo=AccountInfo(account_id=100),
+                account_info=AccountInfo(account_id=100),
                 secret_key='fakeSecret'
             )
         ]
         fake_request_sender._tes_credentials = creds2
-        logon2 = fake_request_sender.logon(credentials=creds2)
+        logon2 = fake_request_sender.logon(credentials=creds2,
+                                           client_secret=__FAKE_CLIENT_SECRET)
 
     # logon missing apiSecret - Attribute Error
     with pytest.raises(Exception or AttributeError):
@@ -203,7 +221,8 @@ def test_tes_logon(fake_request_sender):
             )
         ]
         fake_request_sender._tes_credentials = creds3
-        logon3 = fake_request_sender.logon(credentials=creds3)
+        logon3 = fake_request_sender.logon(credentials=creds3,
+                                           client_secret=__FAKE_CLIENT_SECRET)
     fake_request_sender._tes_credentials = TEST_ACCOUNT_CREDS_1
 
 
@@ -267,30 +286,6 @@ def test_request_working_orders(fake_request_sender):
     assert order.accountInfo.accountID == 110
 
 
-@pytest.mark.test_id(12)
-def test_request_order_mass_status(fake_request_sender):
-    # empty order_info_list
-    order_info_list = []
-    order = fake_request_sender.request_order_mass_status(
-        account_info=AccountInfo(account_id=110),
-        order_info=order_info_list
-    )
-    assert type(order) == capnp.lib.capnp._DynamicStructBuilder
-    assert order.accountInfo.accountID == 110
-    assert len(list(order.orderInfo)) == 0
-
-    # filled order_info_list
-    order_info_list = [OrderInfo(order_id='poiuy9876')]
-    order = fake_request_sender.request_order_mass_status(
-        account_info=AccountInfo(account_id=110),
-        order_info=order_info_list
-    )
-    assert type(order) == capnp.lib.capnp._DynamicStructBuilder
-    assert order.accountInfo.accountID == 110
-    assert len(list(order.orderInfo)) == 1
-    assert order.orderInfo[0].orderID == 'poiuy9876'
-
-
 """
 ############################################################################
 
@@ -304,14 +299,16 @@ def test_request_order_mass_status(fake_request_sender):
 def test_place_order_margin_default(fake_request_sender):
     default_margin_order = Order(
         account_info=AccountInfo(account_id=100),
-        client_order_id=9876,
+        client_order_id=str(9876),
         client_order_link_id='a123',
         symbol='BTC/USD',
         side=Side.buy.name,
         order_type=OrderType.market.name,
         quantity=1.1,
         price=0.0,
+        stop_price=0.0,
         time_in_force=TimeInForce.gtc.name,
+        expire_at=0.0,
         leverage_type=LeverageType.exchangeDefault.name
     )
     # exchange default margin
@@ -326,20 +323,24 @@ def test_place_order_margin_default(fake_request_sender):
     assert order.timeInForce == 'gtc'
     assert order.leverageType == msgs_capnp.LeverageType.exchangeDefault
     assert order.leverage == 0.0
+    assert order.stopPrice == 0.0
+    assert order.expireAt == 0.0
 
 
 @pytest.mark.test_id(14)
 def test_place_order_margin_custom(fake_request_sender):
     custom_margin_order = Order(
         account_info=AccountInfo(account_id=100),
-        client_order_id=9876,
+        client_order_id=str(9876),
         client_order_link_id='a123',
         symbol='BTC/USD',
         side=Side.buy.name,
         order_type=OrderType.market.name,
         quantity=1.1,
         price=0.0,
+        stop_price=0.0,
         time_in_force=TimeInForce.gtc.name,
+        expire_at=0.0,
         leverage_type=LeverageType.custom.name,
         leverage=2.0
     )
@@ -355,6 +356,8 @@ def test_place_order_margin_custom(fake_request_sender):
     assert order.timeInForce == 'gtc'
     assert order.leverageType == msgs_capnp.LeverageType.custom
     assert order.leverage == 2.0
+    assert order.stopPrice == 0.0
+    assert order.expireAt == 0.0
 
 
 @pytest.mark.test_id(15)
