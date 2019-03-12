@@ -204,7 +204,7 @@ def test_tes_logon(fake_request_sender):
     with pytest.raises(Exception or AttributeError):
         creds2 = [
             AccountCredentials(
-                accountInfo=AccountInfo(account_id=100),
+                account_info=AccountInfo(account_id=100),
                 secret_key='fakeSecret'
             )
         ]
