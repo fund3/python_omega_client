@@ -4,14 +4,27 @@ TES Connection class.  Send and receive messages to and from TES.
 import logging
 from threading import Event, Thread
 import time
+from typing import List
 
 import zmq
 
 from tes_client.communication.request_sender import RequestSender
-from tes_client.messaging.response_handler import ResponseHandler
 from tes_client.communication.response_receiver import ResponseReceiver
 from tes_client.communication.single_client_request_sender import \
     SingleClientRequestSender
+from tes_client.messaging.common_types import AccountBalancesReport, \
+    AccountCredentials, AccountDataReport, AccountInfo, \
+    CompletedOrdersReport, ExchangePropertiesReport, \
+    ExecutionReport, OpenPositionsReport, Order, OrderInfo, \
+    OrderType, RequestHeader, TimeInForce, WorkingOrdersReport
+from tes_client.messaging.message_factory import \
+    cancel_order_capnp, heartbeat_capnp, logoff_capnp, logon_capnp, \
+    place_order_capnp, replace_order_capnp, request_account_balances_capnp, \
+    request_account_data_capnp, request_completed_orders_capnp, \
+    request_exchange_properties_capnp, request_open_positions_capnp, \
+    request_order_status_capnp, \
+    request_server_time_capnp, request_working_orders_capnp
+from tes_client.messaging.response_handler import ResponseHandler
 
 logger = logging.getLogger(__name__)
 
@@ -172,6 +185,235 @@ class TesConnection(Thread):
         self._request_sender.cleanup()
         response_forwarding_socket.close()
         self._response_receiver.stop()
+
+    ############################################################################
+    #                                                                          #
+    # ~~~~~~~~~~~~~~~~~~~~~~ Wrapper for Request Sender ~~~~~~~~~~~~~~~~~~~~~~ #
+    #                                                                          #
+    ############################################################################
+    def logon(self,
+              request_header: RequestHeader,
+              client_secret: str,
+              credentials: List[AccountCredentials]):
+        """
+        Logon to TES for a specific client_id and set of credentials.
+        :param request_header: Header parameter object for requests.
+        :param client_secret: (str) client_secret key assigned by Fund3.
+        :param credentials: (List[AccountCredentials]) List of exchange
+            credentials in the form of AccountCredentials.
+        :return: (capnp._DynamicStructBuilder) Logon capnp object.
+        """
+        return self._request_sender.logon(
+            equest_header=request_header,
+            client_secret=client_secret,
+            credentials=credentials
+        )
+
+    def logoff(self, request_header: RequestHeader):
+        """
+        Logoff TES for a specific client_id.
+        :param request_header: Header parameter object for requests.
+        :return: (capnp._DynamicStructBuilder) Logoff capnp object.
+        """
+        return self._request_sender.logoff(request_header=request_header)
+
+    def send_heartbeat(self, request_header: RequestHeader):
+        """
+        Sends a heartbeat to TES for maintaining and verifying connection.
+        Only clients that are logged on will receive heartbeat back from TES.
+        :param request_header: Header parameter object for requests.
+        :return: (capnp._DynamicStructBuilder) heartbeat capnp object.
+        """
+        return self._request_sender.send_heartbeat(
+            request_header=request_header)
+
+    def request_server_time(self, request_header: RequestHeader):
+        """
+        Request TES server time for syncing client and server timestamps.
+        :param request_header: Header parameter object for requests.
+        :return: (capnp._DynamicStructBuilder) heartbeat capnp object.
+        """
+        return self._request_sender.request_server_time(
+            request_header=request_header
+        )
+
+    def place_order(self, request_header: RequestHeader, order: Order):
+        """
+        Sends a request to TES to place an order.
+        :param request_header: Header parameter object for requests.
+        :param order: (Order) Python object containing all required fields.
+        :return: (capnp._DynamicStructBuilder) place_order capnp object.
+        """
+        return self._request_sender.place_order(
+            request_header=request_header, order=order)
+
+    def replace_order(self,
+                      request_header: RequestHeader,
+                      account_info: AccountInfo,
+                      order_id: str,
+                      # pylint: disable=E1101
+                      order_type: str = OrderType.undefined.name,
+                      quantity: float = 0.0,
+                      price: float = 0.0,
+                      stop_price: float = 0.0,
+                      time_in_force: str = TimeInForce.gtc.name,
+                      # pylint: enable=E1101
+                      expire_at: float = 0.0):
+        """
+        Sends a request to TES to replace an order.
+        :param request_header: Header parameter object for requests.
+        :param account_info: (AccountInfo) Account on which to cancel order.
+        :param order_id: (str) order_id as returned from the ExecutionReport.
+        :param order_type: (OrderType) (optional)
+        :param quantity: (float) (optional)
+        :param price: (float) (optional)
+        :param stop_price: (float) (optional)
+        :param time_in_force: (TimeInForce) (optional)
+        :param expire_at: (float) (optional)
+        :return: (capnp._DynamicStructBuilder) replaceOrder capnp object.
+        """
+        return self._request_sender.replace_order(
+            request_header=request_header,
+            account_info=account_info,
+            order_id=order_id,
+            order_type=order_type,
+            quantity=quantity,
+            price=price,
+            stop_price=stop_price,
+            time_in_force=time_in_force,
+            expire_at=expire_at
+        )
+
+    def cancel_order(self,
+                     request_header: RequestHeader,
+                     account_info: AccountInfo,
+                     order_id: str):
+        """
+        Sends a request to TES to cancel an order.
+        :param request_header: Header parameter object for requests.
+        :param account_info: (AccountInfo) Account on which to cancel order.
+        :param order_id: (str) order_id as returned from the ExecutionReport.
+        :return: (capnp._DynamicStructBuilder) cancel_order object.
+        """
+        return self._request_sender.cancel_order(
+            request_header=request_header,
+            account_info=account_info,
+            order_id=order_id
+        )
+
+    def request_account_data(self,
+                             request_header: RequestHeader,
+                             account_info: AccountInfo):
+        """
+        Sends a request to TES for full account snapshot including balances,
+        open positions, and working orders on specified account.
+        :param request_header: Header parameter object for requests.
+        :param account_info: (AccountInfo) Account from which to retrieve data.
+        :return: (capnp._DynamicStructBuilder) get_account_data capnp object.
+        """
+        return self._request_sender.request_account_data(
+            request_header=request_header, account_info=account_info
+        )
+
+    def request_open_positions(self,
+                               request_header: RequestHeader,
+                               account_info: AccountInfo):
+        """
+        Sends a request to TES for open positions on an Account.
+        :param request_header: Header parameter object for requests.
+        :param account_info: (AccountInfo) Account from which to retrieve data.
+        :return: (capnp._DynamicStructBuilder) get_open_positions capnp
+        object.
+        """
+        return self._request_sender.request_open_positions(
+            request_header=request_header, account_info=account_info
+        )
+
+    def request_account_balances(self,
+                                 request_header: RequestHeader,
+                                 account_info: AccountInfo):
+        """
+        Sends a request to TES for full account balances snapshot on an
+        Account.
+        :param request_header: Header parameter object for requests.
+        :param account_info: (AccountInfo) Account from which to retrieve data.
+        :return: (capnp._DynamicStructBuilder) get_account_balances capnp
+        object.
+        """
+        return self._request_sender.get_account_balances(
+            request_header=request_header, account_info=account_info
+        )
+
+    def request_working_orders(self,
+                               request_header: RequestHeader,
+                               account_info: AccountInfo):
+        """
+        Sends a request to TES for all working orders snapshot on an
+        Account.
+        :param request_header: Header parameter object for requests.
+        :param account_info: (AccountInfo) Account from which to retrieve data.
+        :return: (capnp._DynamicStructBuilder) get_working_orders capnp object.
+        """
+        return self._request_sender.get_working_orders(
+            request_header=request_header, account_info=account_info
+        )
+
+    def request_order_status(self,
+                             request_header: RequestHeader,
+                             account_info: AccountInfo,
+                             order_id: str):
+        """
+        Sends a request to TES to request status of a specific order.
+        :param request_header: Header parameter object for requests.
+        :param account_info: (AccountInfo) Account from which to retrieve data.
+        :param order_id: (str) The id of the order of interest.
+        :return: (capnp._DynamicStructBuilder) get_order_status capnp object.
+        """
+        return self._request_sender.get_order_status(
+            request_header=request_header,
+            account_info=account_info,
+            order_id=order_id
+        )
+
+    def request_completed_orders(self,
+                                 request_header: RequestHeader,
+                                 account_info: AccountInfo,
+                                 count: int = None,
+                                 since: float = None):
+        """
+        Sends a request to TES for all completed orders on specified
+        account.  If both 'count' and 'from_unix' are None, returns orders
+        for last 24h.
+        :param request_header: Header parameter object for requests.
+        :param account_info: (AccountInfo) Account from which to retrieve data.
+        :param count: (int) optional, number of returned orders (most recent
+            ones).
+        :param since: (float) optional, returns all orders from provided unix
+            timestamp to present.
+        :return: (capnp._DynamicStructBuilder) get_completed_orders capnp
+            object.
+        """
+        return self._request_sender.request_completed_orders(
+            request_header=request_header,
+            account_info=account_info,
+            count=count,
+            since=since
+        )
+
+    def request_exchange_properties(self,
+                                    request_header: RequestHeader,
+                                    exchange: str):
+        """
+        Sends a request to TES for supported currencies, symbols and their
+        associated properties, timeInForces, and orderTypes on an exchange.
+        :param request_header: Header parameter object for requests.
+        :param exchange: (str) The exchange of interest.
+        :return: (capnp._DynamicStructBuilder) get_exchange_properties capnp
+            object.
+        """
+        return self._request_sender.request_exchange_properties(
+            request_header=request_header, exchange=exchange
+        )
 
 
 def configure_default_tes_connection(tes_endpoint: str,
