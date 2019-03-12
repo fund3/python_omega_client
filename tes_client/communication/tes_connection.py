@@ -28,9 +28,6 @@ from tes_client.messaging.response_handler import ResponseHandler
 
 logger = logging.getLogger(__name__)
 
-REQUEST_SENDER_ENDPOINT = 'inproc://TES_REQUEST_SENDER'
-RESPONSE_RECEIVER_ENDPOINT = 'inproc://TES_RESPONSE_RECEIVER'
-
 
 class TesConnection(Thread):
     """
