@@ -204,7 +204,7 @@ class TesConnection(Thread):
         :return: (capnp._DynamicStructBuilder) Logon capnp object.
         """
         return self._request_sender.logon(
-            equest_header=request_header,
+            request_header=request_header,
             client_secret=client_secret,
             credentials=credentials
         )
