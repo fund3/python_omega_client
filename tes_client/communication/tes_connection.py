@@ -134,8 +134,7 @@ class TesConnection(Thread):
         client_public, client_secret = zmq.curve_keypair()
         socket.curve_publickey = client_public
         socket.curve_secretkey = client_secret
-        socket.setsockopt_string(zmq.CURVE_SERVERKEY,
-                                 self._SERVER_ZMQ_ENCRYPTION_KEY)
+        socket.curve_serverkey = self._SERVER_ZMQ_ENCRYPTION_KEY
 
     def run(self):
         """
