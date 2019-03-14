@@ -28,9 +28,6 @@ from tes_client.messaging.response_handler import ResponseHandler
 
 logger = logging.getLogger(__name__)
 
-REQUEST_SENDER_ENDPOINT = 'inproc://TES_REQUEST_SENDER'
-RESPONSE_RECEIVER_ENDPOINT = 'inproc://TES_RESPONSE_RECEIVER'
-
 
 class TesConnection(Thread):
     """
@@ -204,7 +201,7 @@ class TesConnection(Thread):
         :return: (capnp._DynamicStructBuilder) Logon capnp object.
         """
         return self._request_sender.logon(
-            equest_header=request_header,
+            request_header=request_header,
             client_secret=client_secret,
             credentials=credentials
         )
