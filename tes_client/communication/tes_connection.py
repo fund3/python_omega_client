@@ -337,7 +337,7 @@ class TesConnection(Thread):
         :return: (capnp._DynamicStructBuilder) get_account_balances capnp
         object.
         """
-        return self._request_sender.get_account_balances(
+        return self._request_sender.request_account_balances(
             request_header=request_header, account_info=account_info
         )
 
@@ -351,7 +351,7 @@ class TesConnection(Thread):
         :param account_info: (AccountInfo) Account from which to retrieve data.
         :return: (capnp._DynamicStructBuilder) get_working_orders capnp object.
         """
-        return self._request_sender.get_working_orders(
+        return self._request_sender.request_working_orders(
             request_header=request_header, account_info=account_info
         )
 
@@ -366,7 +366,7 @@ class TesConnection(Thread):
         :param order_id: (str) The id of the order of interest.
         :return: (capnp._DynamicStructBuilder) get_order_status capnp object.
         """
-        return self._request_sender.get_order_status(
+        return self._request_sender.request_order_status(
             request_header=request_header,
             account_info=account_info,
             order_id=order_id
