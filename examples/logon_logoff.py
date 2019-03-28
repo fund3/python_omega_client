@@ -25,7 +25,7 @@ def main():
     # configure_single_client_tes_connection sets up a default TesConnection
     # with one default client_id
     # The ResponseHandler is a command dispatch callback class.  Basically,
-    # when the response is received from TES, TesConnection will route it to
+    # when the response is received from Omega, TesConnection will route it to
     # ResponseReceiver, and the type of the response will be determined.
     # Each type of response will trigger a specific function that can be
     # overridden in a child class of ResponseHandler for client designated

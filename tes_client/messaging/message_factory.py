@@ -334,7 +334,7 @@ def replace_order_capnp(
         expire_at: float = 0.0
         ):
     """
-    Generates a request to TES to replace an order.
+    Generates a request to Omega to replace an order.
     :param account_info: (AccountInfo) Account on which to cancel order.
     :param order_id: (str) orderID as returned from the ExecutionReport.
     :param request_header: Header parameter object for requests.
@@ -415,7 +415,7 @@ def request_account_data_capnp(
         request_header: RequestHeader,
         account_info: AccountInfo):
     """
-    Generates a request to TES for full account snapshot including balances,
+    Generates a request to Omega for full account snapshot including balances,
     open positions, and working orders.
     :param account_info: (AccountInfo) Account from which to retrieve data.
     :param request_header: Header parameter object for requests.
@@ -433,7 +433,7 @@ def request_open_positions_capnp(
         request_header: RequestHeader,
         account_info: AccountInfo):
     """
-    Send a request to TES for open positions on an Account.
+    Send a request to Omega for open positions on an Account.
     :param account_info: (AccountInfo) Account from which to retrieve data.
     :param request_header: Header parameter object for requests.
     :return: (capnp._DynamicStructBuilder) TradeMessage capnp object,
@@ -450,7 +450,7 @@ def request_account_balances_capnp(
         request_header: RequestHeader,
         account_info: AccountInfo):
     """
-    Generates a request to TES for full account balances snapshot on an
+    Generates a request to Omega for full account balances snapshot on an
     Account.
     :param account_info: (AccountInfo) Account from which to retrieve data.
     :param request_header: Header parameter object for requests.
@@ -468,7 +468,7 @@ def request_working_orders_capnp(
         request_header: RequestHeader,
         account_info: AccountInfo):
     """
-    Generates a request to TES for all working orders snapshot on an Account.
+    Generates a request to Omega for all working orders snapshot on an Account.
     :param account_info: (AccountInfo) Account from which to retrieve data.
     :param request_header: Header parameter object for requests.
     :return: (capnp._DynamicStructBuilder) TradeMessage capnp object,
@@ -486,7 +486,7 @@ def request_order_status_capnp(
         account_info: AccountInfo,
         order_id: str):
     """
-    Generates a request to TES to request status of a specific order.
+    Generates a request to Omega to request status of a specific order.
     :param account_info: (AccountInfo) Account from which to retrieve data.
     :param order_id: (str) The id of the order of interest.
     :param request_header: Header parameter object for requests.
@@ -507,7 +507,7 @@ def request_completed_orders_capnp(
         count: int = None,
         since: float = None):
     """
-    Generates a request to TES for all completed orders on specified account.
+    Generates a request to Omega for all completed orders on specified account.
     If both 'count' and 'from_unix' are None, returns orders for last 24h.
     :param account_info: (AccountInfo) Account from which to retrieve data.
     :param request_header: Header parameter object for requests.
@@ -531,7 +531,7 @@ def request_completed_orders_capnp(
 def request_exchange_properties_capnp(request_header: RequestHeader,
                                       exchange: str):
     """
-    Generates a request to TES for supported currencies, symbols and their
+    Generates a request to Omega for supported currencies, symbols and their
     associated properties, timeInForces, and orderTypes on an exchange.
     :param exchange: (str) The exchange of interest.
     :param request_header: Header parameter object for requests.
@@ -648,7 +648,7 @@ def _build_py_execution_report_from_capnp(execution_report):
 
 def _determine_order_price(order_price: float, order_type: str):
     """
-    TES rejects market orders with a non-zero price, hence this method
+    Omega rejects market orders with a non-zero price, hence this method
     assigns 0.0 as order_price if it receives a market order.
     :param order_price: (float) Desired order price.
     :param order_type: (str) Type of order ie limit, market, etc.
@@ -661,7 +661,7 @@ def _determine_order_price(order_price: float, order_type: str):
 
 def _generate_tes_request(request_header: RequestHeader):
     """
-    Generates an empty TES request from TradeMessage.capnp.
+    Generates an empty Omega request from TradeMessage.capnp.
     :param request_header: Header parameter object for requests.
     :return: (capnp._DynamicStructBuilder) tes_message to be serialized,
              (capnp._DynamicStructBuilder) body (empty, to be filled).

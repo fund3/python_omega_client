@@ -10,7 +10,7 @@ from tes_client.communication.response_receiver import ResponseReceiver
 from tes_client.communication.request_sender import RequestSender
 from tes_client.communication.tes_connection import TesConnection
 
-__TES_ENDPOINT = 'inproc://TES'
+__TES_ENDPOINT = 'inproc://Omega'
 __REQUEST_SENDER_ENDPOINT = 'inproc://REQUEST_SENDER'
 __RESPONSE_RECEIVER_ENDPOINT = 'inproc://RESPONSE_RECEIVER'
 __TES_SOCKET_IDENTITY = b'TES_SOCKET'

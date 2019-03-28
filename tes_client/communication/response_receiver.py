@@ -1,6 +1,6 @@
 """
-TES Response Receiver class.  Receive messages from a local TesConnection
-that is connected to TES.
+Omega Response Receiver class.  Receive messages from a local TesConnection
+that is connected to Omega.
 """
 import logging
 from threading import Event, Thread
@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 class ResponseReceiver(Thread):
     """
-    Acts as a separate thread that processes the messages coming from TES so
+    Acts as a separate thread that processes the messages coming from Omega so
     that the message receive loop is not blocked.  Only does unidirectional
     message receiving from TesConnection.
 

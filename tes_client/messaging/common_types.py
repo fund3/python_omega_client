@@ -4,7 +4,7 @@ from typing import List, Dict, Set
 # pythonized equivalents of what is contained in:
 # https://github.com/fund3/communication-protocol/blob/master/TradeMessage.capnp
 # make sure to call .name if you want the string representation of an enum
-# object when communicating with TES
+# object when communicating with Omega
 
 
 class Exchange(Enum):
@@ -309,7 +309,7 @@ class ExecutionReport(CommonType):
                  client_order_link_id: str = None):
         """
 
-        :param order_id: str order_id as assigned by TES
+        :param order_id: str order_id as assigned by Omega
         :param client_order_id: str orderID generated on the client side
         :param exchange_order_id: str orderID as assigned by Exchange
         :param account_info: accountInfo
@@ -329,7 +329,7 @@ class ExecutionReport(CommonType):
         filled thus far
         :param fee: float exchange fee paid for order
         :param creation_time: float unix timestamp when order was created on
-            TES server
+            Omega server
         :param submission_time: float unix timestamp when order was received
             by the exchange
         :param completion_time: float unix timestamp when order was completed
@@ -544,7 +544,7 @@ class AuthorizationGrant(CommonType):
 
         :param success: bool
         :param message: Message
-        :param access_token: str token used for current TES session
+        :param access_token: str token used for current Omega session
         :param refresh_token: str token to send to receive a new access_token
         :param expire_at: float utc timestamp at which access_token expires
         """
@@ -610,7 +610,7 @@ class RequestHeader(CommonType):
         Header parameter object for requests.
         :param client_id: (int) The assigned client_id.
         :param sender_comp_id: (str) uuid unique to the user session.
-        :param access_token: (str) Access token granted by TES.  Note that
+        :param access_token: (str) Access token granted by Omega.  Note that
             access_token is ignored in logon.
         :param request_id: (int) sequential, monotonically increasing integer
             request identifier

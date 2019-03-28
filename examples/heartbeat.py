@@ -14,7 +14,7 @@ DISTRIBUTED_CLIENTS = False
 
 def main():
     client_id = 1
-    # sender_comp_id is a unique identifier for a tes_client.  TES supports the
+    # sender_comp_id is a unique identifier for a tes_client.  Omega supports the
     # use case of multiple tes_clients sending messages with the same
     # client_id, hence a sender_comp_id is needed to distinguish the machine
     # and client in the middle of a request and response communication.

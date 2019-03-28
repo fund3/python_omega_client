@@ -1,5 +1,5 @@
 """
-TES Connection class.  Send and receive messages to and from TES.
+Omega Connection class.  Send and receive messages to and from Omega.
 """
 import logging
 from threading import Event, Thread
@@ -32,15 +32,15 @@ logger = logging.getLogger(__name__)
 class TesConnection(Thread):
     """
     Base TesConnection class that abstracts out ZMQ connection, capn-proto
-    parsing, and communication with the TES.
+    parsing, and communication with the Omega.
     Actions like Placing Orders, Requesting Account Balances and passing
-    their associated responses from TES as callbacks are handled by this class.
+    their associated responses from Omega as callbacks are handled by this class.
 
     Attributes:
         _ZMQ_CONTEXT: (zmq.Context) Required to create sockets. It is
             recommended that one application use one shared zmq context for
             all sockets.
-        _TES_ENDPOINT: (str) The zmq endpoint to connect to TES, in the form of
+        _TES_ENDPOINT: (str) The zmq endpoint to connect to Omega, in the form of
             a zmq connection str 'protocol://interface:port', e.g.
             'tcp://0.0.0.0:9999'.
         _REQUEST_SENDER_ENDPOINT: (str) The zmq endpoint used to connect to
@@ -55,7 +55,7 @@ class TesConnection(Thread):
             ROUTER socket on the other side to identify the DEALER socket in
             this class. Optional since zmq DEALER socket generates a default
             identity.
-        _SERVER_ZMQ_ENCRYPTION_KEY: (str) The public key of the TES server
+        _SERVER_ZMQ_ENCRYPTION_KEY: (str) The public key of the Omega server
             used to encrypt data flowing between the client and server.
         _response_receiver: (ResponseReceiver) The response receiver object.
         _request_sender: (RequestSender) The request sender object.
@@ -136,13 +136,13 @@ class TesConnection(Thread):
 
     def run(self):
         """
-        Main loop for TES connection.
+        Main loop for Omega connection.
         Set up 3 sockets:
-        1. tes_socket - the socket that sends and receives messages from TES.
+        1. tes_socket - the socket that sends and receives messages from Omega.
         2. request_listener_socket - listens to requests from request sender
             and forward them to tes_socket.
         3. response_forwarding_socket - forwards responses to response_receiver
-            when responses are received from TES.
+            when responses are received from Omega.
         """
         # pylint: disable=E1101
         tes_socket = self._ZMQ_CONTEXT.socket(zmq.DEALER)
@@ -193,7 +193,7 @@ class TesConnection(Thread):
               client_secret: str,
               credentials: List[AccountCredentials]):
         """
-        Logon to TES for a specific client_id and set of credentials.
+        Logon to Omega for a specific client_id and set of credentials.
         :param request_header: Header parameter object for requests.
         :param client_secret: (str) client_secret key assigned by Fund3.
         :param credentials: (List[AccountCredentials]) List of exchange
@@ -208,7 +208,7 @@ class TesConnection(Thread):
 
     def logoff(self, request_header: RequestHeader):
         """
-        Logoff TES for a specific client_id.
+        Logoff Omega for a specific client_id.
         :param request_header: Header parameter object for requests.
         :return: (capnp._DynamicStructBuilder) Logoff capnp object.
         """
@@ -216,8 +216,8 @@ class TesConnection(Thread):
 
     def send_heartbeat(self, request_header: RequestHeader):
         """
-        Sends a heartbeat to TES for maintaining and verifying connection.
-        Only clients that are logged on will receive heartbeat back from TES.
+        Sends a heartbeat to Omega for maintaining and verifying connection.
+        Only clients that are logged on will receive heartbeat back from Omega.
         :param request_header: Header parameter object for requests.
         :return: (capnp._DynamicStructBuilder) heartbeat capnp object.
         """
@@ -226,7 +226,7 @@ class TesConnection(Thread):
 
     def request_server_time(self, request_header: RequestHeader):
         """
-        Request TES server time for syncing client and server timestamps.
+        Request Omega server time for syncing client and server timestamps.
         :param request_header: Header parameter object for requests.
         :return: (capnp._DynamicStructBuilder) heartbeat capnp object.
         """
@@ -236,7 +236,7 @@ class TesConnection(Thread):
 
     def place_order(self, request_header: RequestHeader, order: Order):
         """
-        Sends a request to TES to place an order.
+        Sends a request to Omega to place an order.
         :param request_header: Header parameter object for requests.
         :param order: (Order) Python object containing all required fields.
         :return: (capnp._DynamicStructBuilder) place_order capnp object.
@@ -257,7 +257,7 @@ class TesConnection(Thread):
                       # pylint: enable=E1101
                       expire_at: float = 0.0):
         """
-        Sends a request to TES to replace an order.
+        Sends a request to Omega to replace an order.
         :param request_header: Header parameter object for requests.
         :param account_info: (AccountInfo) Account on which to cancel order.
         :param order_id: (str) order_id as returned from the ExecutionReport.
@@ -286,7 +286,7 @@ class TesConnection(Thread):
                      account_info: AccountInfo,
                      order_id: str):
         """
-        Sends a request to TES to cancel an order.
+        Sends a request to Omega to cancel an order.
         :param request_header: Header parameter object for requests.
         :param account_info: (AccountInfo) Account on which to cancel order.
         :param order_id: (str) order_id as returned from the ExecutionReport.
@@ -298,11 +298,31 @@ class TesConnection(Thread):
             order_id=order_id
         )
 
+    def cancel_all_orders(self,
+                          request_header: RequestHeader,
+                          account_info: AccountInfo,
+                          symbol: str = None,
+                          side: str = None):
+        """
+        Sends a request to Omega to cancel an order.
+        :param request_header: Header parameter object for requests.
+        :param account_info: (AccountInfo) Account on which to cancel order.
+        :param symbol: (str) (optional)
+        :param side: (str) (optional)
+        :return (capnp._DynamicStructBuilder) cancel_all_orders object.
+        """
+        return self._request_sender.cancel_all_orders(
+            request_header=request_header,
+            account_info=account_info,
+            symbol=symbol,
+            side=side
+        )
+
     def request_account_data(self,
                              request_header: RequestHeader,
                              account_info: AccountInfo):
         """
-        Sends a request to TES for full account snapshot including balances,
+        Sends a request to Omega for full account snapshot including balances,
         open positions, and working orders on specified account.
         :param request_header: Header parameter object for requests.
         :param account_info: (AccountInfo) Account from which to retrieve data.
@@ -316,7 +336,7 @@ class TesConnection(Thread):
                                request_header: RequestHeader,
                                account_info: AccountInfo):
         """
-        Sends a request to TES for open positions on an Account.
+        Sends a request to Omega for open positions on an Account.
         :param request_header: Header parameter object for requests.
         :param account_info: (AccountInfo) Account from which to retrieve data.
         :return: (capnp._DynamicStructBuilder) get_open_positions capnp
@@ -330,7 +350,7 @@ class TesConnection(Thread):
                                  request_header: RequestHeader,
                                  account_info: AccountInfo):
         """
-        Sends a request to TES for full account balances snapshot on an
+        Sends a request to Omega for full account balances snapshot on an
         Account.
         :param request_header: Header parameter object for requests.
         :param account_info: (AccountInfo) Account from which to retrieve data.
@@ -345,7 +365,7 @@ class TesConnection(Thread):
                                request_header: RequestHeader,
                                account_info: AccountInfo):
         """
-        Sends a request to TES for all working orders snapshot on an
+        Sends a request to Omega for all working orders snapshot on an
         Account.
         :param request_header: Header parameter object for requests.
         :param account_info: (AccountInfo) Account from which to retrieve data.
@@ -360,7 +380,7 @@ class TesConnection(Thread):
                              account_info: AccountInfo,
                              order_id: str):
         """
-        Sends a request to TES to request status of a specific order.
+        Sends a request to Omega to request status of a specific order.
         :param request_header: Header parameter object for requests.
         :param account_info: (AccountInfo) Account from which to retrieve data.
         :param order_id: (str) The id of the order of interest.
@@ -378,7 +398,7 @@ class TesConnection(Thread):
                                  count: int = None,
                                  since: float = None):
         """
-        Sends a request to TES for all completed orders on specified
+        Sends a request to Omega for all completed orders on specified
         account.  If both 'count' and 'from_unix' are None, returns orders
         for last 24h.
         :param request_header: Header parameter object for requests.
@@ -401,7 +421,7 @@ class TesConnection(Thread):
                                     request_header: RequestHeader,
                                     exchange: str):
         """
-        Sends a request to TES for supported currencies, symbols and their
+        Sends a request to Omega for supported currencies, symbols and their
         associated properties, timeInForces, and orderTypes on an exchange.
         :param request_header: Header parameter object for requests.
         :param exchange: (str) The exchange of interest.
@@ -418,8 +438,8 @@ def configure_default_tes_connection(tes_endpoint: str,
                                      response_handler: ResponseHandler):
     """
     Set up a TesConnection that comes with request_sender and response_receiver.
-    :param tes_endpoint: (str) The zmq endpoint to connect to TES.
-    :param tes_server_key: (str) The public key of the TES server.
+    :param tes_endpoint: (str) The zmq endpoint to connect to Omega.
+    :param tes_server_key: (str) The public key of the Omega server.
     :param response_handler: (ResponseHandler) The handler object that will
         be called in a callback function when tes_connection receives a
         message.
@@ -452,8 +472,8 @@ def configure_single_client_tes_connection(tes_endpoint: str,
     request sender.
     Note that each machine should be assigned a unique sender_comp_id even
     when the client_id is the same.
-    :param tes_endpoint: (str) The zmq endpoint to connect to TES.
-    :param tes_server_key: (str) The public key of the TES server.
+    :param tes_endpoint: (str) The zmq endpoint to connect to Omega.
+    :param tes_server_key: (str) The public key of the Omega server.
     :param client_id: (int) The client id assigned by Fund3.
     :param sender_comp_id: (str) str representation of a unique Python uuid.
     :param response_handler: (ResponseHandler) The handler object that will

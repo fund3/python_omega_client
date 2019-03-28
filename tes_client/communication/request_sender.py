@@ -46,7 +46,7 @@ class RequestSender(Thread):
         _QUEUE_POLLING_TIMEOUT_SECONDS: (int) The polling timeout for the
             internal queue.
         _outgoing_message_queue: (Queue) Internal message queue for outgoing
-            TES Messages.
+            Omega Messages.
         _is_running: (Event) Event object that indicates on/ off
             behavior for the response handler loop.
     """
@@ -357,7 +357,7 @@ class RequestSender(Thread):
                                  count: int = None,
                                  since: float = None):
         """
-        Sends a request to TES for all completed orders on specified
+        Sends a request to Omega for all completed orders on specified
         account.  If both 'count' and 'from_unix' are None, returns orders
         for last 24h.
         :param request_header: Header parameter object for requests.
@@ -382,7 +382,7 @@ class RequestSender(Thread):
                                     request_header: RequestHeader,
                                     exchange: str):
         """
-        Sends a request to TES for supported currencies, symbols and their
+        Sends a request to Omega for supported currencies, symbols and their
         associated properties, timeInForces, and orderTypes on an exchange.
         :param request_header: Header parameter object for requests.
         :param exchange: (str) The exchange of interest.

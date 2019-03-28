@@ -1,4 +1,4 @@
-# TES Python Client
+# Omega Python Client
 API Wrapper for connecting to Fund3 Trade Execution System
 
 ## Requirements
