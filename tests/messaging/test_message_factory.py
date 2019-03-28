@@ -5,14 +5,16 @@ import capnp
 import pytest
 
 from tes_client.messaging.common_types import AccountBalancesReport, \
-    AccountCredentials, AccountDataReport, AccountInfo, Balance, \
-    CompletedOrdersReport, Exchange, ExchangePropertiesReport, \
-    ExecutionReportType, ExecutionReport, LeverageType, OpenPosition, \
-    OpenPositionsReport, Order, OrderInfo, OrderStatus, OrderType, \
-    RequestRejected, Side, SymbolProperties, TimeInForce, WorkingOrdersReport
+    AccountCredentials, AccountDataReport, AccountInfo, AuthorizationGrant, \
+    Balance, CompletedOrdersReport, Exchange,  \
+    ExchangePropertiesReport, ExecutionReportType, ExecutionReport, \
+    LeverageType, OpenPosition, OpenPositionsReport, Order, OrderInfo, \
+    OrderStatus, OrderType, RequestHeader, RequestRejected, Side, \
+    SymbolProperties,  TimeInForce, WorkingOrdersReport
 import communication_protocol.TradeMessage_capnp as msgs_capnp
 from tes_client.messaging.message_factory import account_balances_report_py, \
-    account_data_report_py, completed_orders_report_py, \
+    account_data_report_py, authorization_grant_py, \
+    completed_orders_report_py, \
     exchange_properties_report_py, execution_report_py, \
     generate_client_order_id, logoff_ack_py, logon_ack_py, \
     open_positions_report_py, system_message_py, tes_test_message_py, \
@@ -21,8 +23,14 @@ from tes_client.messaging.message_factory import account_balances_report_py, \
     request_account_balances_capnp, request_account_data_capnp, \
     request_completed_orders_capnp, request_exchange_properties_capnp, \
     request_open_positions_capnp, request_order_mass_status_capnp, \
-    request_order_status_capnp, request_working_orders_capnp, \
-    _determine_order_price, _generate_tes_request
+    request_order_status_capnp, request_server_time_capnp, \
+    request_working_orders_capnp,  _determine_order_price, \
+    _generate_tes_request
+
+__FAKE_ACCESS_TOKEN = 'FakeAccessToken'
+__FAKE_REQUEST_HEADER = RequestHeader(client_id=123,
+                                      sender_comp_id='987',
+                                      access_token=__FAKE_ACCESS_TOKEN)
 
 # TODO add test for cancelAllOrders
 
@@ -61,54 +69,80 @@ def test_handle_tes_message_system():
     system.errorCode = 0
     system.message = ('The Times 03/Jan/2009 Chancellor on brink of second ' +
                       'bailout for banks')
-    error_code, system_msg = system_message_py(
-        tes_mess.type.response.body.system)
-    assert type(error_code) == int
-    assert type(system_msg == str)
-    assert error_code == 0
-    assert system_msg == ('The Times 03/Jan/2009 Chancellor on brink of ' +
-                          'second bailout for banks')
+    system_msg = system_message_py(tes_mess.type.response.body.system)
+    assert type(system_msg.error_code) == int
+    assert type(system_msg.message == str)
+    assert system_msg.error_code == 0
+    assert system_msg.message == ('The Times 03/Jan/2009 Chancellor on ' +
+                                  'brink of second bailout for banks')
 
 
 @pytest.mark.test_id(2)
 def test_handle_tes_message_logon():
     # logon success
     tes_mess = msgs_capnp.TradeMessage.new_message()
-    heartbeat_resp = tes_mess.init('type').init('response')
-    heartbeat_resp.clientID = 123
-    heartbeat_resp.senderCompID = str(987)
-    body = heartbeat_resp.init('body')
-    logon = body.init('logonAck')
-    logon.success = True
-    logon.message = ('The Times 03/Jan/2009 Chancellor on brink of second ' +
-                     'bailout for banks')
-    logon.clientAccounts = [100, 101]
-    success, msg, accounts = logon_ack_py(tes_mess.type.response.body.logonAck)
-    assert type(msg == str)
-    assert msg == ('The Times 03/Jan/2009 Chancellor on brink of second ' +
-                   'bailout for banks')
-    assert type(success) == bool
-    assert success
-    accts = [acct for acct in accounts]
-    assert type(accts[0]) == int
-    assert accts == [100, 101]
+    logon_ack_resp = tes_mess.init('type').init('response')
+    logon_ack_resp.clientID = 123
+    logon_ack_resp.senderCompID = str(987)
+    body = logon_ack_resp.init('body')
+    logon_ack_capnp = body.init('logonAck')
+    logon_ack_capnp.success = True
+    logon_ack_capnp.message = ('The Times 03/Jan/2009 Chancellor on brink ' +
+                               'of second bailout for banks')
+    client_accounts = logon_ack_capnp.init('clientAccounts', 2)
+    client_accounts[0].accountID = 100
+    client_accounts[1].accountID = 101
+    grant = logon_ack_capnp.init('authorizationGrant')
+    grant.success = True
+    grant.message = "Granted"
+    grant.accessToken = "AccessToken"
+    grant.refreshToken = "refreshToken"
+    grant.expireAt = 1551288929.0
+    logon_ack = logon_ack_py(tes_mess.type.response.body.logonAck)
+    expected_auth_grant = AuthorizationGrant(
+        success=True,
+        message="Granted",
+        access_token="AccessToken",
+        refresh_token="refreshToken",
+        expire_at=1551288929.0)
+    assert type(logon_ack.message == str)
+    assert logon_ack.message == ('The Times 03/Jan/2009 Chancellor on brink ' +
+                                 'of second bailout for banks')
+    assert type(logon_ack.success) == bool
+    assert logon_ack.success
+    accts = [acct for acct in logon_ack.client_accounts]
+    assert type(accts[0]) == AccountInfo
+    assert accts[0].account_id == 100
+    assert accts[1].account_id == 101
+    assert logon_ack.authorization_grant == expected_auth_grant
 
     # logon failure
     tes_mess1 = msgs_capnp.TradeMessage.new_message()
-    heartbeat_resp1 = tes_mess1.init('type').init('response')
-    heartbeat_resp1.clientID = 123
-    heartbeat_resp1.senderCompID = str(987)
-    body1 = heartbeat_resp1.init('body')
-    logon1 = body1.init('logonAck')
-    logon1.success = False
-    logon1.message = 'Jamie Dimon has denied you access'
-    logon1.clientAccounts = [100, 101]
-    success1, msg1, accounts1 = logon_ack_py(
-        tes_mess1.type.response.body.logonAck)
-    assert type(msg1 == str)
-    assert msg1 == 'Jamie Dimon has denied you access'
-    assert type(success1) == bool
-    assert not success1
+    logon_ack_resp1 = tes_mess1.init('type').init('response')
+    logon_ack_resp1.clientID = 123
+    logon_ack_resp1.senderCompID = str(987)
+    body = logon_ack_resp1.init('body')
+    logon_ack_capnp = body.init('logonAck')
+    logon_ack_capnp.success = False
+    logon_ack_capnp.message = 'Jamie Dimon has denied you access'
+    client_accounts = logon_ack_capnp.init('clientAccounts', 2)
+    client_accounts[0].accountID = 100
+    client_accounts[1].accountID = 101
+    grant = logon_ack_capnp.init('authorizationGrant')
+    grant.success = False
+    grant.message = "Authorization failed"
+    expected_auth_grant = AuthorizationGrant(
+        success=False,
+        message="Authorization failed",
+        access_token="",
+        refresh_token="",
+        expire_at=0.0)
+    logon_ack = logon_ack_py(tes_mess1.type.response.body.logonAck)
+    assert type(logon_ack.message == str)
+    assert logon_ack.message == 'Jamie Dimon has denied you access'
+    assert type(logon_ack.success) == bool
+    assert not logon_ack.success
+    assert logon_ack.authorization_grant == expected_auth_grant
 
 # Test cases where there are no passphrase or other params,
 # coupled with the logic change requested in AccountCredentials above.
@@ -119,47 +153,47 @@ def test_handle_tes_message_logon():
 @pytest.mark.test_id(3)
 def test_handle_tes_message_logoff():
     tes_mess = msgs_capnp.TradeMessage.new_message()
-    heartbeat_resp = tes_mess.init('type').init('response')
-    heartbeat_resp.clientID = 123
-    heartbeat_resp.senderCompID = str(987)
-    body = heartbeat_resp.init('body')
+    logoff_resp = tes_mess.init('type').init('response')
+    logoff_resp.clientID = 123
+    logoff_resp.senderCompID = str(987)
+    body = logoff_resp.init('body')
 
     # logoff success
     logoff = body.init('logoffAck')
     logoff.success = True
     logoff.message = ('The Times 03/Jan/2009 Chancellor on brink of second ' +
                       'bailout for banks')
-    success, msg = logoff_ack_py(tes_mess.type.response.body.logoffAck)
-    assert type(msg == str)
-    assert msg == ('The Times 03/Jan/2009 Chancellor on brink of second ' +
-                   'bailout for banks')
-    assert type(success) == bool
-    assert success
+    logoff_ack = logoff_ack_py(tes_mess.type.response.body.logoffAck)
+    assert type(logoff_ack.message == str)
+    assert logoff_ack.message == ('The Times 03/Jan/2009 Chancellor on ' +
+                                   'brink of second bailout for banks')
+    assert type(logoff_ack.success) == bool
+    assert logoff_ack.success
 
     tes_mess1 = msgs_capnp.TradeMessage.new_message()
-    heartbeat_resp = tes_mess1.init('type').init('response')
-    heartbeat_resp.clientID = 123
-    heartbeat_resp.senderCompID = str(987)
-    body1 = heartbeat_resp.init('body')
+    logoff_resp = tes_mess1.init('type').init('response')
+    logoff_resp.clientID = 123
+    logoff_resp.senderCompID = str(987)
+    body1 = logoff_resp.init('body')
 
     # logoff failure
     logoff1 = body1.init('logoffAck')
     logoff1.success = False
     logoff1.message = 'Jamie Dimon has denied you access'
-    success1, msg1 = logoff_ack_py(tes_mess1.type.response.body.logoffAck)
-    assert type(msg1 == str)
-    assert msg1 == 'Jamie Dimon has denied you access'
-    assert type(success1) == bool
-    assert not success1
+    logoff_ack = logoff_ack_py(tes_mess1.type.response.body.logoffAck)
+    assert type(logoff_ack.message == str)
+    assert logoff_ack.message == 'Jamie Dimon has denied you access'
+    assert type(logoff_ack.success) == bool
+    assert not logoff_ack.success
 
 
 @pytest.mark.test_id(4)
 def test_handle_tes_message_account_data_report():
     tes_mess = msgs_capnp.TradeMessage.new_message()
-    heartbeat_resp = tes_mess.init('type').init('response')
-    heartbeat_resp.clientID = 123
-    heartbeat_resp.senderCompID = str(987)
-    body = heartbeat_resp.init('body')
+    account_data_resp = tes_mess.init('type').init('response')
+    account_data_resp.clientID = 123
+    account_data_resp.senderCompID = str(987)
+    body = account_data_resp.init('body')
     adr = body.init('accountDataReport')
     account = adr.init('accountInfo')
     account.accountID = 101
@@ -208,10 +242,10 @@ def test_handle_tes_message_account_data_report():
 @pytest.mark.test_id(5)
 def test_handle_tes_message_working_orders_report():
     tes_mess = msgs_capnp.TradeMessage.new_message()
-    heartbeat_resp = tes_mess.init('type').init('response')
-    heartbeat_resp.clientID = 123
-    heartbeat_resp.senderCompID = str(987)
-    body = heartbeat_resp.init('body')
+    working_orders_resp = tes_mess.init('type').init('response')
+    working_orders_resp.clientID = 123
+    working_orders_resp.senderCompID = str(987)
+    body = working_orders_resp.init('body')
     adr = body.init('workingOrdersReport')
     account = adr.init('accountInfo')
     account.accountID = 101
@@ -273,10 +307,10 @@ def test_handle_tes_message_working_orders_report():
 @pytest.mark.test_id(6)
 def test_handle_tes_message_account_balances_report():
     tes_mess = msgs_capnp.TradeMessage.new_message()
-    heartbeat_resp = tes_mess.init('type').init('response')
-    heartbeat_resp.clientID = 123
-    heartbeat_resp.senderCompID = str(987)
-    body = heartbeat_resp.init('body')
+    account_balances_resp = tes_mess.init('type').init('response')
+    account_balances_resp.clientID = 123
+    account_balances_resp.senderCompID = str(987)
+    body = account_balances_resp.init('body')
     adr = body.init('accountDataReport')
     account = adr.init('accountInfo')
     account.accountID = 101
@@ -306,10 +340,10 @@ def test_handle_tes_message_account_balances_report():
 @pytest.mark.test_id(7)
 def test_handle_tes_message_completed_orders_report():
     tes_mess = msgs_capnp.TradeMessage.new_message()
-    heartbeat_resp = tes_mess.init('type').init('response')
-    heartbeat_resp.clientID = 123
-    heartbeat_resp.senderCompID = str(987)
-    body = heartbeat_resp.init('body')
+    completed_orders_resp = tes_mess.init('type').init('response')
+    completed_orders_resp.clientID = 123
+    completed_orders_resp.senderCompID = str(987)
+    body = completed_orders_resp.init('body')
     cor = body.init('completedOrdersReport')
     account = cor.init('accountInfo')
     account.accountID = 101
@@ -363,10 +397,10 @@ def test_handle_tes_message_completed_orders_report():
 @pytest.mark.test_id(8)
 def test_handle_tes_message_open_positions_report():
     tes_mess = msgs_capnp.TradeMessage.new_message()
-    heartbeat_resp = tes_mess.init('type').init('response')
-    heartbeat_resp.clientID = 123
-    heartbeat_resp.senderCompID = str(987)
-    body = heartbeat_resp.init('body')
+    open_positions_resp = tes_mess.init('type').init('response')
+    open_positions_resp.clientID = 123
+    open_positions_resp.senderCompID = str(987)
+    body = open_positions_resp.init('body')
     adr = body.init('openPositionsReport')
     account0 = adr.init('accountInfo')
     account0.accountID = 110
@@ -406,10 +440,10 @@ def test_handle_tes_message_open_positions_report():
 def test_handle_tes_message_exchange_properties_report():
     # valid test case
     tes_mess = msgs_capnp.TradeMessage.new_message()
-    heartbeat_resp = tes_mess.init('type').init('response')
-    heartbeat_resp.clientID = 123
-    heartbeat_resp.senderCompID = str(987)
-    body = heartbeat_resp.init('body')
+    exchange_properties_resp = tes_mess.init('type').init('response')
+    exchange_properties_resp.clientID = 123
+    exchange_properties_resp.senderCompID = str(987)
+    body = exchange_properties_resp.init('body')
     epr = body.init('exchangePropertiesReport')
     currencies = epr.init('currencies', 3)
     currencies[0] = 'USD'
@@ -446,10 +480,10 @@ def test_handle_tes_message_exchange_properties_report():
 @pytest.mark.test_id(10)
 def test_on_account_balances():
     tes_mess = msgs_capnp.TradeMessage.new_message()
-    heartbeat_resp = tes_mess.init('type').init('response')
-    heartbeat_resp.clientID = 123
-    heartbeat_resp.senderCompID = str(987)
-    body = heartbeat_resp.init('body')
+    account_balances_resp = tes_mess.init('type').init('response')
+    account_balances_resp.clientID = 123
+    account_balances_resp.senderCompID = str(987)
+    body = account_balances_resp.init('body')
     adr = body.init('accountBalancesReport')
     account = adr.init('accountInfo')
     account.accountID = 101
@@ -473,10 +507,10 @@ def test_on_account_balances():
 def test_handle_tes_message_execution_report():
     # order accepted
     tes_mess = msgs_capnp.TradeMessage.new_message()
-    heartbeat_resp = tes_mess.init('type').init('response')
-    heartbeat_resp.clientID = 123
-    heartbeat_resp.senderCompID = str(987)
-    body = heartbeat_resp.init('body')
+    exec_report_resp = tes_mess.init('type').init('response')
+    exec_report_resp.clientID = 123
+    exec_report_resp.senderCompID = str(987)
+    body = exec_report_resp.init('body')
     er = get_new_execution_report(body=body)
     er.type.orderAccepted = None
     er_type = execution_report_py(
@@ -486,10 +520,10 @@ def test_handle_tes_message_execution_report():
 
     # order rejected
     tes_mess1 = msgs_capnp.TradeMessage.new_message()
-    heartbeat_resp1 = tes_mess1.init('type').init('response')
-    heartbeat_resp1.clientID = 123
-    heartbeat_resp1.senderCompID = str(987)
-    body1 = heartbeat_resp1.init('body')
+    exec_report_resp1 = tes_mess1.init('type').init('response')
+    exec_report_resp1.clientID = 123
+    exec_report_resp1.senderCompID = str(987)
+    body1 = exec_report_resp1.init('body')
     er1 = get_new_execution_report(body=body1, include_cl_ord_link_id=False)
     order_rejected = er1.type.init('orderRejected')
     order_rejected.message = 'too silly'
@@ -500,10 +534,10 @@ def test_handle_tes_message_execution_report():
 
     # order replaced
     tes_mess2 = msgs_capnp.TradeMessage.new_message()
-    heartbeat_resp2 = tes_mess2.init('type').init('response')
-    heartbeat_resp2.clientID = 123
-    heartbeat_resp2.senderCompID = str(987)
-    body2 = heartbeat_resp2.init('body')
+    exec_report_resp2 = tes_mess2.init('type').init('response')
+    exec_report_resp2.clientID = 123
+    exec_report_resp2.senderCompID = str(987)
+    body2 = exec_report_resp2.init('body')
     er2 = get_new_execution_report(body=body2)
     er2.type.orderReplaced = None
     er_type2 = execution_report_py(tes_mess2.type.response.body.executionReport)
@@ -512,10 +546,10 @@ def test_handle_tes_message_execution_report():
 
     # replace rejected
     tes_mess3 = msgs_capnp.TradeMessage.new_message()
-    heartbeat_resp3 = tes_mess3.init('type').init('response')
-    heartbeat_resp3.clientID = 123
-    heartbeat_resp3.senderCompID = str(987)
-    body3 = heartbeat_resp3.init('body')
+    exec_report_resp3 = tes_mess3.init('type').init('response')
+    exec_report_resp3.clientID = 123
+    exec_report_resp3.senderCompID = str(987)
+    body3 = exec_report_resp3.init('body')
     er3 = get_new_execution_report(body=body3)
     order_rejected = er3.type.init('replaceRejected')
     order_rejected.message = 'way too silly'
@@ -526,10 +560,10 @@ def test_handle_tes_message_execution_report():
 
     # order cancelled
     tes_mess4 = msgs_capnp.TradeMessage.new_message()
-    heartbeat_resp4 = tes_mess4.init('type').init('response')
-    heartbeat_resp4.clientID = 123
-    heartbeat_resp4.senderCompID = str(987)
-    body4 = heartbeat_resp4.init('body')
+    exec_report_resp4 = tes_mess4.init('type').init('response')
+    exec_report_resp4.clientID = 123
+    exec_report_resp4.senderCompID = str(987)
+    body4 = exec_report_resp4.init('body')
     er4 = get_new_execution_report(body=body4)
     er4.type.orderCanceled = None
     er_type4 = execution_report_py(tes_mess4.type.response.body.executionReport)
@@ -538,10 +572,10 @@ def test_handle_tes_message_execution_report():
 
     # cancel rejected
     tes_mess5 = msgs_capnp.TradeMessage.new_message()
-    heartbeat_resp5 = tes_mess5.init('type').init('response')
-    heartbeat_resp5.clientID = 123
-    heartbeat_resp5.senderCompID = str(987)
-    body5 = heartbeat_resp5.init('body')
+    exec_report_resp5 = tes_mess5.init('type').init('response')
+    exec_report_resp5.clientID = 123
+    exec_report_resp5.senderCompID = str(987)
+    body5 = exec_report_resp5.init('body')
     er5 = get_new_execution_report(body=body5)
     order_rejected = er5.type.init('cancelRejected')
     order_rejected.message = 'way too silly'
@@ -552,10 +586,10 @@ def test_handle_tes_message_execution_report():
 
     # order filled
     tes_mess6 = msgs_capnp.TradeMessage.new_message()
-    heartbeat_resp6 = tes_mess6.init('type').init('response')
-    heartbeat_resp6.clientID = 123
-    heartbeat_resp6.senderCompID = str(987)
-    body6 = heartbeat_resp6.init('body')
+    exec_report_resp6 = tes_mess6.init('type').init('response')
+    exec_report_resp6.clientID = 123
+    exec_report_resp6.senderCompID = str(987)
+    body6 = exec_report_resp6.init('body')
     er6 = get_new_execution_report(body=body6)
     er6.type.orderFilled = None
     er_type6 = execution_report_py(tes_mess6.type.response.body.executionReport)
@@ -564,10 +598,10 @@ def test_handle_tes_message_execution_report():
 
     # status update
     tes_mess7 = msgs_capnp.TradeMessage.new_message()
-    heartbeat_resp7 = tes_mess7.init('type').init('response')
-    heartbeat_resp7.clientID = 123
-    heartbeat_resp7.senderCompID = str(987)
-    body7 = heartbeat_resp7.init('body')
+    exec_report_resp7 = tes_mess7.init('type').init('response')
+    exec_report_resp7.clientID = 123
+    exec_report_resp7.senderCompID = str(987)
+    body7 = exec_report_resp7.init('body')
     er7 = get_new_execution_report(body=body7)
     er7.type.statusUpdate = None
     er_type7 = execution_report_py(tes_mess7.type.response.body.executionReport)
@@ -587,7 +621,11 @@ def test_determine_order_price():
 
 @pytest.mark.test_id(13)
 def test_generate_tes_request():
-    body, tes_mess = _generate_tes_request(client_id=0, sender_comp_id='asdf')
+    body, tes_mess = _generate_tes_request(
+        RequestHeader(client_id=0,
+                      sender_comp_id='asdf',
+                      access_token=__FAKE_ACCESS_TOKEN)
+        )
     # print(body, '\n', tes_mess)
     assert type(body) == capnp.lib.capnp._DynamicStructBuilder
     assert type(tes_mess) == capnp.lib.capnp._DynamicStructBuilder
@@ -616,3 +654,60 @@ def test_handle_tes_message_test():
         tes_mess.type.response.body.test)
 
     assert test_string == 'test_string'
+
+
+@pytest.mark.test_id(16)
+def test_authorization_grant_py():
+    auth_grant_capnp = msgs_capnp.AuthorizationGrant.new_message()
+    auth_grant_capnp.success = True
+    auth_grant_capnp.message = 'auth successful'
+    auth_grant_capnp.accessToken = 'access_token'
+    auth_grant_capnp.refreshToken = 'refresh_token'
+    auth_grant_capnp.expireAt = 1549618563.0
+
+    expected_auth_grant = AuthorizationGrant(True,
+                                             'auth successful',
+                                             'access_token',
+                                             'refresh_token',
+                                             1549618563.0)
+    assert authorization_grant_py(auth_grant_capnp) == expected_auth_grant
+
+
+@pytest.mark.test_id(17)
+def test_heartbeat_capnp():
+    expected_tes_message = msgs_capnp.TradeMessage.new_message()
+    heartbeat_req = expected_tes_message.init('type').init('request')
+    heartbeat_req.clientID = 123
+    heartbeat_req.senderCompID = str(987)
+    heartbeat_req.accessToken = __FAKE_ACCESS_TOKEN
+    body = heartbeat_req.init('body')
+    body.heartbeat = None
+
+    actual_tes_message = heartbeat_capnp(__FAKE_REQUEST_HEADER)[0]
+
+    assert actual_tes_message.type.request.clientID == (
+            expected_tes_message.type.request.clientID)
+    assert actual_tes_message.type.request.senderCompID == (
+        expected_tes_message.type.request.senderCompID)
+    assert actual_tes_message.type.request.body.heartbeat == (
+        expected_tes_message.type.request.body.heartbeat)
+
+
+@pytest.mark.test_id(18)
+def test_request_server_time_capnp():
+    expected_tes_message = msgs_capnp.TradeMessage.new_message()
+    request_server_time = expected_tes_message.init('type').init('request')
+    request_server_time.clientID = 123
+    request_server_time.senderCompID = str(987)
+    request_server_time.accessToken = __FAKE_ACCESS_TOKEN
+    body = request_server_time.init('body')
+    body.getServerTime = None
+
+    actual_tes_message = request_server_time_capnp(__FAKE_REQUEST_HEADER)[0]
+
+    assert actual_tes_message.type.request.clientID == (
+        expected_tes_message.type.request.clientID)
+    assert actual_tes_message.type.request.senderCompID == (
+        expected_tes_message.type.request.senderCompID)
+    assert actual_tes_message.type.request.body.getServerTime == (
+        expected_tes_message.type.request.body.getServerTime)

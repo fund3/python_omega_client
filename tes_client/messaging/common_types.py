@@ -511,3 +511,64 @@ class ReplaceOrder(CommonType):
         self.quantity = float(quantity)
         self.price = float(price)
         self.time_in_force = str(time_in_force)
+
+
+class AuthorizationGrant(CommonType):
+    def __init__(self,
+                 success: bool,
+                 message: str,
+                 access_token: str,
+                 refresh_token: str,
+                 expire_at: float):
+        self.success = bool(success)
+        self.message = str(message)
+        self.access_token = str(access_token)
+        self.refresh_token = str(refresh_token)
+        self.expire_at = float(expire_at)
+
+
+class LogonAck(CommonType):
+    def __init__(self,
+                 success: bool,
+                 message: str,
+                 client_accounts: List[AccountInfo],
+                 authorization_grant: AuthorizationGrant):
+        self.success = bool(success)
+        self.message = str(message)
+        self.client_accounts = client_accounts
+        self.authorization_grant = authorization_grant
+
+
+class LogoffAck(CommonType):
+    def __init__(self,
+                 success: bool,
+                 message: str):
+        self.success = bool(success)
+        self.message = str(message)
+
+
+class SystemMessage(CommonType):
+    def __init__(self,
+                 account_info: AccountInfo,
+                 error_code: int,
+                 message: str):
+        self.account_info = account_info
+        self.error_code = int(error_code)
+        self.message = str(message)
+
+
+class RequestHeader(CommonType):
+    def __init__(self,
+                 client_id: int,
+                 sender_comp_id: str,
+                 access_token: str):
+        """
+        Header parameter object for requests.
+        :param client_id: (int) The assigned client_id.
+        :param sender_comp_id: (str) uuid unique to the user session.
+        :param access_token: (str) Access token granted by TES.  Note that
+            access_token is ignored in logon.
+        """
+        self.client_id = client_id
+        self.sender_comp_id = sender_comp_id
+        self.access_token = access_token
