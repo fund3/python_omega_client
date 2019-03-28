@@ -30,6 +30,8 @@ __FAKE_REQUEST_SENDER_CONNECTION_STR = 'inproc://FAKE_REQUEST_SENDER'
 
 # TODO: Integration Testing
 
+# TODO add test for cancelAllOrders
+
 
 @pytest.fixture(scope="session")
 def fake_zmq_context():

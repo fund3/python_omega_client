@@ -70,6 +70,14 @@ class SingleClientRequestSender(RequestSender):
         return super().cancel_order(account_info, order_id, self._client_id,
                                     self._sender_comp_id)
 
+    def cancel_all_orders(self, account_info: AccountInfo,
+                          client_id: int = None,
+                          sender_comp_id: str = None,
+                          symbol: str = None,
+                          side: str = None):
+        return super().cancel_all_orders(account_info, self._client_id,
+                                         self._sender_comp_id, symbol, side)
+
     def request_account_data(self, account_info: AccountInfo,
                              client_id: int = None,
                              sender_comp_id: str = None):

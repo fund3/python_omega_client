@@ -24,6 +24,8 @@ from tes_client.messaging.message_factory import account_balances_report_py, \
     request_order_status_capnp, request_working_orders_capnp, \
     _determine_order_price, _generate_tes_request
 
+# TODO add test for cancelAllOrders
+
 
 def get_new_execution_report(body, include_cl_ord_link_id=True):
     er = body.init('executionReport')

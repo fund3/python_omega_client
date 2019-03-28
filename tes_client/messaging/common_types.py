@@ -23,6 +23,8 @@ class Exchange(Enum):
     coinbasePrime = auto()
     bitstamp = auto()
     itBit = auto()
+    okEx = auto()
+    hitbtc = auto()
 
 
 class Side(Enum):
@@ -43,6 +45,12 @@ class OrderType(Enum):
     undefined = auto()
     market = auto()
     limit = auto()
+    stopLoss = auto()
+    stopLossLimit = auto()
+    takeProfit = auto()
+    takeProfitLimit = auto()
+    trailingStop = auto()
+    trailingStopLimit = auto()
 
 
 class OrderStatus(Enum):
@@ -62,6 +70,8 @@ class OrderStatus(Enum):
     canceled = auto()
     rejected = auto()
     expired = auto()
+    failed = auto()
+    deferred = auto()
 
 
 class TimeInForce(Enum):

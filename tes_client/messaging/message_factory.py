@@ -407,6 +407,33 @@ def cancel_order_capnp(
     return tes_message, cancel_order
 
 
+def cancel_all_orders_capnp(
+        client_id: int,
+        sender_comp_id: str,
+        account_info: AccountInfo,
+        symbol: str = None,
+        side: str = None):
+    """
+    Generates a capnp CancelAllOrders message.
+    :param client_id: (int) The assigned clientID.
+    :param sender_comp_id: (str) uuid unique to the session the user is on.
+    :param account_info: (AccountInfo) Account on which to cancel order.
+    :param symbol: str (optional)
+    :param side: str (optional)
+    :return: (capnp._DynamicStructBuilder) TradeMessage capnp object,
+             (capnp._DynamicStructBuilder) cancelOrder capnp object.
+    """
+    tes_message, body = _generate_tes_request(client_id, sender_comp_id)
+    cancel_all_orders = body.init('CancelAllOrders')
+    acct = cancel_all_orders.init('accountInfo')
+    acct.accountID = account_info.account_id
+    if symbol:
+        cancel_all_orders.symbol = symbol
+    if side:
+        cancel_all_orders.side = side
+    return tes_message, cancel_all_orders
+
+
 def request_account_data_capnp(
         client_id: int,
         sender_comp_id: str,

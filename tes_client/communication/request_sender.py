@@ -12,9 +12,9 @@ from tes_client.messaging.common_types import AccountBalancesReport, \
     CompletedOrdersReport, ExchangePropertiesReport, \
     ExecutionReport, OpenPositionsReport, Order, OrderInfo, \
     OrderType, TimeInForce, WorkingOrdersReport
-from tes_client.messaging.message_factory import cancel_order_capnp, \
-    heartbeat_capnp, logoff_capnp, logon_capnp, place_order_capnp, \
-    replace_order_capnp, request_account_balances_capnp, \
+from tes_client.messaging.message_factory import cancel_all_orders_capnp,\
+    cancel_order_capnp, heartbeat_capnp, logoff_capnp, logon_capnp, \
+    place_order_capnp, replace_order_capnp, request_account_balances_capnp, \
     request_account_data_capnp, request_completed_orders_capnp, \
     request_exchange_properties_capnp, request_open_positions_capnp, \
     request_order_mass_status_capnp, request_order_status_capnp, \
@@ -259,6 +259,28 @@ class RequestSender(Thread):
         logger.debug('Cancelling Order.', extra={'order_id': order_id})
         self._queue_message(tes_message)
         return cancel_order
+
+    def cancel_all_orders(self, account_info: AccountInfo,
+                          client_id: int,
+                          sender_comp_id: str,
+                          symbol: str = None,
+                          side: str = None):
+        """
+        Sends a request to TES to cancel an order.
+        :param account_info: (AccountInfo) Account on which to cancel order.
+        :param client_id: (int) The assigned client_id.
+        :param sender_comp_id: (str) uuid unique to the session the user is
+        on.
+        :param symbol: str (optional)
+        :param side: str (optional)
+        :return: (capnp._DynamicStructBuilder) cancel_all_orders object.
+        """
+        tes_message, cancel_all_orders = cancel_all_orders_capnp(
+            client_id, sender_comp_id, account_info, symbol, side)
+        logger.debug('Cancelling All Orders.', extra={'symbol': symbol,
+                                                      'side': side})
+        self._queue_message(tes_message)
+        return cancel_all_orders
 
     def request_account_data(self,
                              account_info: AccountInfo,
