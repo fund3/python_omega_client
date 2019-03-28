@@ -401,7 +401,7 @@ def cancel_all_orders_capnp(
              (capnp._DynamicStructBuilder) cancelOrder capnp object.
     """
     tes_message, body = _generate_tes_request(request_header=request_header)
-    cancel_all_orders = body.init('CancelAllOrders')
+    cancel_all_orders = body.init('cancelAllOrders')
     acct = cancel_all_orders.init('accountInfo')
     acct.accountID = account_info.account_id
     if symbol:
