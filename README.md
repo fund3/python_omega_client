@@ -16,7 +16,6 @@ See Dockerfiles in `docker` directory.  Note that AWS Linux 1 and AWS Linux 2
 contains instructions to install the library on respective AMIs on AWS.  You
 will need to install gcc 4.8+ on AWS Linux 1 for the installation to work. The 
 Dockerfiles are using `root` user by default.
-
 Python3.5 and Python3.6 installations are identical as long as `python3` and
 `pip3` are used.  Do not use sudo for these commands unless the user version 
 of Python3 is the same as the root version of Python3 and you know what you 

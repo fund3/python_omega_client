@@ -110,6 +110,15 @@ class SingleClientRequestSender:
             account_info=account_info,
             order_id=order_id)
 
+    def cancel_all_orders(self, account_info: AccountInfo,
+                          symbol: str = None,
+                          side: str = None):
+        return self._request_sender.cancel_all_orders(
+            request_header=self._request_header,
+            account_info=account_info,
+            symbol=symbol,
+            side=side)
+
     def request_account_data(self, account_info: AccountInfo):
         return self._request_sender.request_account_data(
             request_header=self._request_header, account_info=account_info)

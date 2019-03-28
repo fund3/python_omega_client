@@ -33,6 +33,8 @@ __FAKE_REQUEST_HEADER = RequestHeader(client_id=123,
                                       access_token=__FAKE_ACCESS_TOKEN,
                                       request_id=100001)
 
+# TODO add test for cancelAllOrders
+
 
 def get_new_execution_report(body, include_cl_ord_link_id=True):
     er = body.init('executionReport')

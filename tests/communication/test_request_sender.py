@@ -36,6 +36,8 @@ __FAKE_REQUEST_HEADER = RequestHeader(client_id=123,
                                       request_id=100001)
 # TODO: Integration Testing
 
+# TODO add test for cancelAllOrders
+
 
 @pytest.fixture(scope="session")
 def fake_zmq_context():

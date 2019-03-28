@@ -12,7 +12,7 @@ from tes_client.messaging.common_types import AccountBalancesReport, \
     CompletedOrdersReport, ExchangePropertiesReport, \
     ExecutionReport, OpenPositionsReport, Order, OrderInfo, \
     OrderType, RequestHeader, TimeInForce, WorkingOrdersReport
-from tes_client.messaging.message_factory import \
+from tes_client.messaging.message_factory import cancel_all_orders_capnp, \
     cancel_order_capnp, heartbeat_capnp, logoff_capnp, logon_capnp, \
     place_order_capnp, replace_order_capnp, request_account_balances_capnp, \
     request_account_data_capnp, request_completed_orders_capnp, \
@@ -246,6 +246,30 @@ class RequestSender(Thread):
         )
         self._queue_message(tes_message)
         return cancel_order
+
+    def cancel_all_orders(self,
+                          request_header: RequestHeader,
+                          account_info: AccountInfo,
+                          symbol: str = None,
+                          side: str = None):
+        """
+        Sends a request to TES to cancel all orders. Optionally including
+        side and/or symbol
+        :param request_header: Header parameter object for requests.
+        :param account_info: (AccountInfo) Account on which to cancel order.
+        :param symbol: str (optional)
+        :param side: str (optional)
+        :return: (capnp._DynamicStructBuilder) cancel_all_orders object.
+        """
+        tes_message, cancel_all_orders = cancel_all_orders_capnp(
+            request_header=request_header,
+            account_info=account_info,
+            symbol=symbol,
+            side=side)
+        logger.debug('Cancelling All Orders.', extra={'symbol': symbol,
+                                                      'side': side})
+        self._queue_message(tes_message)
+        return cancel_all_orders
 
     def request_account_data(self,
                              request_header: RequestHeader,
