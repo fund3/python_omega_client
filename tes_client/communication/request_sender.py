@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 class RequestSender(Thread):
     """
     Runs as an individual thread to send requests to TesConnection,
-    which then gets routed to TES.  The motivation of the design is different
+    which then gets routed to omega.  The motivation of the design is different
     threads should not share zmq sockets, and that the TesConnection event
     loop should not be blocked.
 
@@ -130,7 +130,7 @@ class RequestSender(Thread):
               client_secret: str,
               credentials: List[AccountCredentials]):
         """
-        Logon to TES for a specific client_id and set of credentials.
+        Logon to omega for a specific client_id and set of credentials.
         :param request_header: Header parameter object for requests.
         :param client_secret: (str) client_secret key assigned by Fund3.
         :param credentials: (List[AccountCredentials]) List of exchange
@@ -147,7 +147,7 @@ class RequestSender(Thread):
 
     def logoff(self, request_header: RequestHeader):
         """
-        Logoff TES for a specific client_id.
+        Logoff omega for a specific client_id.
         :param request_header: Header parameter object for requests.
         :return: (capnp._DynamicStructBuilder) Logoff capnp object.
         """
@@ -157,8 +157,8 @@ class RequestSender(Thread):
 
     def send_heartbeat(self, request_header: RequestHeader):
         """
-        Sends a heartbeat to TES for maintaining and verifying connection.
-        Only clients that are logged on will receive heartbeat back from TES.
+        Sends a heartbeat to omega for maintaining and verifying connection.
+        Only clients that are logged on will receive heartbeat back from omega.
         :param request_header: Header parameter object for requests.
         :return: (capnp._DynamicStructBuilder) heartbeat capnp object.
         """
@@ -168,7 +168,7 @@ class RequestSender(Thread):
 
     def request_server_time(self, request_header: RequestHeader):
         """
-        Request TES server time for syncing client and server timestamps.
+        Request omega server time for syncing client and server timestamps.
         :param request_header: Header parameter object for requests.
         :return: (capnp._DynamicStructBuilder) heartbeat capnp object.
         """
@@ -179,7 +179,7 @@ class RequestSender(Thread):
 
     def place_order(self, request_header: RequestHeader, order: Order):
         """
-        Sends a request to TES to place an order.
+        Sends a request to omega to place an order.
         :param request_header: Header parameter object for requests.
         :param order: (Order) Python object containing all required fields.
         :return: (capnp._DynamicStructBuilder) place_order capnp object.
@@ -202,7 +202,7 @@ class RequestSender(Thread):
                       # pylint: enable=E1101
                       expire_at: float = 0.0):
         """
-        Sends a request to TES to replace an order.
+        Sends a request to omega to replace an order.
         :param request_header: Header parameter object for requests.
         :param account_info: (AccountInfo) Account on which to cancel order.
         :param order_id: (str) order_id as returned from the ExecutionReport.
@@ -233,7 +233,7 @@ class RequestSender(Thread):
                      account_info: AccountInfo,
                      order_id: str):
         """
-        Sends a request to TES to cancel an order.
+        Sends a request to omega to cancel an order.
         :param request_header: Header parameter object for requests.
         :param account_info: (AccountInfo) Account on which to cancel order.
         :param order_id: (str) order_id as returned from the ExecutionReport.
@@ -253,7 +253,7 @@ class RequestSender(Thread):
                           symbol: str = None,
                           side: str = None):
         """
-        Sends a request to TES to cancel all orders. Optionally including
+        Sends a request to omega to cancel all orders. Optionally including
         side and/or symbol
         :param request_header: Header parameter object for requests.
         :param account_info: (AccountInfo) Account on which to cancel order.
@@ -275,7 +275,7 @@ class RequestSender(Thread):
                              request_header: RequestHeader,
                              account_info: AccountInfo):
         """
-        Sends a request to TES for full account snapshot including balances,
+        Sends a request to omega for full account snapshot including balances,
         open positions, and working orders on specified account.
         :param request_header: Header parameter object for requests.
         :param account_info: (AccountInfo) Account from which to retrieve data.
@@ -290,7 +290,7 @@ class RequestSender(Thread):
                                request_header: RequestHeader,
                                account_info: AccountInfo):
         """
-        Sends a request to TES for open positions on an Account.
+        Sends a request to omega for open positions on an Account.
         :param request_header: Header parameter object for requests.
         :param account_info: (AccountInfo) Account from which to retrieve data.
         :return: (capnp._DynamicStructBuilder) get_open_positions capnp
@@ -305,7 +305,7 @@ class RequestSender(Thread):
                                  request_header: RequestHeader,
                                  account_info: AccountInfo):
         """
-        Sends a request to TES for full account balances snapshot on an
+        Sends a request to omega for full account balances snapshot on an
         Account.
         :param request_header: Header parameter object for requests.
         :param account_info: (AccountInfo) Account from which to retrieve data.
@@ -321,7 +321,7 @@ class RequestSender(Thread):
                                request_header: RequestHeader,
                                account_info: AccountInfo):
         """
-        Sends a request to TES for all working orders snapshot on an
+        Sends a request to omega for all working orders snapshot on an
         Account.
         :param request_header: Header parameter object for requests.
         :param account_info: (AccountInfo) Account from which to retrieve data.
@@ -337,7 +337,7 @@ class RequestSender(Thread):
                              account_info: AccountInfo,
                              order_id: str):
         """
-        Sends a request to TES to request status of a specific order.
+        Sends a request to omega to request status of a specific order.
         :param request_header: Header parameter object for requests.
         :param account_info: (AccountInfo) Account from which to retrieve data.
         :param order_id: (str) The id of the order of interest.

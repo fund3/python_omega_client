@@ -130,7 +130,7 @@ class ResponseReceiver(Thread):
         """
         Pass response_type and response to the registered response handler.
         :param response_type: (str) The type of TradeMessage embedded in the
-            response from TES.
+            response from omega.
         :param response: (capnp._DynamicStructBuilder) One of the types under
             "TradeMessage.Response.body".
             See communication_protocol.TradeMessage.capnp.
@@ -139,7 +139,7 @@ class ResponseReceiver(Thread):
 
     def _handle_binary_tes_message(self, binary_msg: bytes):
         """
-        Pass a received message from TES to an appropriate handler method.
+        Pass a received message from omega to an appropriate handler method.
         :param binary_msg: (bytes) The received binary message.
         """
         try:
