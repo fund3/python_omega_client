@@ -801,3 +801,27 @@ def test_request_server_time_capnp():
         expected_tes_message.type.request.requestID)
     assert actual_tes_message.type.request.body.getServerTime == (
         expected_tes_message.type.request.body.getServerTime)
+
+
+# TODO add tests for all capnp methods
+@pytest.mark.test_id(19)
+def test_cancel_order_capnp():
+    expected_tes_message = msgs_capnp.TradeMessage.new_message()
+    request_cancel_order = expected_tes_message.init('type').init('request')
+    request_cancel_order.clientID = 123
+    request_cancel_order.senderCompID = str(987)
+    request_cancel_order.requestID = 100001
+    request_cancel_order.accessToken = __FAKE_ACCESS_TOKEN
+    body = request_cancel_order.init('body')
+    # TODO accountInfo, orderID
+
+    # TODO include account_info, order_id
+    actual_tes_message = cancel_order_capnp(__FAKE_REQUEST_HEADER)[0]
+
+    assert actual_tes_message.type.request.clientID == (
+        expected_tes_message.type.request.clientID)
+    assert actual_tes_message.type.request.senderCompID == (
+        expected_tes_message.type.request.senderCompID)
+    assert actual_tes_message.type.request.requestID == (
+        expected_tes_message.type.request.requestID)
+    # TODO
