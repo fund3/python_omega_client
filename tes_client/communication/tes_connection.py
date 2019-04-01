@@ -43,8 +43,8 @@ class TesConnection(Thread):
         _ZMQ_CONTEXT: (zmq.Context) Required to create sockets. It is
             recommended that one application use one shared zmq context for
             all sockets.
-        _TES_ENDPOINT: (str) The zmq endpoint to connect to Omega, in the form of
-            a zmq connection str 'protocol://interface:port', e.g.
+        _OMEGA_ENDPOINT: (str) The zmq endpoint to connect to Omega, in the
+            form of a zmq connection str 'protocol://interface:port', e.g.
             'tcp://0.0.0.0:9999'.
         _REQUEST_SENDER_ENDPOINT: (str) The zmq endpoint used to connect to
             _request_sender.  By default it is a local, inproc endpoint that
@@ -52,9 +52,9 @@ class TesConnection(Thread):
         _RESPONSE_RECEIVER_ENDPOINT: (str) The zmq endpoint used to connect to
             _response_receiver.  By default it is a local, inproc endpoint that
             lives in another thread of the same process.
-        _TES_POLLING_TIMEOUT_MILLI: (int) The polling timeout for
+        _OMEGA_POLLING_TIMEOUT_MILLI: (int) The polling timeout for
             _tes_connection_socket.
-        _TES_SOCKET_IDENTITY: (bytes) The socket identity in bytes used for the
+        _OMEGA_SOCKET_IDENTITY: (bytes) The socket identity in bytes used for the
             ROUTER socket on the other side to identify the DEALER socket in
             this class. Optional since zmq DEALER socket generates a default
             identity.
@@ -66,28 +66,28 @@ class TesConnection(Thread):
     """
     def __init__(self,
                  zmq_context: zmq.Context,
-                 tes_endpoint: str,
+                 omega_endpoint: str,
                  request_sender_endpoint: str,
                  response_receiver_endpoint: str,
                  request_sender: RequestSender,
                  response_receiver: ResponseReceiver,
-                 tes_polling_timeout_milli: int = 1000,
-                 name: str = 'TesConnection',
+                 omega_polling_timeout_milli: int = 1000,
+                 name: str = 'OmegaConnection',
                  tes_socket_identity: bytes = None,
                  server_zmq_encryption_key: str = None):
         assert zmq_context
-        assert tes_endpoint
+        assert omega_endpoint
         assert request_sender_endpoint
         assert response_receiver_endpoint
         assert request_sender
         assert response_receiver
 
         self._ZMQ_CONTEXT = zmq_context
-        self._TES_ENDPOINT = tes_endpoint
+        self._OMEGA_ENDPOINT = omega_endpoint
         self._REQUEST_SENDER_ENDPOINT = request_sender_endpoint
         self._RESPONSE_RECEIVER_ENDPOINT = response_receiver_endpoint
-        self._TES_POLLING_TIMEOUT_MILLI = tes_polling_timeout_milli
-        self._TES_SOCKET_IDENTITY = tes_socket_identity
+        self._OMEGA_POLLING_TIMEOUT_MILLI = omega_polling_timeout_milli
+        self._OMEGA_SOCKET_IDENTITY = tes_socket_identity
         self._SERVER_ZMQ_ENCRYPTION_KEY = server_zmq_encryption_key
 
         self._response_receiver = response_receiver
@@ -141,20 +141,21 @@ class TesConnection(Thread):
         """
         Main loop for Omega connection.
         Set up 3 sockets:
-        1. tes_socket - the socket that sends and receives messages from Omega.
+        1. omega_socket - the socket that sends and receives messages from
+        Omega.
         2. request_listener_socket - listens to requests from request sender
-            and forward them to tes_socket.
+            and forward them to omega_socket.
         3. response_forwarding_socket - forwards responses to response_receiver
             when responses are received from Omega.
         """
         # pylint: disable=E1101
-        tes_socket = self._ZMQ_CONTEXT.socket(zmq.DEALER)
+        omega_socket = self._ZMQ_CONTEXT.socket(zmq.DEALER)
         # pylint: enable=E1101
         if self._SERVER_ZMQ_ENCRYPTION_KEY:
-            self._set_curve_keypair(tes_socket)
-        if self._TES_SOCKET_IDENTITY:
-            tes_socket.setsockopt(zmq.IDENTITY, self._TES_SOCKET_IDENTITY)
-        tes_socket.connect(self._TES_ENDPOINT)
+            self._set_curve_keypair(omega_socket)
+        if self._OMEGA_SOCKET_IDENTITY:
+            omega_socket.setsockopt(zmq.IDENTITY, self._OMEGA_SOCKET_IDENTITY)
+        omega_socket.connect(self._OMEGA_ENDPOINT)
 
         request_listener_socket = self._ZMQ_CONTEXT.socket(zmq.DEALER)
         request_listener_socket.bind(self._REQUEST_SENDER_ENDPOINT)
@@ -166,21 +167,21 @@ class TesConnection(Thread):
 
         poller = zmq.Poller()
         #pylint: disable=E1101
-        poller.register(tes_socket, zmq.POLLIN)
+        poller.register(omega_socket, zmq.POLLIN)
         poller.register(request_listener_socket, zmq.POLLIN)
         #pylint: enable=E1101
         self._is_running.set()
         while self.is_running():
-            socks = dict(poller.poll(self._TES_POLLING_TIMEOUT_MILLI))
-            if socks.get(tes_socket) == zmq.POLLIN:
-                incoming_message = tes_socket.recv()
+            socks = dict(poller.poll(self._OMEGA_POLLING_TIMEOUT_MILLI))
+            if socks.get(omega_socket) == zmq.POLLIN:
+                incoming_message = omega_socket.recv()
                 response_forwarding_socket.send(incoming_message)
 
             if socks.get(request_listener_socket) == zmq.POLLIN:
                 outgoing_message = request_listener_socket.recv()
-                tes_socket.send(outgoing_message)
+                omega_socket.send(outgoing_message)
         time.sleep(2.)
-        tes_socket.close()
+        omega_socket.close()
         request_listener_socket.close()
         self._request_sender.cleanup()
         response_forwarding_socket.close()
@@ -436,17 +437,17 @@ class TesConnection(Thread):
         )
 
 
-def configure_default_tes_connection(tes_endpoint: str,
-                                     tes_server_key: str,
+def configure_default_tes_connection(omega_endpoint: str,
+                                     omega_server_key: str,
                                      response_handler: ResponseHandler):
     """
     Set up a TesConnection that comes with request_sender and response_receiver.
-    :param tes_endpoint: (str) The zmq endpoint to connect to Omega.
-    :param tes_server_key: (str) The public key of the Omega server.
+    :param omega_endpoint: (str) The zmq endpoint to connect to Omega.
+    :param omega_server_key: (str) The public key of the Omega server.
     :param response_handler: (ResponseHandler) The handler object that will
-        be called in a callback function when tes_connection receives a
+        be called in a callback function when omega_connection receives a
         message.
-    :return: tes_connection, request_sender, response_receiver
+    :return: omega_connection, request_sender, response_receiver
     """
     ZMQ_CONTEXT = zmq.Context.instance()
     request_sender = RequestSender(ZMQ_CONTEXT,
@@ -454,18 +455,18 @@ def configure_default_tes_connection(tes_endpoint: str,
     response_receiver = ResponseReceiver(ZMQ_CONTEXT,
                                          RESPONSE_RECEIVER_ENDPOINT,
                                          response_handler)
-    tes_connection = TesConnection(ZMQ_CONTEXT,
-                                   tes_endpoint,
-                                   REQUEST_SENDER_ENDPOINT,
-                                   RESPONSE_RECEIVER_ENDPOINT,
-                                   request_sender,
-                                   response_receiver,
-                                   server_zmq_encryption_key=tes_server_key)
-    return tes_connection, request_sender, response_receiver
+    omega_connection = TesConnection(ZMQ_CONTEXT,
+                                     omega_endpoint,
+                                     REQUEST_SENDER_ENDPOINT,
+                                     RESPONSE_RECEIVER_ENDPOINT,
+                                     request_sender,
+                                     response_receiver,
+                                     server_zmq_encryption_key=omega_server_key)
+    return omega_connection, request_sender, response_receiver
 
 
-def configure_single_client_tes_connection(tes_endpoint: str,
-                                           tes_server_key: str,
+def configure_single_client_tes_connection(omega_endpoint: str,
+                                           omega_server_key: str,
                                            client_id: int,
                                            sender_comp_id: str,
                                            response_handler: ResponseHandler):
@@ -475,14 +476,14 @@ def configure_single_client_tes_connection(tes_endpoint: str,
     request sender.
     Note that each machine should be assigned a unique sender_comp_id even
     when the client_id is the same.
-    :param tes_endpoint: (str) The zmq endpoint to connect to Omega.
-    :param tes_server_key: (str) The public key of the Omega server.
+    :param omega_endpoint: (str) The zmq endpoint to connect to Omega.
+    :param omega_server_key: (str) The public key of the Omega server.
     :param client_id: (int) The client id assigned by Fund3.
     :param sender_comp_id: (str) str representation of a unique Python uuid.
     :param response_handler: (ResponseHandler) The handler object that will
-        be called in a callback function when tes_connection receives a
+        be called in a callback function when omega_connection receives a
         message.
-    :return: tes_connection, request_sender, response_receiver
+    :return: omega_connection, request_sender, response_receiver
     """
     ZMQ_CONTEXT = zmq.Context.instance()
     request_sender = SingleClientRequestSender(ZMQ_CONTEXT,
@@ -492,11 +493,11 @@ def configure_single_client_tes_connection(tes_endpoint: str,
     response_receiver = ResponseReceiver(ZMQ_CONTEXT,
                                          RESPONSE_RECEIVER_ENDPOINT,
                                          response_handler)
-    tes_connection = TesConnection(ZMQ_CONTEXT,
-                                   tes_endpoint,
-                                   REQUEST_SENDER_ENDPOINT,
-                                   RESPONSE_RECEIVER_ENDPOINT,
-                                   request_sender,
-                                   response_receiver,
-                                   server_zmq_encryption_key=tes_server_key)
-    return tes_connection, request_sender, response_receiver
+    omega_connection = TesConnection(ZMQ_CONTEXT,
+                                     omega_endpoint,
+                                     REQUEST_SENDER_ENDPOINT,
+                                     RESPONSE_RECEIVER_ENDPOINT,
+                                     request_sender,
+                                     response_receiver,
+                                     server_zmq_encryption_key=omega_server_key)
+    return omega_connection, request_sender, response_receiver

@@ -503,8 +503,6 @@ def test_cancel_all_orders(fake_request_sender):
     )
     assert type(orders) == capnp.lib.capnp._DynamicStructBuilder
     assert orders.accountInfo.accountID == 100
-    assert not orders.symbol
-    assert not orders.side
 
 
 @pytest.mark.test_id(22)
@@ -517,7 +515,6 @@ def test_cancel_all_orders_symbol(fake_request_sender):
     assert type(orders) == capnp.lib.capnp._DynamicStructBuilder
     assert orders.accountInfo.accountID == 100
     assert orders.symbol == 'BTC/USD'
-    assert not orders.side
 
 
 @pytest.mark.test_id(23)
@@ -530,7 +527,6 @@ def test_cancel_all_orders_symbol(fake_request_sender):
     assert type(orders) == capnp.lib.capnp._DynamicStructBuilder
     assert orders.accountInfo.accountID == 100
     assert orders.side == str(Side.buy.name)
-    assert not orders.symbol
 
 
 @pytest.mark.test_id(24)
