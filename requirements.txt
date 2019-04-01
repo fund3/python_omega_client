@@ -2,7 +2,7 @@
 pycapnp==0.6.3
 pytest==3.6.3
 pytest-runner==2.11.1
-pyyaml==3.11
+pyyaml>=4.2b1   # https://nvd.nist.gov/vuln/detail/CVE-2017-18342
 pyzmq==16.0.4
 pylint
 pylint-json2html
