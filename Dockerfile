@@ -15,7 +15,7 @@ RUN pip3 install -r requirements.txt
 
 COPY . /app
 
-# Install tes_client as local package
+# Install omega_client as local package
 RUN pip install .
 
 #ENTRYPOINT ["/sbin/my_init", "python3"]

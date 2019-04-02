@@ -1,29 +1,29 @@
 import time
 import uuid
 
-from tes_client.communication.tes_connection import \
-    configure_single_client_tes_connection
-from tes_client.messaging.common_types import AccountCredentials, AccountInfo, \
+from omega_client.communication.omega_connection import \
+    configure_single_client_omega_connection
+from omega_client.messaging.common_types import AccountCredentials, AccountInfo, \
     LeverageType, Order, OrderType, Side, TimeInForce
-from tes_client.messaging.printing_response_handler import \
+from omega_client.messaging.printing_response_handler import \
     PrintingResponseHandler
 
-TES_ENDPOINT = "tcp://0.0.0.0:9999"
-TES_SERVER_KEY = "tes_server_key"
+OMEGA_ENDPOINT = "tcp://0.0.0.0:9999"
+OMEGA_SERVER_KEY = "omega_server_key"
 
 
 def main():
     client_id = 1
     sender_comp_id = str(uuid.uuid4())
-    tes_connection, request_sender, response_receiver = (
-        configure_single_client_tes_connection(TES_ENDPOINT,
-                                               TES_SERVER_KEY,
+    omega_connection, request_sender, response_receiver = (
+        configure_single_client_omega_connection(OMEGA_ENDPOINT,
+                                               OMEGA_SERVER_KEY,
                                                client_id,
                                                sender_comp_id,
                                                PrintingResponseHandler()))
 
-    tes_connection.start()
-    tes_connection.wait_until_running()
+    omega_connection.start()
+    omega_connection.wait_until_running()
 
     account_id = 2
     api_key = "api_key"
@@ -50,7 +50,7 @@ def main():
     time.sleep(2)
     request_sender.logoff()
     time.sleep(2)
-    tes_connection.cleanup()
+    omega_connection.cleanup()
 
 
 if __name__ == '__main__':

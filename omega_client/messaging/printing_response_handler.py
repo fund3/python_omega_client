@@ -1,7 +1,7 @@
 import logging
 
-from tes_client.messaging.response_handler import ResponseHandler
-from tes_client.messaging.common_types import *
+from omega_client.messaging.response_handler import ResponseHandler
+from omega_client.messaging.common_types import *
 
 logger = logging.getLogger(__name__)
 

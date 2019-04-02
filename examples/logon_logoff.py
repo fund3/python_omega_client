@@ -1,14 +1,14 @@
 import time
 import uuid
 
-from tes_client.communication.tes_connection import \
-    configure_single_client_tes_connection
-from tes_client.messaging.common_types import AccountCredentials, AccountInfo
-from tes_client.messaging.printing_response_handler import \
+from omega_client.communication.omega_connection import \
+    configure_single_client_omega_connection
+from omega_client.messaging.common_types import AccountCredentials, AccountInfo
+from omega_client.messaging.printing_response_handler import \
     PrintingResponseHandler
 
-TES_ENDPOINT = "tcp://0.0.0.0:9999"
-TES_SERVER_KEY = "tes_server_key"
+OMEGA_ENDPOINT = "tcp://0.0.0.0:9999"
+OMEGA_SERVER_KEY = "omega_server_key"
 DISTRIBUTED_CLIENTS = False
 
 
@@ -22,7 +22,7 @@ def main():
     # that sent the request.
     sender_comp_id = str(uuid.uuid4())
 
-    # configure_single_client_tes_connection sets up a default TesConnection
+    # configure_single_client_omega_connection sets up a default TesConnection
     # with one default client_id
     # The ResponseHandler is a command dispatch callback class.  Basically,
     # when the response is received from Omega, TesConnection will route it to
@@ -32,20 +32,20 @@ def main():
     # action upon receiving a certain type of response.  E.g. updating
     # internal order status when ExecutionReport is received, updating
     # balance when balance is received etc.
-    # See tes_client.messaging.response_handler and
-    # tes_client.messaging.printing_response_handler (example child class
+    # See omega_client.messaging.response_handler and
+    # omega_client.messaging.printing_response_handler (example child class
     # that just prints everything).
-    tes_connection, request_sender, response_receiver = (
-        configure_single_client_tes_connection(
-            tes_endpoint=TES_ENDPOINT,
-            tes_server_key=TES_SERVER_KEY,
+    omega_connection, request_sender, response_receiver = (
+        configure_single_client_omega_connection(
+            omega_endpoint=OMEGA_ENDPOINT,
+            omega_server_key=OMEGA_SERVER_KEY,
             client_id=client_id,
             sender_comp_id=sender_comp_id,
             response_handler=PrintingResponseHandler()))
     # Starting the TesConnection thread.
-    tes_connection.start()
+    omega_connection.start()
     # Waiting for the TesConnection to be set up.
-    tes_connection.wait_until_running()
+    omega_connection.wait_until_running()
 
     # Account id is assigned by Fund3 and is unique per exchange account.
     account_id = 2
@@ -64,7 +64,7 @@ def main():
     request_sender.send_heartbeat()
     request_sender.logoff()
     time.sleep(2)
-    tes_connection.cleanup()
+    omega_connection.cleanup()
 
 
 if __name__ == '__main__':

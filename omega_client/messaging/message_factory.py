@@ -12,7 +12,7 @@ import communication_protocol.Exchanges_capnp as exch_capnp
 import communication_protocol.TradeMessage_capnp as msgs_capnp
 # pylint: enable=E0611
 # pylint: enable=E0401
-from tes_client.messaging.common_types import AccountBalancesReport, \
+from omega_client.messaging.common_types import AccountBalancesReport, \
     AccountCredentials, AccountDataReport, AccountInfo, AuthorizationGrant, \
     AuthorizationRefresh, Balance, CompletedOrdersReport, Exchange,\
     ExchangePropertiesReport, ExecutionReport, \
@@ -47,7 +47,7 @@ def _build_py_message(msg):
     return Message(msg.code, msg.body)
 
 
-def tes_test_message_py(test_message):
+def omega_test_message_py(test_message):
     """
     TODO: the naming gets rid of 'test' as a function prefix since pytest
     tests all functions with 'test' as a prefix.  Rename this back to
@@ -252,12 +252,12 @@ def logon_capnp(request_header: RequestHeader,
     :return: (capnp._DynamicStructBuilder) Logon capnp object.
     """
     request_header.access_token = ''  # Empty in logon
-    tes_message, body = _generate_tes_request(request_header=request_header)
+    omega_message, body = _generate_omega_request(request_header=request_header)
     logon = body.init('logon')
     logon.clientSecret = client_secret
     logon.init('credentials', len(credentials))
     logon = _set_logon_credentials(logon=logon, credentials=credentials)
-    return tes_message, logon
+    return omega_message, logon
 
 
 def logoff_capnp(request_header: RequestHeader):
@@ -266,9 +266,9 @@ def logoff_capnp(request_header: RequestHeader):
     :param request_header: Header parameter object for requests.
     :return: (capnp._DynamicStructBuilder) Logoff capnp object.
     """
-    tes_message, body = _generate_tes_request(request_header=request_header)
+    omega_message, body = _generate_omega_request(request_header=request_header)
     body.logoff = None
-    return tes_message, body
+    return omega_message, body
 
 
 def heartbeat_capnp(request_header: RequestHeader):
@@ -277,9 +277,9 @@ def heartbeat_capnp(request_header: RequestHeader):
     :param request_header: Header parameter object for requests.
     :return: (capnp._DynamicStructBuilder) heartbeat capnp object.
     """
-    tes_message, body = _generate_tes_request(request_header=request_header)
+    omega_message, body = _generate_omega_request(request_header=request_header)
     body.heartbeat = None
-    return tes_message, body
+    return omega_message, body
 
 
 def request_server_time_capnp(request_header: RequestHeader):
@@ -288,20 +288,20 @@ def request_server_time_capnp(request_header: RequestHeader):
     :param request_header: Header parameter object for requests.
     :return: (capnp._DynamicStructBuilder) heartbeat capnp object.
     """
-    tes_message, body = _generate_tes_request(request_header=request_header)
+    omega_message, body = _generate_omega_request(request_header=request_header)
     body.getServerTime = None
-    return tes_message, body
+    return omega_message, body
 
 
 def place_order_capnp(request_header: RequestHeader, order: Order):
     """
     Generates a capnp placeOrder message from an Order.
-    :param order: (Order) Python object from tes_client.common_types.
+    :param order: (Order) Python object from omega_client.common_types.
     :param request_header: Header parameter object for requests.
     :return: (capnp._DynamicStructBuilder) TradeMessage capnp object,
              (capnp._DynamicStructBuilder) placeOrder capnp object.
     """
-    tes_message, body = _generate_tes_request(request_header=request_header)
+    omega_message, body = _generate_omega_request(request_header=request_header)
     place_order = body.init('placeSingleOrder')
     acct = place_order.init('accountInfo')
     acct.accountID = order.account_info.account_id
@@ -317,7 +317,7 @@ def place_order_capnp(request_header: RequestHeader, order: Order):
     place_order.expireAt = order.expire_at
     place_order.leverageType = order.leverage_type
     place_order.leverage = order.leverage
-    return tes_message, place_order
+    return omega_message, place_order
 
 
 def replace_order_capnp(
@@ -347,7 +347,7 @@ def replace_order_capnp(
     :return: (capnp._DynamicStructBuilder) TradeMessage capnp object,
              (capnp._DynamicStructBuilder) replaceOrder capnp object.
     """
-    tes_message, body = _generate_tes_request(request_header=request_header)
+    omega_message, body = _generate_omega_request(request_header=request_header)
     replace_order = body.init('replaceOrder')
     acct = replace_order.init('accountInfo')
     acct.accountID = account_info.account_id
@@ -363,7 +363,7 @@ def replace_order_capnp(
     replace_order.stopPrice = stop_price
     replace_order.timeInForce = time_in_force
     replace_order.expireAt = expire_at
-    return tes_message, replace_order
+    return omega_message, replace_order
 
 
 def cancel_order_capnp(
@@ -378,12 +378,12 @@ def cancel_order_capnp(
     :return: (capnp._DynamicStructBuilder) TradeMessage capnp object,
              (capnp._DynamicStructBuilder) cancelOrder capnp object.
     """
-    tes_message, body = _generate_tes_request(request_header=request_header)
+    omega_message, body = _generate_omega_request(request_header=request_header)
     cancel_order = body.init('cancelOrder')
     acct = cancel_order.init('accountInfo')
     acct.accountID = account_info.account_id
     cancel_order.orderID = order_id
-    return tes_message, cancel_order
+    return omega_message, cancel_order
 
 
 def cancel_all_orders_capnp(
@@ -400,7 +400,7 @@ def cancel_all_orders_capnp(
     :return: (capnp._DynamicStructBuilder) TradeMessage capnp object,
              (capnp._DynamicStructBuilder) cancelOrder capnp object.
     """
-    tes_message, body = _generate_tes_request(request_header=request_header)
+    omega_message, body = _generate_omega_request(request_header=request_header)
     cancel_all_orders = body.init('cancelAllOrders')
     acct = cancel_all_orders.init('accountInfo')
     acct.accountID = account_info.account_id
@@ -408,7 +408,7 @@ def cancel_all_orders_capnp(
         cancel_all_orders.symbol = symbol
     if side:
         cancel_all_orders.side = side
-    return tes_message, cancel_all_orders
+    return omega_message, cancel_all_orders
 
 
 def request_auth_refresh_capnp(
@@ -421,10 +421,10 @@ def request_auth_refresh_capnp(
     :return: (capnp._DynamicStructBuilder) TradeMessage capnp object,
              (capnp._DynamicStructBuilder) authorizationRefresh capnp object.
     """
-    tes_message, body = _generate_tes_request(request_header=request_header)
+    omega_message, body = _generate_omega_request(request_header=request_header)
     authorization_refresh = body.init('authorizationRefresh')
     authorization_refresh.refreshToken = auth_refresh.refresh_token
-    return tes_message, authorization_refresh
+    return omega_message, authorization_refresh
 
 
 def request_account_data_capnp(
@@ -438,11 +438,11 @@ def request_account_data_capnp(
     :return: (capnp._DynamicStructBuilder) TradeMessage capnp object,
              (capnp._DynamicStructBuilder) getAccountData capnp object.
     """
-    tes_message, body = _generate_tes_request(request_header=request_header)
+    omega_message, body = _generate_omega_request(request_header=request_header)
     get_account_data = body.init('getAccountData')
     acct = get_account_data.init('accountInfo')
     acct.accountID = account_info.account_id
-    return tes_message, get_account_data
+    return omega_message, get_account_data
 
 
 def request_open_positions_capnp(
@@ -455,11 +455,11 @@ def request_open_positions_capnp(
     :return: (capnp._DynamicStructBuilder) TradeMessage capnp object,
              (capnp._DynamicStructBuilder) getOpenPositions capnp object.
     """
-    tes_message, body = _generate_tes_request(request_header=request_header)
+    omega_message, body = _generate_omega_request(request_header=request_header)
     get_open_positions = body.init('getOpenPositions')
     acct = get_open_positions.init('accountInfo')
     acct.accountID = account_info.account_id
-    return tes_message, get_open_positions
+    return omega_message, get_open_positions
 
 
 def request_account_balances_capnp(
@@ -473,11 +473,11 @@ def request_account_balances_capnp(
     :return: (capnp._DynamicStructBuilder) TradeMessage capnp object,
              (capnp._DynamicStructBuilder) getAccountBalances capnp object.
     """
-    tes_message, body = _generate_tes_request(request_header=request_header)
+    omega_message, body = _generate_omega_request(request_header=request_header)
     get_account_balances = body.init('getAccountBalances')
     acct = get_account_balances.init('accountInfo')
     acct.accountID = account_info.account_id
-    return tes_message, get_account_balances
+    return omega_message, get_account_balances
 
 
 def request_working_orders_capnp(
@@ -490,11 +490,11 @@ def request_working_orders_capnp(
     :return: (capnp._DynamicStructBuilder) TradeMessage capnp object,
              (capnp._DynamicStructBuilder) getWorkingOrders capnp object.
     """
-    tes_message, body = _generate_tes_request(request_header=request_header)
+    omega_message, body = _generate_omega_request(request_header=request_header)
     get_working_orders = body.init('getWorkingOrders')
     acct = get_working_orders.init('accountInfo')
     acct.accountID = account_info.account_id
-    return tes_message, get_working_orders
+    return omega_message, get_working_orders
 
 
 def request_order_status_capnp(
@@ -509,12 +509,12 @@ def request_order_status_capnp(
     :return: (capnp._DynamicStructBuilder) TradeMessage capnp object,
              (capnp._DynamicStructBuilder) getOrderStatus capnp object.
     """
-    tes_message, body = _generate_tes_request(request_header=request_header)
+    omega_message, body = _generate_omega_request(request_header=request_header)
     get_order_status = body.init('getOrderStatus')
     acct = get_order_status.init('accountInfo')
     acct.accountID = account_info.account_id
     get_order_status.orderID = order_id
-    return tes_message, get_order_status
+    return omega_message, get_order_status
 
 
 def request_completed_orders_capnp(
@@ -533,7 +533,7 @@ def request_completed_orders_capnp(
     :return: (capnp._DynamicStructBuilder) TradeMessage capnp object,
              (capnp._DynamicStructBuilder) getCompletedOrders capnp object.
     """
-    tes_message, body = _generate_tes_request(request_header=request_header)
+    omega_message, body = _generate_omega_request(request_header=request_header)
     get_completed_orders = body.init('getCompletedOrders')
     acct = get_completed_orders.init('accountInfo')
     acct.accountID = account_info.account_id
@@ -541,7 +541,7 @@ def request_completed_orders_capnp(
         get_completed_orders.count = count
     if since is not None:
         get_completed_orders.since = since
-    return tes_message, get_completed_orders
+    return omega_message, get_completed_orders
 
 
 def request_exchange_properties_capnp(request_header: RequestHeader,
@@ -554,11 +554,11 @@ def request_exchange_properties_capnp(request_header: RequestHeader,
     :return: (capnp._DynamicStructBuilder) TradeMessage capnp object,
              (capnp._DynamicStructBuilder) getExchangeProperties capnp object.
     """
-    tes_message, body = _generate_tes_request(request_header=request_header)
+    omega_message, body = _generate_omega_request(request_header=request_header)
     get_exchange_properties = body.init('getExchangeProperties')
     get_exchange_properties.exchange = EXCHANGE_ENUM_MAPPING.get(
         exchange, exch_capnp.Exchange.undefined)
-    return tes_message, get_exchange_properties
+    return omega_message, get_exchange_properties
 
 
 def _set_logon_credentials(logon, credentials):
@@ -675,21 +675,21 @@ def _determine_order_price(order_price: float, order_type: str):
     return order_price
 
 
-def _generate_tes_request(request_header: RequestHeader):
+def _generate_omega_request(request_header: RequestHeader):
     """
     Generates an empty Omega request from TradeMessage.capnp.
     :param request_header: Header parameter object for requests.
-    :return: (capnp._DynamicStructBuilder) tes_message to be serialized,
+    :return: (capnp._DynamicStructBuilder) omega_message to be serialized,
              (capnp._DynamicStructBuilder) body (empty, to be filled).
     """
-    tes_message = msgs_capnp.TradeMessage.new_message()
-    request = tes_message.init('type').init('request')
+    omega_message = msgs_capnp.TradeMessage.new_message()
+    request = omega_message.init('type').init('request')
     request.requestID = request_header.request_id
     request.clientID = request_header.client_id
     request.senderCompID = request_header.sender_comp_id
     request.accessToken = request_header.access_token
     body = request.init('body')
-    return tes_message, body
+    return omega_message, body
 
 
 def generate_client_order_id():

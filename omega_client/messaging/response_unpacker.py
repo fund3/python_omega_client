@@ -1,8 +1,8 @@
-from tes_client.messaging.message_factory import account_balances_report_py, \
+from omega_client.messaging.message_factory import account_balances_report_py, \
     account_data_report_py, authorization_grant_py, \
     completed_orders_report_py, exchange_properties_report_py, \
     execution_report_py, logoff_ack_py, logon_ack_py, open_positions_report_py, \
-    system_message_py, tes_test_message_py, working_orders_report_py
+    system_message_py, omega_test_message_py, working_orders_report_py
 
 
 def _heartbeat_message_unpacker(response):
@@ -11,7 +11,7 @@ def _heartbeat_message_unpacker(response):
 
 def _test_message_unpacker(response):
     return (
-        tes_test_message_py(response.body.test),
+        omega_test_message_py(response.body.test),
         response.clientID,
         response.senderCompID,
         response.requestID
@@ -127,7 +127,7 @@ def _authorization_grant_message_unpacker(response):
     )
 
 
-_tes_response_unpacker = {
+_omega_response_unpacker = {
     'heartbeat': _heartbeat_message_unpacker,
     'test': _test_message_unpacker,
     'serverTime': _server_time_message_unpacker,
@@ -146,4 +146,4 @@ _tes_response_unpacker = {
 
 
 def unpack_response(response_type, response):
-    return _tes_response_unpacker[response_type](response)
+    return _omega_response_unpacker[response_type](response)
