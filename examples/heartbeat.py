@@ -35,10 +35,10 @@ def main():
 
     omega_connection, request_sender, response_receiver = (
         configure_single_client_omega_connection(OMEGA_ENDPOINT,
-                                               OMEGA_SERVER_KEY,
-                                               client_id,
-                                               sender_comp_id,
-                                               PrintingResponseHandler()))
+                                                 OMEGA_SERVER_KEY,
+                                                 client_id,
+                                                 sender_comp_id,
+                                                 PrintingResponseHandler()))
 
     omega_connection.start()
     omega_connection.wait_until_running()
