@@ -5,7 +5,7 @@ from tes_client.communication.tes_connection import \
     configure_single_client_tes_connection
 from tes_client.messaging.common_types import AccountCredentials, AccountInfo
 from tes_client.messaging.printing_response_handler import \
-    PrintingResponseHandler
+    PrintingResponseHandler, SessionRefresher
 
 TES_ENDPOINT = "tcp://0.0.0.0:9999"
 TES_SERVER_KEY = "tes_server_key"
@@ -34,7 +34,7 @@ def main():
     # balance when balance is received etc.
     # See tes_client.messaging.response_handler and
     # tes_client.messaging.printing_response_handler (example child class
-    # that just prints everything).
+    # that just prints everything and updates sessions).
     tes_connection, request_sender, response_receiver = (
         configure_single_client_tes_connection(
             omega_endpoint=TES_ENDPOINT,
@@ -58,10 +58,33 @@ def main():
                                      api_key=api_key,
                                      secret_key=secret_key,
                                      passphrase=passphrase)
-    # Send logon message
+
+    # initialize SessionRefresher
+    session_refresher = SessionRefresher(
+        request_sender=request_sender,
+        client_id=client_id,
+        sender_comp_id=sender_comp_id
+    )
+
+    # update response_handler to use SessionRefresher
+    response_receiver.set_response_handler(
+        PrintingResponseHandler(session_refresher=session_refresher)
+    )
+
+    # Send logon message, which when received will start and update token for
+    # session_refresher. session_refresher will run until stopped
     request_sender.logon([credentials])
     time.sleep(2)
-    request_sender.send_heartbeat()
+
+    # send a heartbeat every minute for 2 hours (during which the session
+    # should refresh at least once)
+    minutes_left = 120
+    while minutes_left > 0:
+        request_sender.send_heartbeat()
+        time.sleep(60)
+
+    # stop and cleanup
+    session_refresher.stop()
     request_sender.logoff()
     time.sleep(2)
     tes_connection.cleanup()

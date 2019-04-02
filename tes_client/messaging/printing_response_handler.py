@@ -1,9 +1,11 @@
+from datetime import datetime as dt
 import logging
 
 from tes_client.communication.request_sender import RequestSender
 from tes_client.messaging.response_handler import ResponseHandler
 from tes_client.messaging.common_types import *
 
+import time
 from threading import Event, Thread
 
 
@@ -12,43 +14,95 @@ logger = logging.getLogger(__name__)
 
 class SessionRefresher(Thread):
     def __init__(self,
-                 access_token: str,
-                 refresh_token: str,
-                 token_expire_time: float,
-                 request_sender: RequestSender):
+                 request_sender: RequestSender,
+                 client_id: int,
+                 sender_comp_id: str):
         super().__init__()
-        self.access_token = access_token
-        self.refresh_token = refresh_token
-        self.token_expire_time = token_expire_time
+        self.access_token = None
+        self.refresh_token = None
+        self.token_expire_time = None
         self.request_sender = request_sender
+
+        self.client_id = client_id
+        self.sender_comp_id = sender_comp_id
+        self.request_id = 0
+
+        self.waiting_for_new_token = False
+
+        self._is_running = Event()
+
+    def is_running(self):
+        """
+        Return True if the thread is running, False otherwise.
+        """
+        return self._is_running.is_set()
 
     def run(self):
         """
-        Threaded implementation of automatic session refresh
-        """
-        # TODO
+        Threaded implementation of automatic session refresh main loop
 
-    def _update_token(self, auth_grant: AuthorizationGrant):
+        """
+        self._is_running.set()
+        while self.is_running():
+            # sleep until 10 seconds before the token expires
+            time_until_session_refresh = (self.token_expire_time -
+                                          dt.utcnow().timestamp() - 10.)
+            print('SessionRefresher sleeping {} seconds'.format(
+                time_until_session_refresh))
+            time.sleep(seconds=time_until_session_refresh)
+
+            # increment the request_id
+            self.request_id += 1
+
+            # send the authorization refresh request to Omega
+            self.request_sender.request_authorization_refresh(
+                request_header=RequestHeader(
+                    client_id=self.client_id,
+                    sender_comp_id=self.sender_comp_id,
+                    access_token=self.access_token,
+                    request_id=self.request_id
+                ),
+                auth_refresh=AuthorizationRefresh(
+                    refresh_token=self.refresh_token)
+            )
+
+            self.waiting_for_new_token = True
+
+            # poll every second waiting for AuthorizationGrant Response to
+            # update token
+            while self.waiting_for_new_token:
+                print('SessionRefresher waiting 1 second for new token')
+                time.sleep(1)
+
+        return
+
+    def stop(self):
+        """
+        Clear the _is_running Event, which terminates the refresh loop.
+        """
+        self._is_running.clear()
+
+    def update_token(self, auth_grant: AuthorizationGrant):
         if auth_grant.success:
             self.access_token = str(auth_grant.access_token)
             self.refresh_token = str(auth_grant.refresh_token)
             self.token_expire_time = float(auth_grant.expire_at)
-            print('successfully updated access token')
+            self.waiting_for_new_token = False
+            print('SessionRefresher successfully updated access token')
             return True
-        print('failed to successfully update access token')
+        print('SessionRefresher failed to successfully update access token. '
+              'Stopping.')
+        self.stop()
         return False
 
 
 class PrintingResponseHandler(ResponseHandler):
-    def __init__(self, request_sender: RequestSender):
+    def __init__(self, session_refresher: SessionRefresher = None):
         """
         Example class to print all responses and automatically refresh sessions
-        :param request_sender: RequestSender used by self.session_refresher
-            class to send AuthorizationRefresh requests to Omega
         """
         super().__init__()
-        self.request_sender = request_sender
-        self.session_refresher = None
+        self.session_refresher = session_refresher
 
     def on_server_time(self, server_time: float, client_id: int,
                        sender_comp_id: str, request_id: int):
@@ -121,12 +175,7 @@ class PrintingResponseHandler(ResponseHandler):
              'request_id': request_id}
         )
         # start session refresher thread
-        self.session_refresher = SessionRefresher(
-            access_token=logon_ack.authorization_grant.access_token,
-            refresh_token=logon_ack.authorization_grant.refresh_token,
-            token_expire_time=logon_ack.authorization_grant.expire_at,
-            request_sender=self.request_sender
-        )
+        self.session_refresher.update_token(logon_ack.authorization_grant)
         self.session_refresher.start()
 
     def on_authorization_grant(self,
@@ -145,6 +194,7 @@ class PrintingResponseHandler(ResponseHandler):
              'sender_comp_id': sender_comp_id,
              'request_id': request_id}
         )
+        # update session_refresher
         self.session_refresher.update_token(authorization_grant)
 
     def on_logoff_ack(self,
