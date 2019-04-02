@@ -493,3 +493,51 @@ def test_request_server_time(fake_request_sender):
         request_header=__FAKE_REQUEST_HEADER)
     assert type(request_server_time) == capnp.lib.capnp._DynamicStructBuilder
     assert request_server_time.getServerTime is None
+
+
+@pytest.mark.test_id(21)
+def test_cancel_all_orders(fake_request_sender):
+    orders = fake_request_sender.cancel_all_orders(
+        request_header=__FAKE_REQUEST_HEADER,
+        account_info=AccountInfo(account_id=100)
+    )
+    assert type(orders) == capnp.lib.capnp._DynamicStructBuilder
+    assert orders.accountInfo.accountID == 100
+
+
+@pytest.mark.test_id(22)
+def test_cancel_all_orders_symbol(fake_request_sender):
+    orders = fake_request_sender.cancel_all_orders(
+        request_header=__FAKE_REQUEST_HEADER,
+        account_info=AccountInfo(account_id=100),
+        symbol='BTC/USD'
+    )
+    assert type(orders) == capnp.lib.capnp._DynamicStructBuilder
+    assert orders.accountInfo.accountID == 100
+    assert orders.symbol == 'BTC/USD'
+
+
+@pytest.mark.test_id(23)
+def test_cancel_all_orders_symbol(fake_request_sender):
+    orders = fake_request_sender.cancel_all_orders(
+        request_header=__FAKE_REQUEST_HEADER,
+        account_info=AccountInfo(account_id=100),
+        side=str(Side.buy.name)
+    )
+    assert type(orders) == capnp.lib.capnp._DynamicStructBuilder
+    assert orders.accountInfo.accountID == 100
+    assert orders.side == str(Side.buy.name)
+
+
+@pytest.mark.test_id(24)
+def test_cancel_all_orders_symbol(fake_request_sender):
+    orders = fake_request_sender.cancel_all_orders(
+        request_header=__FAKE_REQUEST_HEADER,
+        account_info=AccountInfo(account_id=101),
+        symbol='ETH/BTC',
+        side=str(Side.sell.name)
+    )
+    assert type(orders) == capnp.lib.capnp._DynamicStructBuilder
+    assert orders.accountInfo.accountID == 101
+    assert orders.side == str(Side.sell.name)
+    assert orders.symbol == 'ETH/BTC'
