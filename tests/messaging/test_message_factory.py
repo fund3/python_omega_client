@@ -6,7 +6,7 @@ import pytest
 
 from tes_client.messaging.common_types import AccountBalancesReport, \
     AccountCredentials, AccountDataReport, AccountInfo, AuthorizationGrant, \
-    Balance, CompletedOrdersReport, Exchange,  \
+    AuthorizationRefresh, Balance, CompletedOrdersReport, Exchange,  \
     ExchangePropertiesReport, ExecutionReport, LeverageType, OpenPosition, \
     Message, OpenPositionsReport, Order, OrderInfo, \
     OrderStatus, OrderType, RequestHeader, Side, \
@@ -21,8 +21,8 @@ from tes_client.messaging.message_factory import account_balances_report_py, \
     working_orders_report_py, cancel_order_capnp, heartbeat_capnp, \
     logoff_capnp, logon_capnp, place_order_capnp, replace_order_capnp, \
     request_account_balances_capnp, request_account_data_capnp, \
-    request_completed_orders_capnp, request_exchange_properties_capnp, \
-    request_open_positions_capnp, \
+    request_auth_refresh_capnp, request_completed_orders_capnp, \
+    request_exchange_properties_capnp, request_open_positions_capnp, \
     request_order_status_capnp, request_server_time_capnp, \
     request_working_orders_capnp,  _determine_order_price, \
     _generate_tes_request
@@ -803,8 +803,36 @@ def test_request_server_time_capnp():
         expected_tes_message.type.request.body.getServerTime)
 
 
+@pytest.mark.test_id(19)
+def test_request_auth_refresh_capnp():
+    expected_refresh_token = 'refresh_me!'
+    expected_tes_message = msgs_capnp.TradeMessage.new_message()
+    request_server_time = expected_tes_message.init('type').init('request')
+    request_server_time.clientID = 123
+    request_server_time.senderCompID = str(987)
+    request_server_time.requestID = 100001
+    request_server_time.accessToken = __FAKE_ACCESS_TOKEN
+    body = request_server_time.init('body')
+    auth_refresh = body.init('authorizationRefresh')
+    auth_refresh.refreshToken = expected_refresh_token
+
+    py_auth_refresh = AuthorizationRefresh(refresh_token=expected_refresh_token)
+
+    actual_tes_message = request_auth_refresh_capnp(__FAKE_REQUEST_HEADER,
+                                                    py_auth_refresh)[0]
+
+    assert actual_tes_message.type.request.clientID == (
+        expected_tes_message.type.request.clientID)
+    assert actual_tes_message.type.request.senderCompID == (
+        expected_tes_message.type.request.senderCompID)
+    assert actual_tes_message.type.request.requestID == (
+        expected_tes_message.type.request.requestID)
+    assert actual_tes_message.type.request.body.authorizationRefresh == (
+        expected_tes_message.type.request.body.authorizationRefresh)
+
+
 # TODO add tests for all capnp methods
-# @pytest.mark.test_id(19)
+# @pytest.mark.test_id(20)
 # def test_cancel_order_capnp():
 #     expected_tes_message = msgs_capnp.TradeMessage.new_message()
 #     request_cancel_order = expected_tes_message.init('type').init('request')

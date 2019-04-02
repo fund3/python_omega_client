@@ -8,7 +8,7 @@ import communication_protocol.Exchanges_capnp as exch_capnp
 import communication_protocol.TradeMessage_capnp as msgs_capnp
 from tes_client.communication.request_sender import RequestSender
 from tes_client.messaging.common_types import AccountBalancesReport, \
-    AccountCredentials, AccountDataReport, AccountInfo, Balance, \
+    AccountCredentials, AccountDataReport, AccountInfo, AuthorizationRefresh, \
     CompletedOrdersReport, Exchange, ExchangePropertiesReport, LeverageType, \
     ExecutionReport, OpenPosition, OpenPositionsReport, Order, OrderInfo, \
     OrderStatus, OrderType, RequestHeader, Side, SymbolProperties, \
@@ -541,3 +541,14 @@ def test_cancel_all_orders_symbol(fake_request_sender):
     assert orders.accountInfo.accountID == 101
     assert orders.side == str(Side.sell.name)
     assert orders.symbol == 'ETH/BTC'
+
+
+@pytest.mark.test_id(25)
+def test_request_authorization_refresh(fake_request_sender):
+    expected_refresh_token = 'refresh_me!'
+    auth_refresh = fake_request_sender.request_authorization_refresh(
+        request_header=__FAKE_REQUEST_HEADER,
+        auth_refresh=AuthorizationRefresh(refresh_token=expected_refresh_token)
+    )
+    assert type(auth_refresh) == capnp.lib.capnp._DynamicStructBuilder
+    assert auth_refresh.refreshToken == expected_refresh_token
