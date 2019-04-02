@@ -3,9 +3,9 @@ import logging
 from typing import List
 
 from tes_client.messaging.common_types import AccountBalancesReport, \
-    AccountCredentials, AccountDataReport, CompletedOrdersReport, \
-    ExchangePropertiesReport, ExecutionReport, LogoffAck, LogonAck, \
-    OpenPositionsReport, SystemMessage, WorkingOrdersReport
+    AccountCredentials, AccountDataReport, AuthorizationGrant, \
+    CompletedOrdersReport, ExchangePropertiesReport, ExecutionReport, LogoffAck, \
+    LogonAck, OpenPositionsReport, SystemMessage, WorkingOrdersReport
 from tes_client.messaging.response_unpacker import unpack_response
 
 logger = logging.getLogger(__name__)
@@ -31,7 +31,8 @@ class ResponseHandler:
             'accountBalancesReport': self.on_account_balances,
             'openPositionsReport': self.on_open_positions,
             'completedOrdersReport': self.on_completed_orders_report,
-            'exchangePropertiesReport': self.on_exchange_properties_report
+            'exchangePropertiesReport': self.on_exchange_properties_report,
+            'authorizationGrant': self.on_authorization_grant
         }
 
     def handle_response(self, response_type, response):
@@ -213,6 +214,20 @@ class ResponseHandler:
         """
         Override in subclass to handle Omega ExchangePropertiesReport response.
         :param report: ExchangePropertiesReport Python object.
+        :param client_id: (int) client_id of the response.
+        :param sender_comp_id: (str) sender_comp_id of the response.
+        :param request_id: (int) request_id which requested this response
+        """
+
+    @abstractmethod
+    def on_authorization_grant(self,
+                               authorization_grant: AuthorizationGrant,
+                               client_id,
+                               sender_comp_id,
+                               request_id: int):
+        """
+        Override in subclass to handle Omega AuthorizationGrant response.
+        :param authorization_grant: AuthorizationGrant python object
         :param client_id: (int) client_id of the response.
         :param sender_comp_id: (str) sender_comp_id of the response.
         :param request_id: (int) request_id which requested this response

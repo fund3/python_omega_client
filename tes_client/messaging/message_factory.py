@@ -14,7 +14,7 @@ import communication_protocol.TradeMessage_capnp as msgs_capnp
 # pylint: enable=E0401
 from tes_client.messaging.common_types import AccountBalancesReport, \
     AccountCredentials, AccountDataReport, AccountInfo, AuthorizationGrant, \
-    Balance, CompletedOrdersReport, Exchange,\
+    AuthorizationRefresh, Balance, CompletedOrdersReport, Exchange,\
     ExchangePropertiesReport, ExecutionReport, \
     LogoffAck,  LogonAck, Message, OpenPosition, OpenPositionsReport, Order, \
     OrderInfo,  OrderType, RequestHeader, SymbolProperties, \
@@ -409,6 +409,22 @@ def cancel_all_orders_capnp(
     if side:
         cancel_all_orders.side = side
     return tes_message, cancel_all_orders
+
+
+def request_auth_refresh_capnp(
+        request_header: RequestHeader,
+        auth_refresh: AuthorizationRefresh):
+    """
+    Generates a request to Omega for an session AuthorizationRefresh
+    :param request_header: Header parameter object for requests.
+    :param auth_refresh: (AuthorizationRefresh) python object
+    :return: (capnp._DynamicStructBuilder) TradeMessage capnp object,
+             (capnp._DynamicStructBuilder) authorizationRefresh capnp object.
+    """
+    tes_message, body = _generate_tes_request(request_header=request_header)
+    authorization_refresh = body.init('authorizationRefresh')
+    authorization_refresh.refreshToken = auth_refresh.refresh_token
+    return tes_message, authorization_refresh
 
 
 def request_account_data_capnp(

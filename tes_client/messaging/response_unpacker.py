@@ -1,8 +1,8 @@
 from tes_client.messaging.message_factory import account_balances_report_py, \
-    account_data_report_py, completed_orders_report_py, \
-    exchange_properties_report_py, execution_report_py, logoff_ack_py, \
-    logon_ack_py, open_positions_report_py, system_message_py, \
-    tes_test_message_py, working_orders_report_py
+    account_data_report_py, authorization_grant_py, \
+    completed_orders_report_py, exchange_properties_report_py, \
+    execution_report_py, logoff_ack_py, logon_ack_py, open_positions_report_py, \
+    system_message_py, tes_test_message_py, working_orders_report_py
 
 
 def _heartbeat_message_unpacker(response):
@@ -118,6 +118,15 @@ def _exchange_properties_report_message_unpacker(response):
     )
 
 
+def _authorization_grant_message_unpacker(response):
+    return (
+        authorization_grant_py(response.body.authorizationGrant),
+        response.clientID,
+        response.senderCompID,
+        response.requestID
+    )
+
+
 _tes_response_unpacker = {
     'heartbeat': _heartbeat_message_unpacker,
     'test': _test_message_unpacker,
@@ -131,7 +140,8 @@ _tes_response_unpacker = {
     'accountBalancesReport': _account_balances_report_message_unpacker,
     'openPositionsReport': _open_positions_report_message_unpacker,
     'completedOrdersReport': _completed_orders_report_message_unpacker,
-    'exchangePropertiesReport': _exchange_properties_report_message_unpacker
+    'exchangePropertiesReport': _exchange_properties_report_message_unpacker,
+    'authorizationGrant': _authorization_grant_message_unpacker,
 }
 
 

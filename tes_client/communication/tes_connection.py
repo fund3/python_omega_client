@@ -14,7 +14,7 @@ from tes_client.communication.single_client_request_sender import \
     SingleClientRequestSender
 from tes_client.messaging.common_types import AccountBalancesReport, \
     AccountCredentials, AccountDataReport, AccountInfo, \
-    CompletedOrdersReport, ExchangePropertiesReport, \
+    AuthorizationRefresh, ExchangePropertiesReport, \
     ExecutionReport, OpenPositionsReport, Order, OrderInfo, \
     OrderType, RequestHeader, TimeInForce, WorkingOrdersReport
 from tes_client.messaging.response_handler import ResponseHandler
@@ -86,6 +86,10 @@ class TesConnection(Thread):
         self._response_receiver = response_receiver
         self._request_sender = request_sender
 
+        self.refresh_token = None
+        self.token_expire_time = None
+        self.token_expire_frequency = None
+
         super().__init__(name=name)
         self._is_running = Event()
 
@@ -130,6 +134,13 @@ class TesConnection(Thread):
         socket.setsockopt_string(zmq.CURVE_SERVERKEY,
                                  self._SERVER_ZMQ_ENCRYPTION_KEY)
 
+    def _session_refresh_check(self, incoming_message):
+        """
+
+        :param incoming_message:
+        :return:
+        """
+
     def run(self):
         """
         Main loop for Omega connection.
@@ -168,6 +179,8 @@ class TesConnection(Thread):
             socks = dict(poller.poll(self._OMEGA_POLLING_TIMEOUT_MILLI))
             if socks.get(omega_socket) == zmq.POLLIN:
                 incoming_message = omega_socket.recv()
+                # TODO check if session_refresh
+
                 response_forwarding_socket.send(incoming_message)
 
             if socks.get(request_listener_socket) == zmq.POLLIN:
@@ -225,7 +238,7 @@ class TesConnection(Thread):
         """
         Request Omega server time for syncing client and server timestamps.
         :param request_header: Header parameter object for requests.
-        :return: (capnp._DynamicStructBuilder) heartbeat capnp object.
+        :return: (capnp._DynamicStructBuilder) request_server_time capnp object.
         """
         return self._request_sender.request_server_time(
             request_header=request_header
@@ -323,7 +336,8 @@ class TesConnection(Thread):
         open positions, and working orders on specified account.
         :param request_header: Header parameter object for requests.
         :param account_info: (AccountInfo) Account from which to retrieve data.
-        :return: (capnp._DynamicStructBuilder) get_account_data capnp object.
+        :return: (capnp._DynamicStructBuilder) request_account_data capnp
+            object.
         """
         return self._request_sender.request_account_data(
             request_header=request_header, account_info=account_info
@@ -336,8 +350,8 @@ class TesConnection(Thread):
         Sends a request to Omega for open positions on an Account.
         :param request_header: Header parameter object for requests.
         :param account_info: (AccountInfo) Account from which to retrieve data.
-        :return: (capnp._DynamicStructBuilder) get_open_positions capnp
-        object.
+        :return: (capnp._DynamicStructBuilder) request_open_positions capnp
+            object.
         """
         return self._request_sender.request_open_positions(
             request_header=request_header, account_info=account_info
@@ -351,8 +365,8 @@ class TesConnection(Thread):
         Account.
         :param request_header: Header parameter object for requests.
         :param account_info: (AccountInfo) Account from which to retrieve data.
-        :return: (capnp._DynamicStructBuilder) get_account_balances capnp
-        object.
+        :return: (capnp._DynamicStructBuilder) request_account_balances capnp
+            object.
         """
         return self._request_sender.request_account_balances(
             request_header=request_header, account_info=account_info
@@ -366,7 +380,8 @@ class TesConnection(Thread):
         Account.
         :param request_header: Header parameter object for requests.
         :param account_info: (AccountInfo) Account from which to retrieve data.
-        :return: (capnp._DynamicStructBuilder) get_working_orders capnp object.
+        :return: (capnp._DynamicStructBuilder) request_working_orders capnp
+            object.
         """
         return self._request_sender.request_working_orders(
             request_header=request_header, account_info=account_info
@@ -381,7 +396,8 @@ class TesConnection(Thread):
         :param request_header: Header parameter object for requests.
         :param account_info: (AccountInfo) Account from which to retrieve data.
         :param order_id: (str) The id of the order of interest.
-        :return: (capnp._DynamicStructBuilder) get_order_status capnp object.
+        :return: (capnp._DynamicStructBuilder) request_order_status capnp
+            object.
         """
         return self._request_sender.request_order_status(
             request_header=request_header,
@@ -404,7 +420,7 @@ class TesConnection(Thread):
             ones).
         :param since: (float) optional, returns all orders from provided unix
             timestamp to present.
-        :return: (capnp._DynamicStructBuilder) get_completed_orders capnp
+        :return: (capnp._DynamicStructBuilder) request_completed_orders capnp
             object.
         """
         return self._request_sender.request_completed_orders(
@@ -422,11 +438,25 @@ class TesConnection(Thread):
         associated properties, timeInForces, and orderTypes on an exchange.
         :param request_header: Header parameter object for requests.
         :param exchange: (str) The exchange of interest.
-        :return: (capnp._DynamicStructBuilder) get_exchange_properties capnp
+        :return: (capnp._DynamicStructBuilder) request_exchange_properties capnp
             object.
         """
         return self._request_sender.request_exchange_properties(
             request_header=request_header, exchange=exchange
+        )
+
+    def request_authorization_refresh(self,
+                                      request_header: RequestHeader,
+                                      auth_refresh: AuthorizationRefresh):
+        """
+        Sends a request to Omega to refresh the session
+        :param request_header: Header parameter object for requests.
+        :param auth_refresh: AuthorizationRefresh python object
+        :return: (capnp._DynamicStructBuilder) authorization_refresh capnp
+            object.
+        """
+        return self._request_sender.request_authorization_refresh(
+            request_header=request_header, auth_refresh=auth_refresh
         )
 
 

@@ -533,6 +533,14 @@ class ReplaceOrder(CommonType):
         self.expire_at = float(expire_at)
 
 
+class AuthorizationRefresh(CommonType):
+    def __init__(self, refresh_token: str):
+        """
+        :param refresh_token: str refresh token
+        """
+        self.refresh_token = refresh_token
+
+
 class AuthorizationGrant(CommonType):
     def __init__(self,
                  success: bool,

@@ -8,16 +8,16 @@ import capnp
 import zmq
 
 from tes_client.messaging.common_types import AccountBalancesReport, \
-    AccountCredentials, AccountDataReport, AccountInfo, \
+    AccountCredentials, AccountInfo, AuthorizationGrant, AuthorizationRefresh, \
     CompletedOrdersReport, ExchangePropertiesReport, \
     ExecutionReport, OpenPositionsReport, Order, OrderInfo, \
     OrderType, RequestHeader, TimeInForce, WorkingOrdersReport
 from tes_client.messaging.message_factory import cancel_all_orders_capnp, \
     cancel_order_capnp, heartbeat_capnp, logoff_capnp, logon_capnp, \
     place_order_capnp, replace_order_capnp, request_account_balances_capnp, \
-    request_account_data_capnp, request_completed_orders_capnp, \
-    request_exchange_properties_capnp, request_open_positions_capnp, \
-    request_order_status_capnp, \
+    request_account_data_capnp, request_auth_refresh_capnp, \
+    request_completed_orders_capnp, request_exchange_properties_capnp, \
+    request_open_positions_capnp, request_order_status_capnp, \
     request_server_time_capnp, request_working_orders_capnp
 
 logger = logging.getLogger(__name__)
@@ -395,3 +395,20 @@ class RequestSender(Thread):
         )
         self._queue_message(tes_message)
         return get_exchange_properties
+
+    def request_authorization_refresh(self,
+                                      request_header: RequestHeader,
+                                      auth_refresh: AuthorizationRefresh):
+        """
+        Sends a request to Omega to refresh the session
+        :param request_header: Header parameter object for requests.
+        :param auth_refresh: AuthorizationRefresh python object
+        :return: (capnp._DynamicStructBuilder) authorization_refresh capnp
+            object.
+        """
+        tes_message, authorization_refresh = (
+            request_auth_refresh_capnp(
+                request_header=request_header, auth_refresh=auth_refresh)
+        )
+        self._queue_message(tes_message)
+        return authorization_refresh
