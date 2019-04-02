@@ -807,12 +807,12 @@ def test_request_server_time_capnp():
 def test_request_auth_refresh_capnp():
     expected_refresh_token = 'refresh_me!'
     expected_tes_message = msgs_capnp.TradeMessage.new_message()
-    request_server_time = expected_tes_message.init('type').init('request')
-    request_server_time.clientID = 123
-    request_server_time.senderCompID = str(987)
-    request_server_time.requestID = 100001
-    request_server_time.accessToken = __FAKE_ACCESS_TOKEN
-    body = request_server_time.init('body')
+    request_auth_refresh = expected_tes_message.init('type').init('request')
+    request_auth_refresh.clientID = 123
+    request_auth_refresh.senderCompID = str(987)
+    request_auth_refresh.requestID = 100001
+    request_auth_refresh.accessToken = __FAKE_ACCESS_TOKEN
+    body = request_auth_refresh.init('body')
     auth_refresh = body.init('authorizationRefresh')
     auth_refresh.refreshToken = expected_refresh_token
 
@@ -827,8 +827,12 @@ def test_request_auth_refresh_capnp():
         expected_tes_message.type.request.senderCompID)
     assert actual_tes_message.type.request.requestID == (
         expected_tes_message.type.request.requestID)
-    assert actual_tes_message.type.request.body.authorizationRefresh == (
-        expected_tes_message.type.request.body.authorizationRefresh)
+    actual_auth_refresh_token = (
+        actual_tes_message.type.request.body.authorizationRefresh.refreshToken)
+    expected_auth_refresh_token = (
+        expected_tes_message.type.request.body.authorizationRefresh.refreshToken
+    )
+    assert actual_auth_refresh_token == expected_auth_refresh_token
 
 
 # TODO add tests for all capnp methods
