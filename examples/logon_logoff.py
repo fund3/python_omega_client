@@ -37,8 +37,8 @@ def main():
     # that just prints everything).
     tes_connection, request_sender, response_receiver = (
         configure_single_client_tes_connection(
-            tes_endpoint=TES_ENDPOINT,
-            tes_server_key=TES_SERVER_KEY,
+            omega_endpoint=TES_ENDPOINT,
+            omega_server_key=TES_SERVER_KEY,
             client_id=client_id,
             sender_comp_id=sender_comp_id,
             response_handler=PrintingResponseHandler()))

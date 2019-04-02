@@ -1,12 +1,55 @@
 import logging
 
+from tes_client.communication.request_sender import RequestSender
 from tes_client.messaging.response_handler import ResponseHandler
 from tes_client.messaging.common_types import *
+
+from threading import Event, Thread
+
 
 logger = logging.getLogger(__name__)
 
 
+class SessionRefresher(Thread):
+    def __init__(self,
+                 access_token: str,
+                 refresh_token: str,
+                 token_expire_time: float,
+                 request_sender: RequestSender):
+        super().__init__()
+        self.access_token = access_token
+        self.refresh_token = refresh_token
+        self.token_expire_time = token_expire_time
+        self.request_sender = request_sender
+
+    def run(self):
+        """
+        Threaded implementation of automatic session refresh
+        """
+        # TODO
+
+    def _update_token(self, auth_grant: AuthorizationGrant):
+        if auth_grant.success:
+            self.access_token = str(auth_grant.access_token)
+            self.refresh_token = str(auth_grant.refresh_token)
+            self.token_expire_time = float(auth_grant.expire_at)
+            print('successfully updated access token')
+            return True
+        print('failed to successfully update access token')
+        return False
+
+
 class PrintingResponseHandler(ResponseHandler):
+    def __init__(self, request_sender: RequestSender):
+        """
+        Example class to print all responses and automatically refresh sessions
+        :param request_sender: RequestSender used by self.session_refresher
+            class to send AuthorizationRefresh requests to Omega
+        """
+        super().__init__()
+        self.request_sender = request_sender
+        self.session_refresher = None
+
     def on_server_time(self, server_time: float, client_id: int,
                        sender_comp_id: str, request_id: int):
         pass
@@ -77,6 +120,32 @@ class PrintingResponseHandler(ResponseHandler):
              'sender_comp_id': sender_comp_id,
              'request_id': request_id}
         )
+        # start session refresher thread
+        self.session_refresher = SessionRefresher(
+            access_token=logon_ack.authorization_grant.access_token,
+            refresh_token=logon_ack.authorization_grant.refresh_token,
+            token_expire_time=logon_ack.authorization_grant.expire_at,
+            request_sender=self.request_sender
+        )
+        self.session_refresher.start()
+
+    def on_authorization_grant(self,
+                               authorization_grant: AuthorizationGrant,
+                               client_id,
+                               sender_comp_id,
+                               request_id: int):
+        print(
+            {'auth_grant_success': authorization_grant.success,
+             'auth_grant_message_body': authorization_grant.message.body,
+             'auth_grant_message_code': authorization_grant.message.code,
+             'auth_grant_access_token': authorization_grant.access_token,
+             'auth_grant_refresh_token': authorization_grant.refresh_token,
+             'auth_grant_expire_at': authorization_grant.expire_at,
+             'client_id': client_id,
+             'sender_comp_id': sender_comp_id,
+             'request_id': request_id}
+        )
+        self.session_refresher.update_token(authorization_grant)
 
     def on_logoff_ack(self,
                       logoff_ack: LogoffAck,
