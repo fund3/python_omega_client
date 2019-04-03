@@ -86,10 +86,6 @@ class OmegaConnection(Thread):
         self._response_receiver = response_receiver
         self._request_sender = request_sender
 
-        self.refresh_token = None
-        self.token_expire_time = None
-        self.token_expire_frequency = None
-
         super().__init__(name=name)
         self._is_running = Event()
 
@@ -134,13 +130,6 @@ class OmegaConnection(Thread):
         socket.setsockopt_string(zmq.CURVE_SERVERKEY,
                                  self._SERVER_ZMQ_ENCRYPTION_KEY)
 
-    def _session_refresh_check(self, incoming_message):
-        """
-
-        :param incoming_message:
-        :return:
-        """
-
     def run(self):
         """
         Main loop for Omega connection.
@@ -179,8 +168,6 @@ class OmegaConnection(Thread):
             socks = dict(poller.poll(self._OMEGA_POLLING_TIMEOUT_MILLI))
             if socks.get(omega_socket) == zmq.POLLIN:
                 incoming_message = omega_socket.recv()
-                # TODO check if session_refresh
-
                 response_forwarding_socket.send(incoming_message)
 
             if socks.get(request_listener_socket) == zmq.POLLIN:
