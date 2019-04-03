@@ -13,7 +13,7 @@ RUN ln -s /usr/bin/python3.6 /usr/bin/python3
 RUN ln -s /usr/bin/pip3.6 /usr/bin/pip3
 
 # Alternatively, if you have ssh keys on the machine, you can do
-# pip3 install git+ssh://git@github.com/fund3/python_tes_client.git
+# pip3 install git+ssh://git@github.com/fund3/python_omega_client.git
 # and skip COPY . /app; RUN pip3 install /app
 COPY . /app
 RUN pip3 install /app

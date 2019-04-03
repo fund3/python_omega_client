@@ -254,7 +254,7 @@ class OpenPosition(CommonType):
     https://github.com/fund3/communication-protocol/blob/master/TradeMessage.capnp
     """
     # dict storing the valid values of these types
-    # https://github.com/fund3/tes_python_client/issues/38
+    # https://github.com/fund3/omega_python_client/issues/38
 
     def __init__(self,
                  symbol: str,

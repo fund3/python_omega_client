@@ -355,7 +355,7 @@ def replace_order_capnp(
     replace_order.orderID = order_id
     replace_order.orderType = order_type
     replace_order.quantity = quantity
-    # https://github.com/fund3/tes_python_client/issues/39
+    # https://github.com/fund3/omega_python_client/issues/39
     # merge with ExchangePropertiesReport to get more sophisticated
     # price values
     replace_order.price = _determine_order_price(
