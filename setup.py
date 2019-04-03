@@ -30,17 +30,17 @@ test_requirements = [
 ]
 
 setup(
-    name='python_tes_client',
+    name='python_omega_client',
     version='0.1.0',
     description='api wrapper for connecting to Fund3 Trade Execution System',
     long_description=readme,
     author="dev-fund3",
     author_email='dev@fund3.co',
-    url='https://github.com/fund3/python_tes_client',
+    url='https://github.com/fund3/python_omega_client',
     packages=find_packages(),
     install_requires=requirements,
     zip_safe=False,
-    keywords='tes',
+    keywords='omega',
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',

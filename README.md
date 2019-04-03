@@ -4,8 +4,8 @@ API Wrapper for connecting to Fund3 Trade Execution System
 ## Requirements
 1. gcc 4.8+
 2. Python3.5+
-3. Access to `python_tes_client` and `CommunicationProtocol` Fund3 repos.
-4. A valid SSH Key on the machine or cloned python_tes_client repo.
+3. Access to `python_omega_client` and `CommunicationProtocol` Fund3 repos.
+4. A valid SSH Key on the machine or cloned python_omega_client repo.
 5. For now we assume there is a symlink pointing Python versions to `python3`
 and `pip3`, but that will be changed in the future to detect python versions.
 
@@ -26,12 +26,12 @@ Alternative ways:
 root directory of the repo.
 2. Alternatively, if you have SSH key on your machine, you can do
 ```
-pip3 install git+ssh://git@github.com/fund3/python_tes_client.git
+pip3 install git+ssh://git@github.com/fund3/python_omega_client.git
 ```
 3. If you want to manually input credentials or use credentials saved locally on git,
 you can do:
 ```
-pip3 install git+https://github.com/fund3/python_tes_client.git
+pip3 install git+https://github.com/fund3/python_omega_client.git
 ```
 
 ## Using Docker Containers
@@ -49,9 +49,9 @@ The expected output prints one of each of Logon, Heartbeat and Logoff messages.
 If, for some reason, `pip3 install` was not successful because there was no
 capnproto installed, do this and install with pip3 again:
 ```
-curl -O https://capnproto.org/capnproto-c++-0.6.1.tar.gz
-tar zxf capnproto-c++-0.6.1.tar.gz
-cd capnproto-c++-0.6.1
+curl -O https://capnproto.org/capnproto-c++-0.7.0.tar.gz
+tar zxf capnproto-c++-0.7.0.tar.gz
+cd capnproto-c++-0.7.0
 ./configure
 make -j6 check
 sudo make install
