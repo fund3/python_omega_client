@@ -5,7 +5,8 @@ from omega_client.communication.omega_connection import \
     configure_single_client_omega_connection
 from omega_client.messaging.common_types import AccountCredentials, AccountInfo
 from omega_client.messaging.printing_response_handler import \
-    PrintingResponseHandler, SessionRefresher
+    PrintingResponseHandler
+from examples.single_client_session_refresher import SingleClientSessionRefresher
 
 OMEGA_ENDPOINT = "tcp://0.0.0.0:9999"
 OMEGA_SERVER_KEY = "omega_server_key"
@@ -61,7 +62,7 @@ def main():
                                      passphrase=passphrase)
 
     # initialize SessionRefresher
-    session_refresher = SessionRefresher(
+    session_refresher = SingleClientSessionRefresher(
         request_sender=request_sender,
         client_id=client_id,
         sender_comp_id=sender_comp_id
