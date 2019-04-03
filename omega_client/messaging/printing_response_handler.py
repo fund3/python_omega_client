@@ -1,9 +1,9 @@
 from datetime import datetime as dt
 import logging
 
-from tes_client.communication.request_sender import RequestSender
-from tes_client.messaging.response_handler import ResponseHandler
-from tes_client.messaging.common_types import *
+from omega_client.communication.request_sender import RequestSender
+from omega_client.messaging.response_handler import ResponseHandler
+from omega_client.messaging.common_types import *
 
 import time
 from threading import Event, Thread

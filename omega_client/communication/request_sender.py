@@ -7,12 +7,12 @@ from typing import List
 import capnp
 import zmq
 
-from tes_client.messaging.common_types import AccountBalancesReport, \
+from omega_client.messaging.common_types import AccountBalancesReport, \
     AccountCredentials, AccountInfo, AuthorizationGrant, AuthorizationRefresh, \
     CompletedOrdersReport, ExchangePropertiesReport, \
     ExecutionReport, OpenPositionsReport, Order, OrderInfo, \
     OrderType, RequestHeader, TimeInForce, WorkingOrdersReport
-from tes_client.messaging.message_factory import cancel_all_orders_capnp, \
+from omega_client.messaging.message_factory import cancel_all_orders_capnp, \
     cancel_order_capnp, heartbeat_capnp, logoff_capnp, logon_capnp, \
     place_order_capnp, replace_order_capnp, request_account_balances_capnp, \
     request_account_data_capnp, request_auth_refresh_capnp, \
@@ -68,13 +68,13 @@ class RequestSender(Thread):
         self._is_running = Event()
         super().__init__(name=name)
 
-    def _queue_message(self, tes_message_capnp: capnp._DynamicStructBuilder):
+    def _queue_message(self, omega_message_capnp: capnp._DynamicStructBuilder):
         """
         Put a capnp message into the internal queue for sending to
         TesConnection.
-        :param tes_message_capnp:
+        :param omega_message_capnp:
         """
-        self._outgoing_message_queue.put(tes_message_capnp)
+        self._outgoing_message_queue.put(omega_message_capnp)
 
     def cleanup(self):
         """
@@ -120,7 +120,7 @@ class RequestSender(Thread):
 
     ###########################################################################
     #                                                                         #
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~ Outgoing TESMessages ~~~~~~~~~~~~~~~~~~~~~~~~ #
+    # ~~~~~~~~~~~~~~~~~~~~~~~~ Outgoing OmegaMessages ~~~~~~~~~~~~~~~~~~~~~~~ #
     # ---------------- Public Methods to be called by client----------------- #
     #                                                                         #
     ###########################################################################
@@ -137,12 +137,12 @@ class RequestSender(Thread):
             credentials in the form of AccountCredentials.
         :return: (capnp._DynamicStructBuilder) Logon capnp object.
         """
-        tes_message, logon = logon_capnp(
+        omega_message, logon = logon_capnp(
             request_header=request_header,
             client_secret=client_secret,
             credentials=credentials
         )
-        self._queue_message(tes_message)
+        self._queue_message(omega_message)
         return logon
 
     def logoff(self, request_header: RequestHeader):
@@ -151,8 +151,8 @@ class RequestSender(Thread):
         :param request_header: Header parameter object for requests.
         :return: (capnp._DynamicStructBuilder) Logoff capnp object.
         """
-        tes_message, body = logoff_capnp(request_header=request_header)
-        self._queue_message(tes_message)
+        omega_message, body = logoff_capnp(request_header=request_header)
+        self._queue_message(omega_message)
         return body
 
     def send_heartbeat(self, request_header: RequestHeader):
@@ -162,8 +162,8 @@ class RequestSender(Thread):
         :param request_header: Header parameter object for requests.
         :return: (capnp._DynamicStructBuilder) heartbeat capnp object.
         """
-        tes_message, body = heartbeat_capnp(request_header=request_header)
-        self._queue_message(tes_message)
+        omega_message, body = heartbeat_capnp(request_header=request_header)
+        self._queue_message(omega_message)
         return body
 
     def request_server_time(self, request_header: RequestHeader):
@@ -172,9 +172,9 @@ class RequestSender(Thread):
         :param request_header: Header parameter object for requests.
         :return: (capnp._DynamicStructBuilder) heartbeat capnp object.
         """
-        tes_message, body = request_server_time_capnp(
+        omega_message, body = request_server_time_capnp(
             request_header=request_header)
-        self._queue_message(tes_message)
+        self._queue_message(omega_message)
         return body
 
     def place_order(self, request_header: RequestHeader, order: Order):
@@ -184,9 +184,9 @@ class RequestSender(Thread):
         :param order: (Order) Python object containing all required fields.
         :return: (capnp._DynamicStructBuilder) place_order capnp object.
         """
-        tes_message, place_order = place_order_capnp(
+        omega_message, place_order = place_order_capnp(
             request_header=request_header, order=order)
-        self._queue_message(tes_message)
+        self._queue_message(omega_message)
         return place_order
 
     def replace_order(self,
@@ -214,7 +214,7 @@ class RequestSender(Thread):
         :param expire_at: (float) (optional)
         :return: (capnp._DynamicStructBuilder) replaceOrder capnp object.
         """
-        tes_message, replace_order = replace_order_capnp(
+        omega_message, replace_order = replace_order_capnp(
             request_header=request_header,
             account_info=account_info,
             order_id=order_id,
@@ -225,7 +225,7 @@ class RequestSender(Thread):
             time_in_force=time_in_force,
             expire_at=expire_at
         )
-        self._queue_message(tes_message)
+        self._queue_message(omega_message)
         return replace_order
 
     def cancel_order(self,
@@ -239,12 +239,12 @@ class RequestSender(Thread):
         :param order_id: (str) order_id as returned from the ExecutionReport.
         :return: (capnp._DynamicStructBuilder) cancel_order object.
         """
-        tes_message, cancel_order = cancel_order_capnp(
+        omega_message, cancel_order = cancel_order_capnp(
             request_header=request_header,
             account_info=account_info,
             order_id=order_id
         )
-        self._queue_message(tes_message)
+        self._queue_message(omega_message)
         return cancel_order
 
     def cancel_all_orders(self,
@@ -261,14 +261,14 @@ class RequestSender(Thread):
         :param side: str (optional)
         :return: (capnp._DynamicStructBuilder) cancel_all_orders object.
         """
-        tes_message, cancel_all_orders = cancel_all_orders_capnp(
+        omega_message, cancel_all_orders = cancel_all_orders_capnp(
             request_header=request_header,
             account_info=account_info,
             symbol=symbol,
             side=side)
         logger.debug('Cancelling All Orders.', extra={'symbol': symbol,
                                                       'side': side})
-        self._queue_message(tes_message)
+        self._queue_message(omega_message)
         return cancel_all_orders
 
     def request_account_data(self,
@@ -281,9 +281,9 @@ class RequestSender(Thread):
         :param account_info: (AccountInfo) Account from which to retrieve data.
         :return: (capnp._DynamicStructBuilder) get_account_data capnp object.
         """
-        tes_message, get_account_data = request_account_data_capnp(
+        omega_message, get_account_data = request_account_data_capnp(
             request_header=request_header, account_info=account_info)
-        self._queue_message(tes_message)
+        self._queue_message(omega_message)
         return get_account_data
 
     def request_open_positions(self,
@@ -296,9 +296,9 @@ class RequestSender(Thread):
         :return: (capnp._DynamicStructBuilder) get_open_positions capnp
         object.
         """
-        tes_message, get_open_positions = request_open_positions_capnp(
+        omega_message, get_open_positions = request_open_positions_capnp(
             request_header=request_header, account_info=account_info)
-        self._queue_message(tes_message)
+        self._queue_message(omega_message)
         return get_open_positions
 
     def request_account_balances(self,
@@ -312,9 +312,9 @@ class RequestSender(Thread):
         :return: (capnp._DynamicStructBuilder) get_account_balances capnp
         object.
         """
-        tes_message, get_account_balances = request_account_balances_capnp(
+        omega_message, get_account_balances = request_account_balances_capnp(
             request_header=request_header, account_info=account_info)
-        self._queue_message(tes_message)
+        self._queue_message(omega_message)
         return get_account_balances
 
     def request_working_orders(self,
@@ -327,9 +327,9 @@ class RequestSender(Thread):
         :param account_info: (AccountInfo) Account from which to retrieve data.
         :return: (capnp._DynamicStructBuilder) get_working_orders capnp object.
         """
-        tes_message, get_working_orders = request_working_orders_capnp(
+        omega_message, get_working_orders = request_working_orders_capnp(
             request_header=request_header, account_info=account_info)
-        self._queue_message(tes_message)
+        self._queue_message(omega_message)
         return get_working_orders
 
     def request_order_status(self,
@@ -343,12 +343,12 @@ class RequestSender(Thread):
         :param order_id: (str) The id of the order of interest.
         :return: (capnp._DynamicStructBuilder) get_order_status capnp object.
         """
-        tes_message, get_order_status = request_order_status_capnp(
+        omega_message, get_order_status = request_order_status_capnp(
             request_header=request_header,
             account_info=account_info,
             order_id=order_id
         )
-        self._queue_message(tes_message)
+        self._queue_message(omega_message)
         return get_order_status
 
     def request_completed_orders(self,
@@ -369,13 +369,13 @@ class RequestSender(Thread):
         :return: (capnp._DynamicStructBuilder) get_completed_orders capnp
             object.
         """
-        tes_message, get_completed_orders = request_completed_orders_capnp(
+        omega_message, get_completed_orders = request_completed_orders_capnp(
             request_header=request_header,
             account_info=account_info,
             count=count,
             since=since
         )
-        self._queue_message(tes_message)
+        self._queue_message(omega_message)
         return get_completed_orders
 
     def request_exchange_properties(self,
@@ -389,11 +389,11 @@ class RequestSender(Thread):
         :return: (capnp._DynamicStructBuilder) get_exchange_properties capnp
             object.
         """
-        tes_message, get_exchange_properties = (
+        omega_message, get_exchange_properties = (
             request_exchange_properties_capnp(
                 request_header=request_header, exchange=exchange)
         )
-        self._queue_message(tes_message)
+        self._queue_message(omega_message)
         return get_exchange_properties
 
     def request_authorization_refresh(self,
@@ -406,9 +406,9 @@ class RequestSender(Thread):
         :return: (capnp._DynamicStructBuilder) authorization_refresh capnp
             object.
         """
-        tes_message, authorization_refresh = (
+        omega_message, authorization_refresh = (
             request_auth_refresh_capnp(
                 request_header=request_header, auth_refresh=auth_refresh)
         )
-        self._queue_message(tes_message)
+        self._queue_message(omega_message)
         return authorization_refresh

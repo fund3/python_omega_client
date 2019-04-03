@@ -8,16 +8,16 @@ from typing import List
 
 import zmq
 
-from tes_client.communication.request_sender import RequestSender
-from tes_client.communication.response_receiver import ResponseReceiver
-from tes_client.communication.single_client_request_sender import \
+from omega_client.communication.request_sender import RequestSender
+from omega_client.communication.response_receiver import ResponseReceiver
+from omega_client.communication.single_client_request_sender import \
     SingleClientRequestSender
-from tes_client.messaging.common_types import AccountBalancesReport, \
+from omega_client.messaging.common_types import AccountBalancesReport, \
     AccountCredentials, AccountDataReport, AccountInfo, \
     AuthorizationRefresh, ExchangePropertiesReport, \
     ExecutionReport, OpenPositionsReport, Order, OrderInfo, \
     OrderType, RequestHeader, TimeInForce, WorkingOrdersReport
-from tes_client.messaging.response_handler import ResponseHandler
+from omega_client.messaging.response_handler import ResponseHandler
 
 logger = logging.getLogger(__name__)
 
@@ -25,9 +25,9 @@ REQUEST_SENDER_ENDPOINT = 'inproc://OMEGA_REQUEST_SENDER'
 RESPONSE_RECEIVER_ENDPOINT = 'inproc://OMEGA_RESPONSE_RECEIVER'
 
 
-class TesConnection(Thread):
+class OmegaConnection(Thread):
     """
-    Base TesConnection class that abstracts out ZMQ connection, capn-proto
+    Base OmegaConnection class that abstracts out ZMQ connection, capn-proto
     parsing, and communication with the Omega.
     Actions like Placing Orders, Requesting Account Balances and passing
     their associated responses from Omega as callbacks are handled by this class.
@@ -46,7 +46,7 @@ class TesConnection(Thread):
             _response_receiver.  By default it is a local, inproc endpoint that
             lives in another thread of the same process.
         _OMEGA_POLLING_TIMEOUT_MILLI: (int) The polling timeout for
-            _tes_connection_socket.
+            _omega_connection_socket.
         _OMEGA_SOCKET_IDENTITY: (bytes) The socket identity in bytes used for the
             ROUTER socket on the other side to identify the DEALER socket in
             this class. Optional since zmq DEALER socket generates a default
@@ -66,7 +66,7 @@ class TesConnection(Thread):
                  response_receiver: ResponseReceiver,
                  omega_polling_timeout_milli: int = 1000,
                  name: str = 'OmegaConnection',
-                 tes_socket_identity: bytes = None,
+                 omega_socket_identity: bytes = None,
                  server_zmq_encryption_key: str = None):
         assert zmq_context
         assert omega_endpoint
@@ -80,7 +80,7 @@ class TesConnection(Thread):
         self._REQUEST_SENDER_ENDPOINT = request_sender_endpoint
         self._RESPONSE_RECEIVER_ENDPOINT = response_receiver_endpoint
         self._OMEGA_POLLING_TIMEOUT_MILLI = omega_polling_timeout_milli
-        self._OMEGA_SOCKET_IDENTITY = tes_socket_identity
+        self._OMEGA_SOCKET_IDENTITY = omega_socket_identity
         self._SERVER_ZMQ_ENCRYPTION_KEY = server_zmq_encryption_key
 
         self._response_receiver = response_receiver
@@ -447,7 +447,7 @@ class TesConnection(Thread):
         )
 
 
-def configure_default_tes_connection(omega_endpoint: str,
+def configure_default_omega_connection(omega_endpoint: str,
                                      omega_server_key: str,
                                      response_handler: ResponseHandler):
     """
@@ -465,17 +465,17 @@ def configure_default_tes_connection(omega_endpoint: str,
     response_receiver = ResponseReceiver(ZMQ_CONTEXT,
                                          RESPONSE_RECEIVER_ENDPOINT,
                                          response_handler)
-    omega_connection = TesConnection(ZMQ_CONTEXT,
-                                     omega_endpoint,
-                                     REQUEST_SENDER_ENDPOINT,
-                                     RESPONSE_RECEIVER_ENDPOINT,
-                                     request_sender,
-                                     response_receiver,
-                                     server_zmq_encryption_key=omega_server_key)
+    omega_connection = OmegaConnection(ZMQ_CONTEXT,
+                                       omega_endpoint,
+                                       REQUEST_SENDER_ENDPOINT,
+                                       RESPONSE_RECEIVER_ENDPOINT,
+                                       request_sender,
+                                       response_receiver,
+                                       server_zmq_encryption_key=omega_server_key)
     return omega_connection, request_sender, response_receiver
 
 
-def configure_single_client_tes_connection(omega_endpoint: str,
+def configure_single_client_omega_connection(omega_endpoint: str,
                                            omega_server_key: str,
                                            client_id: int,
                                            sender_comp_id: str,
@@ -503,11 +503,11 @@ def configure_single_client_tes_connection(omega_endpoint: str,
     response_receiver = ResponseReceiver(ZMQ_CONTEXT,
                                          RESPONSE_RECEIVER_ENDPOINT,
                                          response_handler)
-    omega_connection = TesConnection(ZMQ_CONTEXT,
-                                     omega_endpoint,
-                                     REQUEST_SENDER_ENDPOINT,
-                                     RESPONSE_RECEIVER_ENDPOINT,
-                                     request_sender,
-                                     response_receiver,
-                                     server_zmq_encryption_key=omega_server_key)
+    omega_connection = OmegaConnection(ZMQ_CONTEXT,
+                                       omega_endpoint,
+                                       REQUEST_SENDER_ENDPOINT,
+                                       RESPONSE_RECEIVER_ENDPOINT,
+                                       request_sender,
+                                       response_receiver,
+                                       server_zmq_encryption_key=omega_server_key)
     return omega_connection, request_sender, response_receiver

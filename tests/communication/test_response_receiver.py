@@ -12,9 +12,9 @@ import zmq
 import communication_protocol.TradeMessage_capnp as msgs_capnp
 # pylint: enable=E0401
 # pylint: enable=E0611
-from tes_client.communication.response_receiver import ResponseReceiver
-from tes_client.messaging.common_types import LogonAck, SystemMessage
-from tes_client.messaging.response_handler import ResponseHandler
+from omega_client.communication.response_receiver import ResponseReceiver
+from omega_client.messaging.common_types import LogonAck, SystemMessage
+from omega_client.messaging.response_handler import ResponseHandler
 
 
 __FAKE_ROUTER_SOCKET_ENDPOINT = 'inproc://FAKE_ROUTER_SOCKET'
@@ -135,7 +135,7 @@ def test_message_receiving_from_router(
         collected_message_list.append(message)
 
     monkeypatch.setattr(fake_response_receiver_from_router,
-                        '_handle_binary_tes_message',
+                        '_handle_binary_omega_message',
                         mock_handle_message)
 
     for x in range(6):
@@ -156,7 +156,7 @@ def test_message_receiving_from_dealer(
         collected_message_list.append(message)
 
     monkeypatch.setattr(fake_response_receiver_from_dealer,
-                        '_handle_binary_tes_message',
+                        '_handle_binary_omega_message',
                         mock_handle_message)
 
     for x in range(6):
@@ -171,8 +171,8 @@ def test_message_receiving_from_dealer(
 @pytest.mark.test_id(3)
 def test_heartbeat_handling(fake_response_receiver_from_dealer,
                             fake_response_handler):
-    tes_mess = msgs_capnp.TradeMessage.new_message()
-    heartbeat_resp = tes_mess.init('type').init('response')
+    omega_mess = msgs_capnp.TradeMessage.new_message()
+    heartbeat_resp = omega_mess.init('type').init('response')
     heartbeat_resp.clientID = 123
     heartbeat_resp.senderCompID = str(987)
     heartbeat_resp.requestID = 100001
@@ -181,8 +181,8 @@ def test_heartbeat_handling(fake_response_receiver_from_dealer,
 
     fake_response_receiver_from_dealer.set_response_handler(
         fake_response_handler)
-    fake_response_receiver_from_dealer._handle_binary_tes_message(
-        tes_mess.to_bytes())
+    fake_response_receiver_from_dealer._handle_binary_omega_message(
+        omega_mess.to_bytes())
 
     assert len(fake_response_handler.message_list) == 1
     assert fake_response_handler.message_list[0] == (
@@ -192,8 +192,8 @@ def test_heartbeat_handling(fake_response_receiver_from_dealer,
 @pytest.mark.test_id(4)
 def test_test_message_handling(fake_response_receiver_from_dealer,
                                fake_response_handler):
-    tes_mess = msgs_capnp.TradeMessage.new_message()
-    test_response = tes_mess.init('type').init('response')
+    omega_mess = msgs_capnp.TradeMessage.new_message()
+    test_response = omega_mess.init('type').init('response')
     test_response.clientID = 123
     test_response.senderCompID = str(987)
     test_response.requestID = 100001
@@ -203,8 +203,8 @@ def test_test_message_handling(fake_response_receiver_from_dealer,
 
     fake_response_receiver_from_dealer.set_response_handler(
         fake_response_handler)
-    fake_response_receiver_from_dealer._handle_binary_tes_message(
-        tes_mess.to_bytes())
+    fake_response_receiver_from_dealer._handle_binary_omega_message(
+        omega_mess.to_bytes())
     assert len(fake_response_handler.message_list) == 1
     assert fake_response_handler.message_list[0] == ('test', 'test_string',
                                                      123, '987', 100001)
@@ -213,8 +213,8 @@ def test_test_message_handling(fake_response_receiver_from_dealer,
 @pytest.mark.test_id(5)
 def test_system_message_handling(fake_response_receiver_from_dealer,
                                  fake_response_handler):
-    tes_mess = msgs_capnp.TradeMessage.new_message()
-    heartbeat_resp = tes_mess.init('type').init('response')
+    omega_mess = msgs_capnp.TradeMessage.new_message()
+    heartbeat_resp = omega_mess.init('type').init('response')
     heartbeat_resp.clientID = 123
     heartbeat_resp.senderCompID = str(987)
     heartbeat_resp.requestID = 100001
@@ -228,8 +228,8 @@ def test_system_message_handling(fake_response_receiver_from_dealer,
 
     fake_response_receiver_from_dealer.set_response_handler(
         fake_response_handler)
-    fake_response_receiver_from_dealer._handle_binary_tes_message(
-        tes_mess.to_bytes())
+    fake_response_receiver_from_dealer._handle_binary_omega_message(
+        omega_mess.to_bytes())
     assert len(fake_response_handler.message_list) == 1
     assert fake_response_handler.message_list[0] == (
         'system', system.message.code, system.message.body, 123, '987', 100001)
@@ -238,8 +238,8 @@ def test_system_message_handling(fake_response_receiver_from_dealer,
 @pytest.mark.test_id(6)
 def test_logon_ack_handling(fake_response_receiver_from_dealer,
                             fake_response_handler):
-    tes_mess = msgs_capnp.TradeMessage.new_message()
-    logon_ack_resp = tes_mess.init('type').init('response')
+    omega_mess = msgs_capnp.TradeMessage.new_message()
+    logon_ack_resp = omega_mess.init('type').init('response')
     logon_ack_resp.clientID = 123
     logon_ack_resp.senderCompID = str(987)
     logon_ack_resp.requestID = 100001
@@ -261,8 +261,8 @@ def test_logon_ack_handling(fake_response_receiver_from_dealer,
 
     fake_response_receiver_from_dealer.set_response_handler(
         fake_response_handler)
-    fake_response_receiver_from_dealer._handle_binary_tes_message(
-        tes_mess.to_bytes())
+    fake_response_receiver_from_dealer._handle_binary_omega_message(
+        omega_mess.to_bytes())
     assert len(fake_response_handler.message_list) == 1
     assert fake_response_handler.message_list[0] == (
         'logonAck',

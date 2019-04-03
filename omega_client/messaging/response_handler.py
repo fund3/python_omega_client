@@ -2,11 +2,11 @@ from abc import abstractmethod
 import logging
 from typing import List
 
-from tes_client.messaging.common_types import AccountBalancesReport, \
+from omega_client.messaging.common_types import AccountBalancesReport, \
     AccountCredentials, AccountDataReport, AuthorizationGrant, \
     CompletedOrdersReport, ExchangePropertiesReport, ExecutionReport, LogoffAck, \
     LogonAck, OpenPositionsReport, SystemMessage, WorkingOrdersReport
-from tes_client.messaging.response_unpacker import unpack_response
+from omega_client.messaging.response_unpacker import unpack_response
 
 logger = logging.getLogger(__name__)
 
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 class ResponseHandler:
     ###########################################################################
     #                                                                         #
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~~ Incoming TESMessages ~~~~~~~~~~~~~~~~~~~~~~~ #
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~ Incoming OmegaMessages ~~~~~~~~~~~~~~~~~~~~~~ #
     #                                                                         #
     ###########################################################################
     def __init__(self):

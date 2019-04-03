@@ -3,9 +3,9 @@ from typing import List
 
 import zmq
 
-from tes_client.messaging.common_types import AccountCredentials, AccountInfo, \
+from omega_client.messaging.common_types import AccountCredentials, AccountInfo, \
     Order, OrderInfo, OrderType, RequestHeader, TimeInForce
-from tes_client.communication.request_sender import RequestSender
+from omega_client.communication.request_sender import RequestSender
 
 
 class SingleClientRequestSender:
