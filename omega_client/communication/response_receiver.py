@@ -16,7 +16,7 @@ import zmq
 import communication_protocol.TradeMessage_capnp as msgs_capnp
 # pylint: enable=E0401
 # pylint: enable=E0611
-from tes_client.messaging.response_handler import ResponseHandler
+from omega_client.messaging.response_handler import ResponseHandler
 
 logger = logging.getLogger(__name__)
 
@@ -120,7 +120,7 @@ class ResponseReceiver(Thread):
             socks = dict(poller.poll(self._POLLING_TIMEOUT_MILLI))
             if socks.get(response_socket) == zmq.POLLIN:
                 message = response_socket.recv()
-                self._handle_binary_tes_message(message)
+                self._handle_binary_omega_message(message)
         time.sleep(2.)
         response_socket.close()
 
@@ -137,7 +137,7 @@ class ResponseReceiver(Thread):
         """
         self._RESPONSE_HANDLER.handle_response(response_type, response)
 
-    def _handle_binary_tes_message(self, binary_msg: bytes):
+    def _handle_binary_omega_message(self, binary_msg: bytes):
         """
         Pass a received message from Omega to an appropriate handler method.
         :param binary_msg: (bytes) The received binary message.

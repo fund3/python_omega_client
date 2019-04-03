@@ -6,21 +6,21 @@ import zmq
 
 import communication_protocol.Exchanges_capnp as exch_capnp
 import communication_protocol.TradeMessage_capnp as msgs_capnp
-from tes_client.communication.request_sender import RequestSender
-from tes_client.messaging.common_types import AccountBalancesReport, \
-    AccountCredentials, AccountDataReport, AccountInfo, Balance, \
+from omega_client.communication.request_sender import RequestSender
+from omega_client.messaging.common_types import AccountBalancesReport, \
+    AccountCredentials, AccountDataReport, AccountInfo, AuthorizationRefresh, \
     CompletedOrdersReport, Exchange, ExchangePropertiesReport, LeverageType, \
     ExecutionReport, OpenPosition, OpenPositionsReport, Order, OrderInfo, \
     OrderStatus, OrderType, RequestHeader, Side, SymbolProperties, \
     TimeInForce, WorkingOrdersReport
-from tes_client.messaging.message_factory import heartbeat_capnp
+from omega_client.messaging.message_factory import heartbeat_capnp
 
 
 TEST_ACCOUNT_CREDS_1 = AccountCredentials(AccountInfo(0), api_key='api_key',
                                           secret_key='secret_key',
                                           passphrase='passphrase')
-TEST_TES_CONFIG = {'TES_CONNECTION_STR': 'tcp://127.0.0.1:5555',
-                   'CREDENTIALS': [TEST_ACCOUNT_CREDS_1]}
+TEST_OMEGA_CONFIG = {'OMEGA_CONNECTION_STR': 'tcp://127.0.0.1:5555',
+                     'CREDENTIALS': [TEST_ACCOUNT_CREDS_1]}
 
 TEST_ZMQ_ENCRYPTION_KEY = b'encryptionkeyencryptionkeyencryptionkeye'
 
@@ -107,19 +107,19 @@ def fake_request_sender(fake_zmq_context):
 @pytest.mark.test_id(1)
 def test_message_sending_to_dealer(fake_dealer_socket,
                                    fake_request_sender_to_dealer):
-    tes_message, body = heartbeat_capnp(__FAKE_REQUEST_HEADER)
+    omega_message, body = heartbeat_capnp(__FAKE_REQUEST_HEADER)
     fake_request_sender_to_dealer.send_heartbeat(__FAKE_REQUEST_HEADER)
     received_message = fake_dealer_socket.recv()
-    assert received_message == tes_message.to_bytes()
+    assert received_message == omega_message.to_bytes()
 
 
 @pytest.mark.test_id(2)
 def test_message_sending_to_router(fake_router_socket,
                                    fake_request_sender_to_router):
-    tes_message, body = heartbeat_capnp(__FAKE_REQUEST_HEADER)
+    omega_message, body = heartbeat_capnp(__FAKE_REQUEST_HEADER)
     fake_request_sender_to_router.send_heartbeat(__FAKE_REQUEST_HEADER)
     identity, received_message = fake_router_socket.recv_multipart()
-    assert received_message == tes_message.to_bytes()
+    assert received_message == omega_message.to_bytes()
 
 
 @pytest.mark.test_id(3)
@@ -216,7 +216,7 @@ def test_request_working_orders(fake_request_sender):
 
 
 @pytest.mark.test_id(9)
-def test_tes_logon(fake_request_sender):
+def test_omega_logon(fake_request_sender):
     creds = [
         AccountCredentials(
             account_info=AccountInfo(account_id=100),
@@ -239,7 +239,7 @@ def test_tes_logon(fake_request_sender):
             passphrase='fakePassphrase1'
         )
     ]
-    fake_request_sender._tes_credentials = creds
+    fake_request_sender._omega_credentials = creds
     logon = fake_request_sender.logon(request_header=__FAKE_REQUEST_HEADER,
                                       client_secret=__FAKE_CLIENT_SECRET,
                                       credentials=creds)
@@ -269,7 +269,7 @@ def test_tes_logon(fake_request_sender):
             api_key='fakeApiKey', secret_key='fakeSecret'
         )
     ]
-    fake_request_sender._tes_credentials = creds1
+    fake_request_sender._omega_credentials = creds1
     logon1 = fake_request_sender.logon(request_header=__FAKE_REQUEST_HEADER,
                                        client_secret=__FAKE_CLIENT_SECRET,
                                        credentials=creds1)
@@ -290,7 +290,7 @@ def test_tes_logon(fake_request_sender):
                 secret_key='fakeSecret'
             )
         ]
-        fake_request_sender._tes_credentials = creds2
+        fake_request_sender._omega_credentials = creds2
         logon2 = fake_request_sender.logon(
             request_header=__FAKE_REQUEST_HEADER,
             client_secret=__FAKE_CLIENT_SECRET,
@@ -304,23 +304,23 @@ def test_tes_logon(fake_request_sender):
                 api_key='fakeApiKey'
             )
         ]
-        fake_request_sender._tes_credentials = creds3
+        fake_request_sender._omega_credentials = creds3
         logon3 = fake_request_sender.logon(
             request_header=__FAKE_REQUEST_HEADER,
             client_secret=__FAKE_CLIENT_SECRET,
             credentials=creds3)
-    fake_request_sender._tes_credentials = TEST_ACCOUNT_CREDS_1
+    fake_request_sender._omega_credentials = TEST_ACCOUNT_CREDS_1
 
 
 @pytest.mark.test_id(10)
-def test_tes_logoff(fake_request_sender):
+def test_omega_logoff(fake_request_sender):
     logoff = fake_request_sender.logoff(request_header=__FAKE_REQUEST_HEADER)
     assert type(logoff) == capnp.lib.capnp._DynamicStructBuilder
     assert logoff.logoff is None
 
 
 @pytest.mark.test_id(11)
-def test_tes_heartbeat(fake_request_sender):
+def test_omega_heartbeat(fake_request_sender):
     hb = fake_request_sender.send_heartbeat(
         request_header=__FAKE_REQUEST_HEADER)
     assert type(hb) == capnp.lib.capnp._DynamicStructBuilder
@@ -541,3 +541,14 @@ def test_cancel_all_orders_symbol(fake_request_sender):
     assert orders.accountInfo.accountID == 101
     assert orders.side == str(Side.sell.name)
     assert orders.symbol == 'ETH/BTC'
+
+
+@pytest.mark.test_id(25)
+def test_request_authorization_refresh(fake_request_sender):
+    expected_refresh_token = 'refresh_me!'
+    auth_refresh = fake_request_sender.request_authorization_refresh(
+        request_header=__FAKE_REQUEST_HEADER,
+        auth_refresh=AuthorizationRefresh(refresh_token=expected_refresh_token)
+    )
+    assert type(auth_refresh) == capnp.lib.capnp._DynamicStructBuilder
+    assert auth_refresh.refreshToken == expected_refresh_token

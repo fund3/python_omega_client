@@ -4,11 +4,11 @@ import time
 import pytest
 import zmq
 
-from tes_client.messaging.common_types import RequestHeader
-from tes_client.messaging.response_handler import ResponseHandler
-from tes_client.communication.response_receiver import ResponseReceiver
-from tes_client.communication.request_sender import RequestSender
-from tes_client.communication.tes_connection import TesConnection
+from omega_client.messaging.common_types import RequestHeader
+from omega_client.messaging.response_handler import ResponseHandler
+from omega_client.communication.response_receiver import ResponseReceiver
+from omega_client.communication.request_sender import RequestSender
+from omega_client.communication.omega_connection import OmegaConnection
 
 __OMEGA_ENDPOINT = 'inproc://Omega'
 __REQUEST_SENDER_ENDPOINT = 'inproc://REQUEST_SENDER'
@@ -60,17 +60,17 @@ def fake_router_socket(fake_zmq_context):
 
 
 @pytest.fixture(scope="module")
-def fake_tes_connection(fake_zmq_context,
+def fake_omega_connection(fake_zmq_context,
                         fake_request_sender,
                         fake_response_receiver):
-    omega_connection = TesConnection(
+    omega_connection = OmegaConnection(
         fake_zmq_context,
         __OMEGA_ENDPOINT,
         __REQUEST_SENDER_ENDPOINT,
         __RESPONSE_RECEIVER_ENDPOINT,
         fake_request_sender,
         fake_response_receiver,
-        tes_socket_identity=__OMEGA_SOCKET_IDENTITY
+        omega_socket_identity=__OMEGA_SOCKET_IDENTITY
     )
     omega_connection.start()
     yield omega_connection
@@ -78,17 +78,17 @@ def fake_tes_connection(fake_zmq_context,
 
 
 @pytest.mark.test_id(1)
-def test_receive_tes_message(monkeypatch,
+def test_receive_omega_message(monkeypatch,
                              fake_router_socket,
                              fake_response_receiver,
-                             fake_tes_connection):
+                             fake_omega_connection):
     collected_message_list = list()
 
     def mock_handle_message(message):
         collected_message_list.append(message)
 
     monkeypatch.setattr(fake_response_receiver,
-                        '_handle_binary_tes_message',
+                        '_handle_binary_omega_message',
                         mock_handle_message)
 
     for x in range(6):
@@ -101,7 +101,7 @@ def test_receive_tes_message(monkeypatch,
 @pytest.mark.test_id(2)
 def test_send_heartbeat(fake_router_socket,
                         fake_request_sender,
-                        fake_tes_connection):
+                        fake_omega_connection):
     collected_message_list = list()
     for x in range(6):
         fake_request_sender.send_heartbeat(
