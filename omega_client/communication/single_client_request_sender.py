@@ -3,9 +3,9 @@ from typing import List
 
 import zmq
 
-from tes_client.messaging.common_types import AccountCredentials, AccountInfo, \
+from omega_client.messaging.common_types import AccountCredentials, AccountInfo, \
     Order, OrderInfo, OrderType, RequestHeader, TimeInForce
-from tes_client.communication.request_sender import RequestSender
+from omega_client.communication.request_sender import RequestSender
 
 
 class SingleClientRequestSender:
@@ -33,7 +33,7 @@ class SingleClientRequestSender:
     def set_access_token(self, access_token: str):
         """
         Sets the access_token in self._request_header.
-        :param access_token: (str) Access token granted by TES.  Note that
+        :param access_token: (str) Access token granted by Omega.  Note that
             access_token is ignored in logon.
         """
         self._request_header.access_token = access_token
@@ -55,7 +55,7 @@ class SingleClientRequestSender:
     """
     ############################################################################
 
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~ Outgoing TESMessages ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~ Outgoing OmegaMessages ~~~~~~~~~~~~~~~~~~~~~~~~~~~
     ----------------- Public Methods to be called by client -------------------
 
     ############################################################################
@@ -109,6 +109,15 @@ class SingleClientRequestSender:
             request_header=self._request_header,
             account_info=account_info,
             order_id=order_id)
+
+    def cancel_all_orders(self, account_info: AccountInfo,
+                          symbol: str = None,
+                          side: str = None):
+        return self._request_sender.cancel_all_orders(
+            request_header=self._request_header,
+            account_info=account_info,
+            symbol=symbol,
+            side=side)
 
     def request_account_data(self, account_info: AccountInfo):
         return self._request_sender.request_account_data(

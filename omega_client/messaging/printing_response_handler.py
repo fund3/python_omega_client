@@ -1,12 +1,20 @@
 import logging
 
-from tes_client.messaging.response_handler import ResponseHandler
-from tes_client.messaging.common_types import *
+from examples.single_client_session_refresher import SingleClientSessionRefresher
+from omega_client.messaging.response_handler import ResponseHandler
+from omega_client.messaging.common_types import *
 
 logger = logging.getLogger(__name__)
 
 
 class PrintingResponseHandler(ResponseHandler):
+    def __init__(self, session_refresher: SingleClientSessionRefresher = None):
+        """
+        Example class to print all responses and automatically refresh sessions.
+        """
+        super().__init__()
+        self.session_refresher = session_refresher
+
     def on_server_time(self, server_time: float, client_id: int,
                        sender_comp_id: str, request_id: int):
         pass
@@ -77,6 +85,28 @@ class PrintingResponseHandler(ResponseHandler):
              'sender_comp_id': sender_comp_id,
              'request_id': request_id}
         )
+        # start session refresher thread
+        self.session_refresher.update_token(logon_ack.authorization_grant)
+        self.session_refresher.start()
+
+    def on_authorization_grant(self,
+                               authorization_grant: AuthorizationGrant,
+                               client_id,
+                               sender_comp_id,
+                               request_id: int):
+        print(
+            {'auth_grant_success': authorization_grant.success,
+             'auth_grant_message_body': authorization_grant.message.body,
+             'auth_grant_message_code': authorization_grant.message.code,
+             'auth_grant_access_token': authorization_grant.access_token,
+             'auth_grant_refresh_token': authorization_grant.refresh_token,
+             'auth_grant_expire_at': authorization_grant.expire_at,
+             'client_id': client_id,
+             'sender_comp_id': sender_comp_id,
+             'request_id': request_id}
+        )
+        # update session_refresher
+        self.session_refresher.update_token(authorization_grant)
 
     def on_logoff_ack(self,
                       logoff_ack: LogoffAck,

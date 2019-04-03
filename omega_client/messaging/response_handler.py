@@ -2,11 +2,11 @@ from abc import abstractmethod
 import logging
 from typing import List
 
-from tes_client.messaging.common_types import AccountBalancesReport, \
-    AccountCredentials, AccountDataReport, CompletedOrdersReport, \
-    ExchangePropertiesReport, ExecutionReport, LogoffAck, LogonAck, \
-    OpenPositionsReport, SystemMessage, WorkingOrdersReport
-from tes_client.messaging.response_unpacker import unpack_response
+from omega_client.messaging.common_types import AccountBalancesReport, \
+    AccountCredentials, AccountDataReport, AuthorizationGrant, \
+    CompletedOrdersReport, ExchangePropertiesReport, ExecutionReport, LogoffAck, \
+    LogonAck, OpenPositionsReport, SystemMessage, WorkingOrdersReport
+from omega_client.messaging.response_unpacker import unpack_response
 
 logger = logging.getLogger(__name__)
 
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 class ResponseHandler:
     ###########################################################################
     #                                                                         #
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~~ Incoming TESMessages ~~~~~~~~~~~~~~~~~~~~~~~ #
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~ Incoming OmegaMessages ~~~~~~~~~~~~~~~~~~~~~~ #
     #                                                                         #
     ###########################################################################
     def __init__(self):
@@ -31,7 +31,8 @@ class ResponseHandler:
             'accountBalancesReport': self.on_account_balances,
             'openPositionsReport': self.on_open_positions,
             'completedOrdersReport': self.on_completed_orders_report,
-            'exchangePropertiesReport': self.on_exchange_properties_report
+            'exchangePropertiesReport': self.on_exchange_properties_report,
+            'authorizationGrant': self.on_authorization_grant
         }
 
     def handle_response(self, response_type, response):
@@ -44,7 +45,7 @@ class ResponseHandler:
                      sender_comp_id: str,
                      request_id: int):
         """
-        Override in subclass to handle TES heartbeat response.
+        Override in subclass to handle Omega heartbeat response.
         :param client_id: (int) client_id of the response.
         :param sender_comp_id: (str) sender_comp_id of the response.
         :param request_id: (int) request_id which requested this response
@@ -57,8 +58,8 @@ class ResponseHandler:
                         sender_comp_id: str,
                         request_id: int):
         """
-        Override in subclass to handle TES test message response.
-        :param string: (str) Test message from TES.
+        Override in subclass to handle Omega test message response.
+        :param string: (str) Test message from Omega.
         :param client_id: (int) client_id of the response.
         :param sender_comp_id: (str) sender_comp_id of the response.
         :param request_id: (int) request_id which requested this response
@@ -71,8 +72,8 @@ class ResponseHandler:
                        sender_comp_id: str,
                        request_id: int):
         """
-        Override in subclass to handle TES test message response.
-        :param server_time: (float) Server time from TES.
+        Override in subclass to handle Omega test message response.
+        :param server_time: (float) Server time from Omega.
         :param client_id: (int) client_id of the response.
         :param sender_comp_id: (str) sender_comp_id of the response.
         :param request_id: (int) request_id which requested this response
@@ -85,8 +86,8 @@ class ResponseHandler:
                           sender_comp_id: str,
                           request_id: int):
         """
-        Override in subclass to handle TES system message response.
-        :param system_message: (SystemMessage) The system message from TES.
+        Override in subclass to handle Omega system message response.
+        :param system_message: (SystemMessage) The system message from Omega.
         :param client_id: (int) client_id of the response.
         :param sender_comp_id: (str) sender_comp_id of the response.
         :param request_id: (int) request_id which requested this response
@@ -99,8 +100,8 @@ class ResponseHandler:
                      sender_comp_id: str,
                      request_id: int):
         """
-        Override in subclass to handle TES logonAck response.
-        :param logon_ack: (LogonAck) LogonAck message from TES.
+        Override in subclass to handle Omega logonAck response.
+        :param logon_ack: (LogonAck) LogonAck message from Omega.
         :param client_id: (int) client_id of the response.
         :param sender_comp_id: (str) sender_comp_id of the response.
         :param request_id: (int) request_id which requested this response
@@ -113,8 +114,8 @@ class ResponseHandler:
                       sender_comp_id: str,
                       request_id: int):
         """
-        Override in subclass to handle TES logoffAck response.
-        :param logoff_ack: (LogoffAck) LogoffAck from TES.
+        Override in subclass to handle Omega logoffAck response.
+        :param logoff_ack: (LogoffAck) LogoffAck from Omega.
         :param client_id: (int) client_id of the response.
         :param sender_comp_id: (str) sender_comp_id of the response.
         :param request_id: (int) request_id which requested this response
@@ -127,7 +128,7 @@ class ResponseHandler:
                        sender_comp_id: str,
                        request_id: int):
         """
-        Override in subclass to handle TES ExecutionReport response.
+        Override in subclass to handle Omega ExecutionReport response.
         :param report: ExecutionReport python object.
         :param client_id: (int) client_id of the response.
         :param sender_comp_id: (str) sender_comp_id of the response.
@@ -141,7 +142,7 @@ class ResponseHandler:
                         sender_comp_id: str,
                         request_id: int):
         """
-        Override in subclass to handle TES AccountDataReport response.
+        Override in subclass to handle Omega AccountDataReport response.
         :param report: AccountDataReport Python object.
         :param client_id: (int) client_id of the response.
         :param sender_comp_id: (str) sender_comp_id of the response.
@@ -155,7 +156,7 @@ class ResponseHandler:
                             sender_comp_id: str,
                             request_id: int):
         """
-        Override in subclass to handle TES AccountBalancesReport response.
+        Override in subclass to handle Omega AccountBalancesReport response.
         :param report: AccountBalancesReport Python object.
         :param client_id: (int) client_id of the response.
         :param sender_comp_id: (str) sender_comp_id of the response.
@@ -169,7 +170,7 @@ class ResponseHandler:
                           sender_comp_id: str,
                           request_id: int):
         """
-        Override in subclass to handle TES OpenPositionsReport response.
+        Override in subclass to handle Omega OpenPositionsReport response.
         :param report: OpenPositionReport Python object.
         :param client_id: (int) client_id of the response.
         :param sender_comp_id: (str) sender_comp_id of the response.
@@ -183,7 +184,7 @@ class ResponseHandler:
                                  sender_comp_id: str,
                                  request_id: int):
         """
-        Override in subclass to handle TES WorkingOrdersReport response.
+        Override in subclass to handle Omega WorkingOrdersReport response.
         :param report: WorkingOrdersReport Python object.
         :param client_id: (int) client_id of the response.
         :param sender_comp_id: (str) sender_comp_id of the response.
@@ -197,7 +198,7 @@ class ResponseHandler:
                                    sender_comp_id,
                                    request_id: int):
         """
-        Override in subclass to handle TES CompletedOrdersReport response.
+        Override in subclass to handle Omega CompletedOrdersReport response.
         :param report: CompletedOrdersReport Python object.
         :param client_id: (int) client_id of the response.
         :param sender_comp_id: (str) sender_comp_id of the response.
@@ -211,8 +212,22 @@ class ResponseHandler:
                                       sender_comp_id,
                                       request_id: int):
         """
-        Override in subclass to handle TES ExchangePropertiesReport response.
+        Override in subclass to handle Omega ExchangePropertiesReport response.
         :param report: ExchangePropertiesReport Python object.
+        :param client_id: (int) client_id of the response.
+        :param sender_comp_id: (str) sender_comp_id of the response.
+        :param request_id: (int) request_id which requested this response
+        """
+
+    @abstractmethod
+    def on_authorization_grant(self,
+                               authorization_grant: AuthorizationGrant,
+                               client_id,
+                               sender_comp_id,
+                               request_id: int):
+        """
+        Override in subclass to handle Omega AuthorizationGrant response.
+        :param authorization_grant: AuthorizationGrant python object
         :param client_id: (int) client_id of the response.
         :param sender_comp_id: (str) sender_comp_id of the response.
         :param request_id: (int) request_id which requested this response

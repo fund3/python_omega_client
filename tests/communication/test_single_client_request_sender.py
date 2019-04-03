@@ -5,20 +5,20 @@ import zmq
 import communication_protocol.Exchanges_capnp as exch_capnp
 import communication_protocol.TradeMessage_capnp as msgs_capnp
 
-from tes_client.messaging.common_types import AccountBalancesReport, \
+from omega_client.messaging.common_types import AccountBalancesReport, \
     AccountCredentials, AccountDataReport, AccountInfo, Balance, \
     CompletedOrdersReport, Exchange, ExchangePropertiesReport, LeverageType, \
     ExecutionReport, OpenPosition, OpenPositionsReport, Order, OrderInfo, \
     OrderStatus, OrderType, RequestHeader, Side, SymbolProperties, \
     TimeInForce, WorkingOrdersReport
-from tes_client.communication.single_client_request_sender import \
+from omega_client.communication.single_client_request_sender import \
     SingleClientRequestSender
 
 TEST_ACCOUNT_CREDS_1 = AccountCredentials(AccountInfo(0), api_key='api_key',
                                           secret_key='secret_key',
                                           passphrase='passphrase')
-TEST_TES_CONFIG = {'TES_CONNECTION_STR': 'tcp://127.0.0.1:5555',
-                   'CREDENTIALS': [TEST_ACCOUNT_CREDS_1]}
+TEST_OMEGA_CONFIG = {'OMEGA_CONNECTION_STR': 'tcp://127.0.0.1:5555',
+                     'CREDENTIALS': [TEST_ACCOUNT_CREDS_1]}
 
 TEST_CLIENT_ID = 123
 TEST_SENDER_COMP_ID = str(987)
@@ -138,7 +138,7 @@ def test_request_working_orders(fake_request_sender):
 
 
 @pytest.mark.test_id(7)
-def test_tes_logon(fake_request_sender):
+def test_omega_logon(fake_request_sender):
     creds = [
         AccountCredentials(
             account_info=AccountInfo(account_id=100 ),
@@ -161,7 +161,7 @@ def test_tes_logon(fake_request_sender):
             passphrase='fakePassphrase1'
         )
     ]
-    fake_request_sender._tes_credentials = creds
+    fake_request_sender._omega_credentials = creds
     logon = fake_request_sender.logon(credentials=creds,
                                       client_secret=__FAKE_CLIENT_SECRET)
     assert type(logon) == capnp.lib.capnp._DynamicStructBuilder
@@ -189,7 +189,7 @@ def test_tes_logon(fake_request_sender):
             api_key='fakeApiKey', secret_key='fakeSecret'
         )
     ]
-    fake_request_sender._tes_credentials = creds1
+    fake_request_sender._omega_credentials = creds1
     logon1 = fake_request_sender.logon(credentials=creds1,
                                        client_secret=__FAKE_CLIENT_SECRET)
     assert type(logon) == capnp.lib.capnp._DynamicStructBuilder
@@ -208,7 +208,7 @@ def test_tes_logon(fake_request_sender):
                 secret_key='fakeSecret'
             )
         ]
-        fake_request_sender._tes_credentials = creds2
+        fake_request_sender._omega_credentials = creds2
         logon2 = fake_request_sender.logon(credentials=creds2,
                                            client_secret=__FAKE_CLIENT_SECRET)
 
@@ -220,21 +220,21 @@ def test_tes_logon(fake_request_sender):
                 api_key='fakeApiKey'
             )
         ]
-        fake_request_sender._tes_credentials = creds3
+        fake_request_sender._omega_credentials = creds3
         logon3 = fake_request_sender.logon(credentials=creds3,
                                            client_secret=__FAKE_CLIENT_SECRET)
-    fake_request_sender._tes_credentials = TEST_ACCOUNT_CREDS_1
+    fake_request_sender._omega_credentials = TEST_ACCOUNT_CREDS_1
 
 
 @pytest.mark.test_id(8)
-def test_tes_logoff(fake_request_sender):
+def test_omega_logoff(fake_request_sender):
     logoff = fake_request_sender.logoff()
     assert type(logoff) == capnp.lib.capnp._DynamicStructBuilder
     assert logoff.logoff is None
 
 
 @pytest.mark.test_id(9)
-def test_tes_heartbeat(fake_request_sender):
+def test_omega_heartbeat(fake_request_sender):
     hb = fake_request_sender.send_heartbeat()
     assert type(hb) == capnp.lib.capnp._DynamicStructBuilder
     assert hb.heartbeat is None
