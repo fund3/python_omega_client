@@ -31,7 +31,7 @@ test_requirements = [
 
 setup(
     name='python_omega_client',
-    version='0.1.1',
+    version='1.1.0',
     description='api wrapper for connecting to Fund3 Omega',
     long_description=readme,
     author="dev-fund3",
