@@ -1,3 +1,1 @@
-[submodule "communication_protocol/communication_protocol"]
-	path = communication_protocol/communication_protocol
-	url = git@github.com:fund3/TradingCommunicationProtocol.git
+
