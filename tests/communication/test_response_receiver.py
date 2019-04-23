@@ -9,7 +9,7 @@ import zmq
 
 # pylint: disable=E0611
 # pylint: disable=E0401
-import communication_protocol.TradeMessage_capnp as msgs_capnp
+import trading_communication_protocol.TradeMessage_capnp as msgs_capnp
 # pylint: enable=E0401
 # pylint: enable=E0611
 from omega_client.communication.response_receiver import ResponseReceiver

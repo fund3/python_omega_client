@@ -8,8 +8,8 @@ import capnp
 
 # pylint: disable=E0611
 # pylint: disable=E0401
-import communication_protocol.Exchanges_capnp as exch_capnp
-import communication_protocol.TradeMessage_capnp as msgs_capnp
+import trading_communication_protocol.Exchanges_capnp as exch_capnp
+import trading_communication_protocol.TradeMessage_capnp as msgs_capnp
 # pylint: enable=E0611
 # pylint: enable=E0401
 from omega_client.messaging.common_types import AccountBalancesReport, \

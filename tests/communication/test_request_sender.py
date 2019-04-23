@@ -4,8 +4,8 @@ import capnp
 import pytest
 import zmq
 
-import communication_protocol.Exchanges_capnp as exch_capnp
-import communication_protocol.TradeMessage_capnp as msgs_capnp
+import trading_communication_protocol.Exchanges_capnp as exch_capnp
+import trading_communication_protocol.TradeMessage_capnp as msgs_capnp
 from omega_client.communication.request_sender import RequestSender
 from omega_client.messaging.common_types import AccountBalancesReport, \
     AccountCredentials, AccountDataReport, AccountInfo, AuthorizationRefresh, \

@@ -11,7 +11,7 @@ from omega_client.messaging.common_types import AccountBalancesReport, \
     Message, OpenPositionsReport, Order, OrderInfo, \
     OrderStatus, OrderType, RequestHeader, Side, \
     SymbolProperties, TimeInForce, WorkingOrdersReport
-import communication_protocol.TradeMessage_capnp as msgs_capnp
+import trading_communication_protocol.TradeMessage_capnp as msgs_capnp
 from omega_client.messaging.message_factory import account_balances_report_py, \
     account_data_report_py, authorization_grant_py, \
     completed_orders_report_py, \
