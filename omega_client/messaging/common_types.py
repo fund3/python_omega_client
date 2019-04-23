@@ -30,7 +30,7 @@ class Exchange(Enum):
 class Side(Enum):
     """Trading Sides
 
-    https://github.com/fund3/CommunicationProtocol/blob/master/TradeMessage.capnp
+    https://github.com/fund3/TradingCommunicationProtocol/blob/master/TradeMessage.capnp
     """
     undefined = auto()
     buy = auto()
@@ -40,7 +40,7 @@ class Side(Enum):
 class OrderType(Enum):
     """Supported Order Types
 
-    https://github.com/fund3/CommunicationProtocol/blob/master/TradeMessage.capnp
+    https://github.com/fund3/TradingCommunicationProtocol/blob/master/TradeMessage.capnp
     """
     undefined = auto()
     market = auto()
@@ -56,7 +56,7 @@ class OrderType(Enum):
 class OrderStatus(Enum):
     """Order Status on Exchange
 
-    https://github.com/fund3/CommunicationProtocol/blob/master/TradeMessage.capnp
+    https://github.com/fund3/TradingCommunicationProtocol/blob/master/TradeMessage.capnp
     """
     undefined = auto()
     received = auto()
@@ -77,7 +77,7 @@ class OrderStatus(Enum):
 class TimeInForce(Enum):
     """Order Time In Force
 
-    https://github.com/fund3/CommunicationProtocol/blob/master/TradeMessage.capnp
+    https://github.com/fund3/TradingCommunicationProtocol/blob/master/TradeMessage.capnp
     """
     undefined = auto()
     gtc = auto()        # Good till cancel
@@ -90,7 +90,7 @@ class TimeInForce(Enum):
 class LeverageType(Enum):
     """Leverage Type
 
-    https://github.com/fund3/CommunicationProtocol/blob/master/TradeMessage.capnp
+    https://github.com/fund3/TradingCommunicationProtocol/blob/master/TradeMessage.capnp
     """
     none = auto()
     exchangeDefault = auto()
@@ -100,7 +100,7 @@ class LeverageType(Enum):
 class AccountType(Enum):
     """Account Type
 
-    https://github.com/fund3/CommunicationProtocol/blob/master/TradeMessage.capnp
+    https://github.com/fund3/TradingCommunicationProtocol/blob/master/TradeMessage.capnp
     """
     undefined = auto()
     exchange = auto()

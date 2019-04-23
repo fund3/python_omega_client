@@ -13,9 +13,9 @@ class MyInstall(install):
 
 class MyBuild(build):
     def run(self):
-        # Need to install it like this to avoid conflict with other packages using communication_protocol
+        # Need to install it like this to avoid conflict with other packages using trading_communication_protocol
         subprocess.run(['pip3', 'install', '.'], cwd=os.path.abspath(
-            './communication_protocol'), check=True)
+            './trading_communication_protocol'), check=True)
         build.run(self)
 
 with open('README.md') as readme_file:
