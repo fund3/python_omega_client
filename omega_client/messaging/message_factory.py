@@ -626,6 +626,16 @@ def _build_py_balance_from_capnp(balance):
     )
 
 
+def _build_list_str_from_capnp(capnp_list):
+    """
+    :param capnp_list: capnp list object, potentially None
+    :return: python list of str or None
+    """
+    if capnp_list is not None:
+        return [str(s) for s in capnp_list]
+    return None
+
+
 def _build_py_execution_report_from_capnp(execution_report):
     """
     Converts a capnp ExecutionReport to Python object.
@@ -640,6 +650,12 @@ def _build_py_execution_report_from_capnp(execution_report):
         client_order_link_id=execution_report.clientOrderLinkID,
         account_info=account_info_py(
             execution_report.accountInfo),
+        order_class=execution_report.orderClass,
+        contingent_type=execution_report.contingentType,
+        parent_order_id=execution_report.parentOrderID,
+        sub_order_ids=_build_list_str_from_capnp(execution_report.subOrderIDs),
+        linked_order_ids=_build_list_str_from_capnp(
+            execution_report.linkedOrderIDs),
         symbol=execution_report.symbol,
         side=execution_report.side,
         order_type=execution_report.orderType,
