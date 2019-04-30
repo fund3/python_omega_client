@@ -348,9 +348,9 @@ def _build_capnp_order_list(body, order_list: List[Order],
         try:
             # build list of structs based on method in:
             # https://jparyani.github.io/pycapnp/quickstart.html#list
-            capnp_order = place_order_list[indx]
-            place_order = capnp_order.init('placeSingleOrder')
-            _py_order_to_capnp(place_order=place_order, order=py_order)
+            place_order = msgs_capnp.PlaceOrder.new_message()
+            place_order_list[indx] = _py_order_to_capnp(place_order=place_order,
+                                                        order=py_order)
         except Exception as e:
             logger.error('Missing order field', extra={'error': e})
             raise e
