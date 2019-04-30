@@ -317,6 +317,7 @@ def _py_order_to_capnp(body, order: Order):
     place_order.leverage = order.leverage
     return place_order
 
+
 def place_order_capnp(request_header: RequestHeader, order: Order):
     """
     Generates a capnp placeOrder message from an Order.
@@ -328,6 +329,29 @@ def place_order_capnp(request_header: RequestHeader, order: Order):
     omega_message, body = _generate_omega_request(request_header=request_header)
     place_order = _py_order_to_capnp(body=body, order=order)
     return omega_message, place_order
+
+
+def _build_capnp_order_list(body, order_list: List[Order],
+                            list_name: str = 'orders'):
+    """
+    Build a list of capnp placeSingleOrder objects
+    :param body: (capnp._DynamicStructBuilder) capnp object to build list on
+    :param order_list: (List[Order]) List of python Order objects to be
+        converted to cpanp
+    :param list_name: str name of the list to init (usually "orders")
+    :return: (capnp._DynamicStructBuilder) list of placeSingleOrder message.
+    """
+    place_order_list = body.init(list_name, len(order_list))
+
+    for py_order, indx in zip(order_list, range(len(order_list))):
+        try:
+            capnp_order = place_order_list[indx]
+            _py_order_to_capnp(body=capnp_order, order=py_order)
+        except Exception as e:
+            logger.error('Missing order field', extra={'error': e})
+            raise e
+
+    return place_order_list
 
 
 # TODO place_contingent_order_capnp
@@ -346,18 +370,27 @@ def place_contingent_order_capnp(request_header: RequestHeader,
     place_c_order = body.init('placeContingentOrder')
     if type(contingent_order) == Batch:
         batch = place_c_order.init('type').init('batch')
-        for order in contingent_order.orders:
+        _build_capnp_order_list(body=batch, order_list=contingent_order.orders)
 
     elif type(contingent_order) == OCO:
         oco = place_c_order.init('type').init('oco')
-        for order in contingent_order.orders:
+        _build_capnp_order_list(body=oco, order_list=contingent_order.orders)
 
     elif type(contingent_order) == OPO:
         opo = place_c_order.init('type').init('opo')
+        # TODO this is probs wrong
+        opo.primary = _py_order_to_capnp(body=opo,
+                                         order=contingent_order.primary)
+
         if type(contingent_order.secondary) == Batch:
-            
-
-
+            batch = opo.init('secondary').init('batch')
+            _build_capnp_order_list(body=batch,
+                                    order_list=contingent_order.orders)
+        elif type(contingent_order.secondary) == OCO:
+            oco = opo.init('secondary').init('oco')
+            _build_capnp_order_list(body=oco,
+                                    order_list=contingent_order.orders)
+        
     return omega_message, place_c_order
 
 
