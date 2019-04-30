@@ -293,15 +293,13 @@ def request_server_time_capnp(request_header: RequestHeader):
     return omega_message, body
 
 
-def place_order_capnp(request_header: RequestHeader, order: Order):
+def _py_order_to_capnp(body, order: Order):
     """
-    Generates a capnp placeOrder message from an Order.
-    :param order: (Order) Python object from omega_client.common_types.
-    :param request_header: Header parameter object for requests.
-    :return: (capnp._DynamicStructBuilder) TradeMessage capnp object,
-             (capnp._DynamicStructBuilder) placeOrder capnp object.
+    Generates a capnp placeSingleOrder message from capnp body, python Order
+    :param body: capnp object returned by "_generate_omega_request"
+    :param order: python Order object
+    :return: place_order (capnp placeSingleOrder object)
     """
-    omega_message, body = _generate_omega_request(request_header=request_header)
     place_order = body.init('placeSingleOrder')
     acct = place_order.init('accountInfo')
     acct.accountID = order.account_info.account_id
@@ -317,6 +315,18 @@ def place_order_capnp(request_header: RequestHeader, order: Order):
     place_order.expireAt = order.expire_at
     place_order.leverageType = order.leverage_type
     place_order.leverage = order.leverage
+    return place_order
+
+def place_order_capnp(request_header: RequestHeader, order: Order):
+    """
+    Generates a capnp placeOrder message from an Order.
+    :param order: (Order) Python object from omega_client.common_types.
+    :param request_header: Header parameter object for requests.
+    :return: (capnp._DynamicStructBuilder) TradeMessage capnp object,
+             (capnp._DynamicStructBuilder) placeOrder capnp object.
+    """
+    omega_message, body = _generate_omega_request(request_header=request_header)
+    place_order = _py_order_to_capnp(body=body, order=order)
     return omega_message, place_order
 
 
@@ -334,6 +344,21 @@ def place_contingent_order_capnp(request_header: RequestHeader,
     """
     omega_message, body = _generate_omega_request(request_header=request_header)
     place_c_order = body.init('placeContingentOrder')
+    if type(contingent_order) == Batch:
+        batch = place_c_order.init('type').init('batch')
+        for order in contingent_order.orders:
+
+    elif type(contingent_order) == OCO:
+        oco = place_c_order.init('type').init('oco')
+        for order in contingent_order.orders:
+
+    elif type(contingent_order) == OPO:
+        opo = place_c_order.init('type').init('opo')
+        if type(contingent_order.secondary) == Batch:
+            
+
+
+    return omega_message, place_c_order
 
 
 def replace_order_capnp(
