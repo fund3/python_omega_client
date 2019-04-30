@@ -2,7 +2,7 @@ import logging
 from queue import Empty, Queue
 from threading import Event, Thread
 import time
-from typing import List
+from typing import List, Union
 
 import capnp
 import zmq
@@ -11,14 +11,15 @@ from omega_client.messaging.common_types import AccountBalancesReport, \
     AccountCredentials, AccountInfo, AuthorizationGrant, AuthorizationRefresh, \
     CompletedOrdersReport, ExchangePropertiesReport, \
     ExecutionReport, OpenPositionsReport, Order, OrderInfo, \
-    OrderType, RequestHeader, TimeInForce, WorkingOrdersReport
+    OrderType, RequestHeader, TimeInForce, WorkingOrdersReport, Batch, OPO, OCO
 from omega_client.messaging.message_factory import cancel_all_orders_capnp, \
     cancel_order_capnp, heartbeat_capnp, logoff_capnp, logon_capnp, \
     place_order_capnp, replace_order_capnp, request_account_balances_capnp, \
     request_account_data_capnp, request_auth_refresh_capnp, \
     request_completed_orders_capnp, request_exchange_properties_capnp, \
     request_open_positions_capnp, request_order_status_capnp, \
-    request_server_time_capnp, request_working_orders_capnp
+    request_server_time_capnp, request_working_orders_capnp, \
+    place_contingent_order_capnp
 
 logger = logging.getLogger(__name__)
 
@@ -188,6 +189,20 @@ class RequestSender(Thread):
             request_header=request_header, order=order)
         self._queue_message(omega_message)
         return place_order
+
+    def place_contingent_order(self, request_header: RequestHeader,
+                               contingent_order: Union[Batch, OPO, OCO]):
+        """
+        Sends a request to Omega to place a contingent order.
+        :param request_header: Header parameter object for requests.
+        :param contingent_order: (Batch, OPO, or OCO) python object
+        :return: (capnp._DynamicStructBuilder) placeContingentOrder capnp
+        object.
+        """
+        omega_message, place_contingent_order = place_contingent_order_capnp(
+            request_header=request_header, contingent_order=contingent_order)
+        self._queue_message(omega_message)
+        return place_contingent_order
 
     def replace_order(self,
                       request_header: RequestHeader,
