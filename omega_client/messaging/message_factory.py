@@ -1,6 +1,6 @@
 import logging
 import time
-from typing import List
+from typing import List, Union
 
 # pylint: disable=W0611
 import capnp
@@ -18,7 +18,7 @@ from omega_client.messaging.common_types import AccountBalancesReport, \
     ExchangePropertiesReport, ExecutionReport, \
     LogoffAck,  LogonAck, Message, OpenPosition, OpenPositionsReport, Order, \
     OrderInfo,  OrderType, RequestHeader, SymbolProperties, \
-    SystemMessage, TimeInForce, WorkingOrdersReport
+    SystemMessage, TimeInForce, WorkingOrdersReport, Batch, OCO, OPO
 
 logger = logging.getLogger(__name__)
 
@@ -318,6 +318,22 @@ def place_order_capnp(request_header: RequestHeader, order: Order):
     place_order.leverageType = order.leverage_type
     place_order.leverage = order.leverage
     return omega_message, place_order
+
+
+# TODO place_contingent_order_capnp
+def place_contingent_order_capnp(request_header: RequestHeader,
+                                 contingent_order: Union[Batch, OCO, OPO]):
+    """
+    Generates a capnp placeContingentOrder message from an Batch, OCO,
+    or OPO order.
+    :param request_header: Header parameter object for requests.
+    :param contingent_order: (Batch, OCO, or OPO) Python object from
+        omega_client.common_types.
+    :return: (capnp._DynamicStructBuilder) TradeMessage capnp object,
+             (capnp._DynamicStructBuilder) placeContingentOrder capnp object.
+    """
+    omega_message, body = _generate_omega_request(request_header=request_header)
+    place_c_order = body.init('placeContingentOrder')
 
 
 def replace_order_capnp(
