@@ -835,25 +835,122 @@ def test_request_auth_refresh_capnp():
     assert actual_auth_refresh_token == expected_auth_refresh_token
 
 
-# TODO add tests for all capnp methods
-# @pytest.mark.test_id(20)
-# def test_cancel_order_capnp():
-#     expected_omega_message = msgs_capnp.TradeMessage.new_message()
-#     request_cancel_order = expected_omega_message.init('type').init('request')
-#     request_cancel_order.clientID = 123
-#     request_cancel_order.senderCompID = str(987)
-#     request_cancel_order.requestID = 100001
-#     request_cancel_order.accessToken = __FAKE_ACCESS_TOKEN
-#     body = request_cancel_order.init('body')
-#     # TODO accountInfo, orderID
-#
-#     # TODO include account_info, order_id
-#     actual_omega_message = cancel_order_capnp(__FAKE_REQUEST_HEADER)[0]
-#
-#     assert actual_omega_message.type.request.clientID == (
-#         expected_omega_message.type.request.clientID)
-#     assert actual_omega_message.type.request.senderCompID == (
-#         expected_omega_message.type.request.senderCompID)
-#     assert actual_omega_message.type.request.requestID == (
-#         expected_omega_message.type.request.requestID)
-#     # TODO
+@pytest.mark.test_id(20)
+def test_handle_omega_message_completed_contingent_orders_report():
+    omega_mess = msgs_capnp.TradeMessage.new_message()
+    completed_orders_resp = omega_mess.init('type').init('response')
+    completed_orders_resp.clientID = 123
+    completed_orders_resp.senderCompID = str(987)
+    completed_orders_resp.requestID = 100001
+    body = completed_orders_resp.init('body')
+    cor = body.init('completedOrdersReport')
+    account = cor.init('accountInfo')
+    account.accountID = 101
+
+    orders = cor.init('orders', 3)
+    orders[0].orderID = 'c137'
+    orders[0].clientOrderID = str(1234)
+    orders[0].exchangeOrderID = 'asdf1234'
+    account0 = orders[0].init('accountInfo')
+    account0.accountID = 101
+    orders[0].orderClass = 'compound'
+    orders[0].parentOrderID = 'b101'
+    subOrderIDs = orders[0].init('subOrderIDs', 2)
+    subOrderIDs[0] = 'd101'
+    subOrderIDs[1] = 'e101'
+    orders[0].contingentType = 'opo'
+    # no linkedOrderIDs since OPO type
+    orders[0].symbol = 'BTC/USD'
+    orders[0].side = 'buy'
+    orders[0].orderType = 'limit'
+    orders[0].quantity = 0.1
+    orders[0].price = 10000.0
+    orders[0].stopPrice = 0.0
+    orders[0].timeInForce = 'gtc'
+    orders[0].expireAt = 0.0
+    orders[0].orderStatus = 'filled'
+    orders[0].filledQuantity = 0.20
+    orders[0].avgFillPrice = 10000.0
+    orders[0].fee = 14.15
+    orders[0].creationTime = 1551761395.0
+    orders[0].submissionTime = 1551761395.30
+    orders[0].completionTime = 1551761395.712
+    orders[0].rejectionReason.code = 0
+    orders[0].rejectionReason.body = '<NONE>'
+    orders[0].executionType = 'statusUpdate'
+
+    orders[1].orderID = 'c200'
+    orders[1].clientOrderID = str(1235)
+    orders[1].exchangeOrderID = 'asdf1235'
+    account1 = orders[1].init('accountInfo')
+    account1.accountID = 101
+    orders[1].orderClass = 'compound'
+    # no parent order id for OCO
+    # no sub order ids for OCO
+    orders[1].contingentType = 'oco'
+    linkedOrderIDs = orders[1].init('linkedOrderIDs', 2)
+    linkedOrderIDs[0] = 'c201'
+    linkedOrderIDs[1] = 'c202'
+    orders[1].symbol = 'BTC/USD'
+    orders[1].side = 'buy'
+    orders[1].orderType = 'stopLossLimit'
+    orders[1].quantity = 1000.0
+    orders[1].price = 10.0
+    orders[1].stopPrice = 7.0
+    orders[1].timeInForce = 'gtc'
+    orders[1].expireAt = 0.0
+    orders[1].orderStatus = 'replaced'
+    orders[1].filledQuantity = 0.0
+    orders[1].avgFillPrice = 0.0
+    orders[1].fee = 14.15
+    orders[1].creationTime = 1551761395.0
+    orders[1].submissionTime = 1551761395.30
+    orders[1].completionTime = 1551761395.712
+    orders[1].rejectionReason.code = 0
+    orders[1].rejectionReason.body = '<NONE>'
+    orders[1].executionType = 'statusUpdate'
+
+    orders[2].orderID = 'd200'
+    orders[2].clientOrderID = str(1235)
+    orders[2].exchangeOrderID = 'asdf1235'
+    account1 = orders[2].init('accountInfo')
+    account1.accountID = 101
+    orders[2].orderClass = 'compound'
+    # no parent order id for Batch
+    # no sub order ids for Batch
+    orders[2].contingentType = 'batch'
+    linkedOrderIDs = orders[2].init('linkedOrderIDs', 2)
+    linkedOrderIDs[0] = 'd201'
+    linkedOrderIDs[1] = 'd202'
+    orders[2].symbol = 'BTC/USD'
+    orders[2].side = 'buy'
+    orders[2].orderType = 'stopLossLimit'
+    orders[2].quantity = 1000.0
+    orders[2].price = 10.0
+    orders[2].stopPrice = 7.0
+    orders[2].timeInForce = 'gtc'
+    orders[2].expireAt = 0.0
+    orders[2].orderStatus = 'replaced'
+    orders[2].filledQuantity = 0.0
+    orders[2].avgFillPrice = 0.0
+    orders[2].fee = 14.15
+    orders[2].creationTime = 1551761395.0
+    orders[2].submissionTime = 1551761395.30
+    orders[2].completionTime = 1551761395.712
+    orders[2].rejectionReason.code = 0
+    orders[2].rejectionReason.body = '<NONE>'
+    orders[2].executionType = 'statusUpdate'
+
+    cos_reports = completed_orders_report_py(
+        omega_mess.type.response.body.completedOrdersReport)
+    assert type(cos_reports) == CompletedOrdersReport
+    assert type(cos_reports.account_info) == AccountInfo
+
+    exec_reports = cos_reports.orders
+    assert type(exec_reports) == list
+    assert type(exec_reports[0].contingentType) == str
+    assert exec_reports[0].execution_report_type == 'opo'
+    assert type(exec_reports[1].contingentType) == str
+    assert exec_reports[1].execution_report_type == 'oco'
+    assert type(exec_reports[2].contingentType) == str
+    assert exec_reports[2].execution_report_type == 'batch'

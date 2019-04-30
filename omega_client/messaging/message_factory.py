@@ -346,6 +346,8 @@ def _build_capnp_order_list(body, order_list: List[Order],
 
     for py_order, indx in zip(order_list, range(len(order_list))):
         try:
+            # build list of structs based on method in:
+            # https://jparyani.github.io/pycapnp/quickstart.html#list
             capnp_order = place_order_list[indx]
             place_order = capnp_order.init('placeSingleOrder')
             _py_order_to_capnp(place_order=place_order, order=py_order)
