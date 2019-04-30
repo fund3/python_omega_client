@@ -266,7 +266,7 @@ class OPO(CommonType):
     """
     Order place order(s)
     "primary" is an order with any regular order type. Once that order is
-    filled or partially filled, the "secondary orders" are placed.
+    completely filled, the "secondary orders" are placed.
 
     For example, filling a buy order can trigger either a sell OCO
     (a profit target order and a stop loss order), a profit target order,
@@ -409,7 +409,7 @@ class ExecutionReport(CommonType):
             by the exchange
         :param completion_time: float unix timestamp when order was completed
         :param execution_report_type: str (see ExecutionReportType enum)
-        :param parent_order_id: str parent order id for contingent orders only
+        :param parent_order_id: str parent order id for smart orders only
         :param sub_order_ids: list of sub order id for contingent orders only
         :param linked_order_ids: list of linked order ids for contingent
         orders only

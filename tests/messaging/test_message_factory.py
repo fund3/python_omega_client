@@ -854,12 +854,11 @@ def test_handle_omega_message_completed_contingent_orders_report():
     account0 = orders[0].init('accountInfo')
     account0.accountID = 101
     orders[0].orderClass = 'compound'
-    orders[0].parentOrderID = 'b101'
-    subOrderIDs = orders[0].init('subOrderIDs', 2)
-    subOrderIDs[0] = 'd101'
-    subOrderIDs[1] = 'e101'
+    # no subOrderIDs or parentOrderID since OPO type
+    linkedOrderIDs = orders[0].init('linkedOrderIDs', 2)
+    linkedOrderIDs[0] = 'd101'
+    linkedOrderIDs[1] = 'e101'
     orders[0].contingentType = 'opo'
-    # no linkedOrderIDs since OPO type
     orders[0].symbol = 'BTC/USD'
     orders[0].side = 'buy'
     orders[0].orderType = 'limit'
