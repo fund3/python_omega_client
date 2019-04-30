@@ -422,7 +422,7 @@ class ExecutionReport(CommonType):
         self.exchange_order_id = str(exchange_order_id)
         self.account_info = account_info
         self.order_class = order_class
-        self.contigent_type = contingent_type
+        self.contingent_type = contingent_type
         self.symbol = str(symbol)
         self.side = str(side)
         self.order_type = str(order_type)
