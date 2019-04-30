@@ -590,7 +590,7 @@ def test_place_contingent_batch_order(fake_request_sender):
         request_header=__FAKE_REQUEST_HEADER, contingent_order=contingent_order)
 
     assert type(contingent_order_capnp) == capnp.lib.capnp._DynamicStructBuilder
-    batch_order0 = contingent_order_capnp.batch.orders[0]
+    batch_order0 = contingent_order_capnp.orders[0]
     assert batch_order0.accountInfo.accountID == 100
     assert batch_order0.symbol == 'BTC/USD'
     assert batch_order0.side == 'buy'
@@ -601,7 +601,7 @@ def test_place_contingent_batch_order(fake_request_sender):
     assert batch_order0.timeInForce == 'gtc'
     assert batch_order0.expireAt == 0.0
 
-    batch_order1 = contingent_order_capnp.batch.orders[1]
+    batch_order1 = contingent_order_capnp.orders[1]
     assert batch_order1.accountInfo.accountID == 100
     assert batch_order1.symbol == 'BTC/USD'
     assert batch_order1.side == 'buy'
