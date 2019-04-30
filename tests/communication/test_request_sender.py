@@ -12,7 +12,7 @@ from omega_client.messaging.common_types import AccountBalancesReport, \
     CompletedOrdersReport, Exchange, ExchangePropertiesReport, LeverageType, \
     ExecutionReport, OpenPosition, OpenPositionsReport, Order, OrderInfo, \
     OrderStatus, OrderType, RequestHeader, Side, SymbolProperties, \
-    TimeInForce, WorkingOrdersReport
+    TimeInForce, WorkingOrdersReport, Batch, OPO, OCO
 from omega_client.messaging.message_factory import heartbeat_capnp
 
 
@@ -552,3 +552,62 @@ def test_request_authorization_refresh(fake_request_sender):
     )
     assert type(auth_refresh) == capnp.lib.capnp._DynamicStructBuilder
     assert auth_refresh.refreshToken == expected_refresh_token
+
+
+@pytest.mark.test_id(26)
+def test_place_contingent_batch_order(fake_request_sender):
+    order0 = Order(
+        account_info=AccountInfo(account_id=100),
+        client_order_id=str(8675309),
+        client_order_link_id='a123',
+        symbol='BTC/USD',
+        side=Side.buy.name,
+        order_type=OrderType.limit.name,
+        quantity=1.1,
+        price=6000.01,
+        stop_price=0.0,
+        time_in_force=TimeInForce.gtc.name,
+        expire_at=0.0,
+        leverage_type=LeverageType.none.name
+    )
+    order1 = Order(
+        account_info=AccountInfo(account_id=100),
+        client_order_id=str(8675310),
+        client_order_link_id='a124',
+        symbol='BTC/USD',
+        side=Side.buy.name,
+        order_type=OrderType.limit.name,
+        quantity=1.1,
+        price=6000.11,
+        stop_price=0.0,
+        time_in_force=TimeInForce.gtc.name,
+        expire_at=0.0,
+        leverage_type=LeverageType.none.name
+    )
+
+    contingent_order = Batch(orders=[order0, order1])
+    contingent_order_capnp = fake_request_sender.place_contingent_order(
+        request_header=__FAKE_REQUEST_HEADER, order=contingent_order)
+
+    assert type(contingent_order_capnp) == capnp.lib.capnp._DynamicStructBuilder
+    batch_order0 = contingent_order_capnp.batch.orders[0]
+    assert batch_order0.accountInfo.accountID == 100
+    assert batch_order0.symbol == 'BTC/USD'
+    assert batch_order0.side == 'buy'
+    assert batch_order0.orderType == 'limit'
+    assert batch_order0.quantity == 1.1
+    assert batch_order0.price == 6000.01
+    assert batch_order0.stopPrice == 0.0
+    assert batch_order0.timeInForce == 'gtc'
+    assert batch_order0.expireAt == 0.0
+
+    batch_order1 = contingent_order_capnp.batch.orders[1]
+    assert batch_order1.accountInfo.accountID == 100
+    assert batch_order1.symbol == 'BTC/USD'
+    assert batch_order1.side == 'buy'
+    assert batch_order1.orderType == 'limit'
+    assert batch_order1.quantity == 1.1
+    assert batch_order1.price == 6000.11
+    assert batch_order1.stopPrice == 0.0
+    assert batch_order1.timeInForce == 'gtc'
+    assert batch_order1.expireAt == 0.0

@@ -86,7 +86,7 @@ class SingleClientRequestSender:
     def place_contingent_order(self, contingent_order: Union[Batch, OPO, OCO]):
         return self._request_sender.place_contingent_order(
             request_header=self._request_header,
-            contingent_ordere=contingent_order
+            contingent_order=contingent_order
         )
 
     def replace_order(self, account_info: AccountInfo,
