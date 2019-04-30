@@ -421,8 +421,8 @@ class ExecutionReport(CommonType):
         self.client_order_link_id = str(client_order_link_id or '')
         self.exchange_order_id = str(exchange_order_id)
         self.account_info = account_info
-        self.order_class = order_class
-        self.contingent_type = contingent_type
+        self.order_class = str(order_class)
+        self.contingent_type = str(contingent_type)
         self.symbol = str(symbol)
         self.side = str(side)
         self.order_type = str(order_type)
@@ -441,7 +441,7 @@ class ExecutionReport(CommonType):
         self.submission_time = float(submission_time)
         self.completion_time = float(completion_time)
         self.execution_report_type = str(execution_report_type)
-        self.parent_order_id = parent_order_id
+        self.parent_order_id = str(parent_order_id)
         self.sub_order_ids = sub_order_ids
         self.linked_order_ids = linked_order_ids
         self.rejection_reason = rejection_reason
