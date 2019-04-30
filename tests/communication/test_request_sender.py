@@ -587,7 +587,7 @@ def test_place_contingent_batch_order(fake_request_sender):
 
     contingent_order = Batch(orders=[order0, order1])
     contingent_order_capnp = fake_request_sender.place_contingent_order(
-        request_header=__FAKE_REQUEST_HEADER, order=contingent_order)
+        request_header=__FAKE_REQUEST_HEADER, contingent_order=contingent_order)
 
     assert type(contingent_order_capnp) == capnp.lib.capnp._DynamicStructBuilder
     batch_order0 = contingent_order_capnp.batch.orders[0]

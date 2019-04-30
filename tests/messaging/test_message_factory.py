@@ -947,9 +947,9 @@ def test_handle_omega_message_completed_contingent_orders_report():
 
     exec_reports = cos_reports.orders
     assert type(exec_reports) == list
-    assert type(exec_reports[0].contingentType) == str
-    assert exec_reports[0].execution_report_type == 'opo'
-    assert type(exec_reports[1].contingentType) == str
-    assert exec_reports[1].execution_report_type == 'oco'
-    assert type(exec_reports[2].contingentType) == str
-    assert exec_reports[2].execution_report_type == 'batch'
+    assert type(exec_reports[0].contingent_type) == str
+    assert exec_reports[0].contingent_type == 'opo'
+    assert type(exec_reports[1].contingent_type) == str
+    assert exec_reports[1].contingent_type == 'oco'
+    assert type(exec_reports[2].contingent_type) == str
+    assert exec_reports[2].contingent_type == 'batch'
