@@ -333,16 +333,19 @@ def place_order_capnp(request_header: RequestHeader, order: Order):
 
 
 def _build_capnp_order_list(body, order_list: List[Order],
-                            list_name: str = 'orders'):
+                            place_order_list=None):
     """
-    Build a list of capnp placeSingleOrder objects
+    Build a list of capnp placeSingleOrder objects.
+    Either body or place_order_list is None.
     :param body: (capnp._DynamicStructBuilder) capnp object to build list on
     :param order_list: (List[Order]) List of python Order objects to be
         converted to cpanp
-    :param list_name: str name of the list to init (usually "orders")
+    :param place_order_list: (capnp._DynamicStructBuilder) initialized capnp
+        list object to be populated, default = None
     :return: (capnp._DynamicStructBuilder) list of placeSingleOrder message.
     """
-    place_order_list = body.init(list_name, len(order_list))
+    if place_order_list is not None:
+        place_order_list = body.init('orders', len(order_list))
 
     for py_order, indx in zip(order_list, range(len(order_list))):
         try:
@@ -387,11 +390,14 @@ def place_contingent_order_capnp(request_header: RequestHeader,
 
         py_secondary = contingent_order.secondary
         if type(py_secondary) == Batch:
-            batch = opo.init('secondary').init('batch')
-            _build_capnp_order_list(body=batch, order_list=py_secondary.orders)
+            batch = opo.init('secondary').init('batch',
+                                               len(py_secondary.orders))
+            _build_capnp_order_list(body=None, order_list=py_secondary.orders,
+                                    place_order_list=batch)
         elif type(py_secondary) == OCO:
-            oco = opo.init('secondary').init('oco')
-            _build_capnp_order_list(body=oco, order_list=py_secondary.orders)
+            oco = opo.init('secondary').init('oco', len(py_secondary.orders))
+            _build_capnp_order_list(body=None, order_list=py_secondary.orders,
+                                    place_order_list=oco)
 
     return omega_message, place_c_order
 
