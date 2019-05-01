@@ -741,7 +741,7 @@ def test_place_contingent_opo_oco_order(fake_request_sender):
     assert batch_order0.side == 'sell'
     assert batch_order0.orderType == 'limit'
     assert batch_order0.quantity == 1.1
-    assert batch_order0.price == 6200.01
+    assert batch_order0.price == 6200.11
     assert batch_order0.stopPrice == 0.0
     assert batch_order0.timeInForce == 'gtc'
     assert batch_order0.expireAt == 0.0
