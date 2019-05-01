@@ -21,9 +21,9 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.abspath('../'))
-sys.path.insert(0, os.path.abspath('../../'))
-sys.path.insert(0, os.path.abspath('../../trading_communication_protocol'))
-sys.path.insert(0, os.path.abspath('../../omega_client'))
+sys.path.insert(0, os.path.abspath('../'))
+sys.path.insert(0, os.path.abspath('../trading_communication_protocol'))
+sys.path.insert(0, os.path.abspath('../omega_client'))
 
 
 # -- General configuration ------------------------------------------------
