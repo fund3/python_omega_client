@@ -5,3 +5,4 @@ omega_client
    :maxdepth: 4
 
    omega_client
+   examples
