@@ -31,19 +31,24 @@ class ResponseReceiver(Thread):
     sliced/ parallel processing of messages.
 
     Attributes:
-        _ZMQ_CONTEXT: (zmq.Context) Required to create sockets. It is
-            recommended that one application use one shared zmq context for
-            all sockets.
-        _ZMQ_ENDPOINT: (str) The zmq endpoint to connect to.
-        _RESPONSE_HANDLER: (ResponseHandler) The ResponseHandler object that
-            holds the logic of handling each type of response.
-        _POLLING_TIMEOUT_MILLI: (int) The polling timeout for response_socket.
-        _SOCKET_IDENTITY: (bytes) The socket identity in bytes used for the
-            ROUTER socket on the other side to identify the DEALER socket in
-            this class.  Optional since zmq DEALER socket generates a default
-            identity.
-        _is_running: (Event) Event object that indicates on/ off
-            behavior for the response handler loop.
+        _ZMQ_CONTEXT: (zmq.Context)
+        Required to create sockets. It is
+        recommended that one application use one shared zmq context for all
+        sockets.
+        _ZMQ_ENDPOINT: (str)
+        The zmq endpoint to connect to.
+        _RESPONSE_HANDLER: (ResponseHandler)
+        The ResponseHandler object that holds the logic of handling each type of
+        response.
+        _POLLING_TIMEOUT_MILLI: (int)
+        The polling timeout for response_socket.
+        _SOCKET_IDENTITY: (bytes)
+        The socket identity in bytes used for the ROUTER socket on the other
+        side to identify the DEALER socket in this class. Optional since zmq
+        DEALER socket generates a default identity.
+        _is_running: (Event)
+        Event object that indicates on/ off behavior for the response handler
+        loop.
     """
     def __init__(self,
                  zmq_context: zmq.Context,

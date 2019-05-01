@@ -34,29 +34,35 @@ class OmegaConnection(Thread):
     their associated responses from Omega as callbacks are handled by this class.
 
     Attributes:
-        _ZMQ_CONTEXT: (zmq.Context) Required to create sockets. It is
-            recommended that one application use one shared zmq context for
-            all sockets.
-        _OMEGA_ENDPOINT: (str) The zmq endpoint to connect to Omega, in the
-            form of a zmq connection str 'protocol://interface:port', e.g.
-            'tcp://0.0.0.0:9999'.
-        _REQUEST_SENDER_ENDPOINT: (str) The zmq endpoint used to connect to
-            _request_sender.  By default it is a local, inproc endpoint that
-            lives in another thread of the same process.
-        _RESPONSE_RECEIVER_ENDPOINT: (str) The zmq endpoint used to connect to
-            _response_receiver.  By default it is a local, inproc endpoint that
-            lives in another thread of the same process.
-        _OMEGA_POLLING_TIMEOUT_MILLI: (int) The polling timeout for
-            _omega_connection_socket.
-        _OMEGA_SOCKET_IDENTITY: (bytes) The socket identity in bytes used for the
-            ROUTER socket on the other side to identify the DEALER socket in
-            this class. Optional since zmq DEALER socket generates a default
-            identity.
-        _SERVER_ZMQ_ENCRYPTION_KEY: (str) The public key of the Omega server
-            used to encrypt data flowing between the client and server.
-        _response_receiver: (ResponseReceiver) The response receiver object.
-        _request_sender: (RequestSender) The request sender object.
-        _is_running: (Event) An event to indicate if the connection is running.
+        _ZMQ_CONTEXT: (zmq.Context)
+        Required to create sockets. It is recommended that one application
+        use one shared zmq context for all sockets.
+        _OMEGA_ENDPOINT: (str)
+        The zmq endpoint to connect to Omega, in the form of a zmq connection
+        str 'protocol://interface:port', e.g. 'tcp://0.0.0.0:9999'.
+        _REQUEST_SENDER_ENDPOINT: (str)
+        The zmq endpoint used to connect to _request_sender.  By default it
+        is a local, inproc endpoint that lives in another thread of the same
+        process.
+        _RESPONSE_RECEIVER_ENDPOINT: (str)
+        The zmq endpoint used to connect to _response_receiver.  By default
+        it is a local, inproc endpoint that lives in another thread of the
+        same process.
+        _OMEGA_POLLING_TIMEOUT_MILLI: (int)
+        The polling timeout for _omega_connection_socket.
+        _OMEGA_SOCKET_IDENTITY: (bytes)
+        The socket identity in bytes used for the ROUTER socket on the other
+        side to identify the DEALER socket in this class. Optional since zmq
+        DEALER socket generates a default identity.
+        _SERVER_ZMQ_ENCRYPTION_KEY: (str)
+        The public key of the Omega server used to encrypt data flowing
+        between the client and server.
+        _response_receiver: (ResponseReceiver)
+        The response receiver object.
+        _request_sender: (RequestSender)
+        The request sender object.
+        _is_running: (Event)
+        An event to indicate if the connection is running.
     """
     def __init__(self,
                  zmq_context: zmq.Context,
@@ -69,6 +75,38 @@ class OmegaConnection(Thread):
                  name: str = 'OmegaConnection',
                  omega_socket_identity: bytes = None,
                  server_zmq_encryption_key: str = None):
+        """
+
+        :param zmq_context: (zmq.Context)
+        Required to create sockets. It is recommended that one application
+        use one shared zmq context for all sockets.
+        :param omega_endpoint: (str)
+        The zmq endpoint to connect to Omega, in the form of a zmq connection
+        str 'protocol://interface:port', e.g. 'tcp://0.0.0.0:9999'.
+        :param request_sender_endpoint: (str)
+        The zmq endpoint used to connect to _request_sender.  By default it
+        is a local, inproc endpoint that lives in another thread of the same
+        process.
+        :param response_receiver_endpoint: (str)
+        The zmq endpoint used to connect to _response_receiver.  By default
+        it is a local, inproc endpoint that lives in another thread of the
+        same process.
+        :param request_sender: (RequestSender)
+        The request sender object.
+        :param response_receiver: (ResponseReceiver)
+        The response receiver object.
+        :param omega_polling_timeout_milli: (int)
+        The polling timeout for _omega_connection_socket.
+        :param name: (str)
+        name of the thread (inherited from Thread parent class)
+        :param omega_socket_identity: (bytes)
+        The socket identity in bytes used for the ROUTER socket on the other
+        side to identify the DEALER socket in this class. Optional since zmq
+        DEALER socket generates a default identity.
+        :param server_zmq_encryption_key: (str)
+        The public key of the Omega server used to encrypt data flowing
+        between the client and server.
+        """
         assert zmq_context
         assert omega_endpoint
         assert request_sender_endpoint
