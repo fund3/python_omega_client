@@ -1,6 +1,6 @@
 import logging
 import time
-from typing import List
+from typing import List, Union
 
 # pylint: disable=W0611
 import capnp
@@ -18,7 +18,7 @@ from omega_client.messaging.common_types import AccountBalancesReport, \
     ExchangePropertiesReport, ExecutionReport, \
     LogoffAck,  LogonAck, Message, OpenPosition, OpenPositionsReport, Order, \
     OrderInfo,  OrderType, RequestHeader, SymbolProperties, \
-    SystemMessage, TimeInForce, WorkingOrdersReport
+    SystemMessage, TimeInForce, WorkingOrdersReport, Batch, OCO, OPO
 
 logger = logging.getLogger(__name__)
 
@@ -293,16 +293,14 @@ def request_server_time_capnp(request_header: RequestHeader):
     return omega_message, body
 
 
-def place_order_capnp(request_header: RequestHeader, order: Order):
+def _py_order_to_capnp(place_order, order: Order):
     """
-    Generates a capnp placeOrder message from an Order.
-    :param order: (Order) Python object from omega_client.common_types.
-    :param request_header: Header parameter object for requests.
-    :return: (capnp._DynamicStructBuilder) TradeMessage capnp object,
-             (capnp._DynamicStructBuilder) placeOrder capnp object.
+    Generates a capnp placeSingleOrder message from capnp body, python Order
+    :param place_order: capnp object
+    :param order: python Order object
+    :return: place_order (capnp placeSingleOrder object)
     """
-    omega_message, body = _generate_omega_request(request_header=request_header)
-    place_order = body.init('placeSingleOrder')
+
     acct = place_order.init('accountInfo')
     acct.accountID = order.account_info.account_id
     place_order.clientOrderID = order.client_order_id
@@ -317,7 +315,91 @@ def place_order_capnp(request_header: RequestHeader, order: Order):
     place_order.expireAt = order.expire_at
     place_order.leverageType = order.leverage_type
     place_order.leverage = order.leverage
+    return place_order
+
+
+def place_order_capnp(request_header: RequestHeader, order: Order):
+    """
+    Generates a capnp placeOrder message from an Order.
+    :param order: (Order) Python object from omega_client.common_types.
+    :param request_header: Header parameter object for requests.
+    :return: (capnp._DynamicStructBuilder) TradeMessage capnp object,
+             (capnp._DynamicStructBuilder) placeOrder capnp object.
+    """
+    omega_message, body = _generate_omega_request(request_header=request_header)
+    place_order = body.init('placeSingleOrder')
+    place_order = _py_order_to_capnp(place_order=place_order, order=order)
     return omega_message, place_order
+
+
+def _build_capnp_order_list(body, order_list: List[Order],
+                            place_order_list=None):
+    """
+    Build a list of capnp placeSingleOrder objects.
+    Either body or place_order_list is None.
+    :param body: (capnp._DynamicStructBuilder) capnp object to build list on
+    :param order_list: (List[Order]) List of python Order objects to be
+        converted to cpanp
+    :param place_order_list: (capnp._DynamicStructBuilder) initialized capnp
+        list object to be populated, default = None
+    :return: (capnp._DynamicStructBuilder) list of placeSingleOrder message.
+    """
+    if body is not None and place_order_list is None:
+        place_order_list = body.init('orders', len(order_list))
+
+    for py_order, indx in zip(order_list, range(len(order_list))):
+        try:
+            # build list of structs based on method in:
+            # https://jparyani.github.io/pycapnp/quickstart.html#list
+            place_order = msgs_capnp.PlaceOrder.new_message()
+            place_order_list[indx] = _py_order_to_capnp(place_order=place_order,
+                                                        order=py_order)
+        except Exception as e:
+            logger.error('Missing order field', extra={'error': e})
+            raise e
+
+    return place_order_list
+
+
+def place_contingent_order_capnp(request_header: RequestHeader,
+                                 contingent_order: Union[Batch, OCO, OPO]):
+    """
+    Generates a capnp placeContingentOrder message from an Batch, OCO,
+    or OPO order.
+    :param request_header: Header parameter object for requests.
+    :param contingent_order: (Batch, OCO, or OPO) Python object from
+        omega_client.common_types.
+    :return: (capnp._DynamicStructBuilder) TradeMessage capnp object,
+             (capnp._DynamicStructBuilder) placeContingentOrder capnp object.
+    """
+    omega_message, body = _generate_omega_request(request_header=request_header)
+    place_c_order = body.init('placeContingentOrder')
+    if type(contingent_order) == Batch:
+        batch = place_c_order.init('type').init('batch')
+        _build_capnp_order_list(body=batch, order_list=contingent_order.orders)
+
+    elif type(contingent_order) == OCO:
+        oco = place_c_order.init('type').init('oco')
+        _build_capnp_order_list(body=oco, order_list=contingent_order.orders)
+
+    elif type(contingent_order) == OPO:
+        opo = place_c_order.init('type').init('opo')
+        opo.primary = msgs_capnp.PlaceOrder.new_message()
+        _py_order_to_capnp(place_order=opo.primary,
+                           order=contingent_order.primary)
+
+        py_secondary = contingent_order.secondary
+        if type(py_secondary) == Batch:
+            batch = opo.init('secondary').init('batch',
+                                               len(py_secondary.orders))
+            _build_capnp_order_list(body=None, order_list=py_secondary.orders,
+                                    place_order_list=batch)
+        elif type(py_secondary) == OCO:
+            oco = opo.init('secondary').init('oco', len(py_secondary.orders))
+            _build_capnp_order_list(body=None, order_list=py_secondary.orders,
+                                    place_order_list=oco)
+
+    return omega_message, place_c_order
 
 
 def replace_order_capnp(
@@ -626,6 +708,16 @@ def _build_py_balance_from_capnp(balance):
     )
 
 
+def _build_list_str_from_capnp(capnp_list):
+    """
+    :param capnp_list: capnp list object, potentially None
+    :return: python list of str or None
+    """
+    if capnp_list is not None:
+        return [str(s) for s in capnp_list]
+    return None
+
+
 def _build_py_execution_report_from_capnp(execution_report):
     """
     Converts a capnp ExecutionReport to Python object.
@@ -640,6 +732,12 @@ def _build_py_execution_report_from_capnp(execution_report):
         client_order_link_id=execution_report.clientOrderLinkID,
         account_info=account_info_py(
             execution_report.accountInfo),
+        order_class=execution_report.orderClass,
+        contingent_type=execution_report.contingentType,
+        parent_order_id=execution_report.parentOrderID,
+        sub_order_ids=_build_list_str_from_capnp(execution_report.subOrderIDs),
+        linked_order_ids=_build_list_str_from_capnp(
+            execution_report.linkedOrderIDs),
         symbol=execution_report.symbol,
         side=execution_report.side,
         order_type=execution_report.orderType,
