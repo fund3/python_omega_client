@@ -5,8 +5,8 @@ from distutils.command.build import build
 
 capnp_dir = './trading_communication_protocol/'
 
-with open(capnp_dir + 'README.md') as readme_file:
-    readme = readme_file.read()
+# with open(capnp_dir + 'README.md') as readme_file:
+#     readme = readme_file.read()
 
 if not os.path.exists(capnp_dir + '__init__.py'):
     with open(capnp_dir + '__init__.py', 'w'):
@@ -16,7 +16,7 @@ setup(
     name='trading_communication_protocol',
     version='1.0',
     description='fund3 communication protocol message definitions',
-    long_description=readme,
+    # long_description=readme,
     author='dev-fund3',
     author_email='dev@fund3.co',
     url='https://github.com/fund3/TradingCommunicationProtocol',
