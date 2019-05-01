@@ -9,7 +9,6 @@ omega\_client\.messaging\.common\_types module
 
 .. automodule:: omega_client.messaging.common_types
     :members:
-    :undoc-members:
     :show-inheritance:
 
 omega\_client\.messaging\.message\_factory module
