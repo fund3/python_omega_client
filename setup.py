@@ -18,6 +18,7 @@ class MyBuild(build):
             './trading_communication_protocol'), check=True)
         build.run(self)
 
+
 with open('README.md') as readme_file:
     readme = readme_file.read()
 
