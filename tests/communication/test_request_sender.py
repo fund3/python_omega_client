@@ -735,8 +735,7 @@ def test_place_contingent_opo_oco_order(fake_request_sender):
     assert primary_opo.timeInForce == 'gtc'
     assert primary_opo.expireAt == 0.0
 
-    batch_order0 = \
-        contingent_order_capnp.type.opo.secondary.oco.orders[0]
+    batch_order0 = contingent_order_capnp.type.opo.secondary.oco[0]
     assert batch_order0.accountInfo.accountID == 100
     assert batch_order0.symbol == 'BTC/USD'
     assert batch_order0.side == 'sell'
@@ -747,8 +746,7 @@ def test_place_contingent_opo_oco_order(fake_request_sender):
     assert batch_order0.timeInForce == 'gtc'
     assert batch_order0.expireAt == 0.0
 
-    batch_order1 = \
-        contingent_order_capnp.type.opo.secondary.oco.orders[1]
+    batch_order1 = contingent_order_capnp.type.opo.secondary.oco[1]
     assert batch_order1.accountInfo.accountID == 100
     assert batch_order1.symbol == 'BTC/USD'
     assert batch_order1.side == 'buy'
@@ -823,8 +821,7 @@ def test_place_contingent_opo_batch_order(fake_request_sender):
     assert primary_opo.timeInForce == 'gtc'
     assert primary_opo.expireAt == 0.0
 
-    batch_order0 = \
-        contingent_order_capnp.type.opo.secondary.batch.orders[0]
+    batch_order0 = contingent_order_capnp.type.opo.secondary.batch[0]
     assert batch_order0.accountInfo.accountID == 100
     assert batch_order0.symbol == 'BTC/USD'
     assert batch_order0.side == 'buy'
@@ -835,8 +832,7 @@ def test_place_contingent_opo_batch_order(fake_request_sender):
     assert batch_order0.timeInForce == 'gtc'
     assert batch_order0.expireAt == 0.0
 
-    batch_order1 = \
-        contingent_order_capnp.type.opo.secondary.batch.orders[1]
+    batch_order1 = contingent_order_capnp.type.opo.secondary.batch[1]
     assert batch_order1.accountInfo.accountID == 100
     assert batch_order1.symbol == 'BTC/USD'
     assert batch_order1.side == 'buy'
