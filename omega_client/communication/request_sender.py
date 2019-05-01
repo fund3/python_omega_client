@@ -141,7 +141,7 @@ class RequestSender(Thread):
         :param request_header: Header parameter object for requests.
         :param client_secret: (str) client_secret key assigned by Fund3.
         :param credentials: (List[AccountCredentials]) List of exchange
-            credentials in the form of AccountCredentials.
+        credentials in the form of AccountCredentials.
         :return: (capnp._DynamicStructBuilder) Logon capnp object.
         """
         omega_message, logon = logon_capnp(
@@ -384,8 +384,7 @@ class RequestSender(Thread):
         :param account_info: (AccountInfo) Account from which to retrieve data.
         :param count: (int) optional, number of returned orders (most recent
         ones).
-        :param since: (float) optional, returns all orders from provided unix
-        timestamp to present.
+        :param since: (float) optional, returns all orders from provided unix timestamp to present.
         :return: (capnp._DynamicStructBuilder) get_completed_orders capnp
         object.
         """
@@ -408,7 +407,7 @@ class RequestSender(Thread):
         :param request_header: Header parameter object for requests.
         :param exchange: (str) The exchange of interest.
         :return: (capnp._DynamicStructBuilder) get_exchange_properties capnp
-            object.
+        object.
         """
         omega_message, get_exchange_properties = (
             request_exchange_properties_capnp(
@@ -426,7 +425,7 @@ class RequestSender(Thread):
         :param request_header: Header parameter object for requests.
         :param auth_refresh: AuthorizationRefresh python object
         :return: (capnp._DynamicStructBuilder) authorization_refresh capnp
-            object.
+        object.
         """
         omega_message, authorization_refresh = (
             request_auth_refresh_capnp(

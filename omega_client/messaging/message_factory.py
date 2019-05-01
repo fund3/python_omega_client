@@ -54,6 +54,7 @@ def omega_test_message_py(test_message):
     test_message_py once we have disabled that behavior.
 
     Builds test message Python object from capnp object.
+
     :param test_message: (capnp._DynamicStructBuilder) TestMessage object.
     :return: (str) test message.
     """
