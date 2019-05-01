@@ -105,3 +105,6 @@ venv.bak/
 
 # pycharm idea stuff:
 *.idea
+
+# fuck this shit
+*.DS_Store
