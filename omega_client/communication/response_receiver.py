@@ -69,6 +69,7 @@ class ResponseReceiver(Thread):
     def set_response_handler(self, response_handler: ResponseHandler):
         """
         Set _RESPONSE_HANDLER.
+
         :param response_handler:
         """
         self._RESPONSE_HANDLER = response_handler
@@ -129,6 +130,7 @@ class ResponseReceiver(Thread):
                          response: capnp._DynamicStructBuilder):
         """
         Pass response_type and response to the registered response handler.
+
         :param response_type: (str) The type of TradeMessage embedded in the
             response from Omega.
         :param response: (capnp._DynamicStructBuilder) One of the types under
@@ -140,6 +142,7 @@ class ResponseReceiver(Thread):
     def _handle_binary_omega_message(self, binary_msg: bytes):
         """
         Pass a received message from Omega to an appropriate handler method.
+
         :param binary_msg: (bytes) The received binary message.
         """
         try:

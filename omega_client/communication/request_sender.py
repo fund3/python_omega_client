@@ -40,15 +40,15 @@ class RequestSender(Thread):
 
     Attributes:
         _ZMQ_CONTEXT: (zmq.Context) Required to create sockets. It is
-            recommended that one application use one shared zmq context for
-            all sockets.
+        recommended that one application use one shared zmq context for all
+        sockets.
         _ZMQ_ENDPOINT: (str) The zmq endpoint to connect to.
         _QUEUE_POLLING_TIMEOUT_SECONDS: (int) The polling timeout for the
-            internal queue.
+        internal queue.
         _outgoing_message_queue: (Queue) Internal message queue for outgoing
-            Omega Messages.
-        _is_running: (Event) Event object that indicates on/ off
-            behavior for the response handler loop.
+        Omega Messages.
+        _is_running: (Event) Event object that indicates on/ off behavior for
+        the response handler loop.
     """
     def __init__(self,
                  zmq_context: zmq.Context,
@@ -72,6 +72,7 @@ class RequestSender(Thread):
         """
         Put a capnp message into the internal queue for sending to
         TesConnection.
+
         :param omega_message_capnp:
         """
         self._outgoing_message_queue.put(omega_message_capnp)
@@ -131,6 +132,7 @@ class RequestSender(Thread):
               credentials: List[AccountCredentials]):
         """
         Logon to Omega for a specific client_id and set of credentials.
+
         :param request_header: Header parameter object for requests.
         :param client_secret: (str) client_secret key assigned by Fund3.
         :param credentials: (List[AccountCredentials]) List of exchange
@@ -148,6 +150,7 @@ class RequestSender(Thread):
     def logoff(self, request_header: RequestHeader):
         """
         Logoff Omega for a specific client_id.
+
         :param request_header: Header parameter object for requests.
         :return: (capnp._DynamicStructBuilder) Logoff capnp object.
         """
@@ -159,6 +162,7 @@ class RequestSender(Thread):
         """
         Sends a heartbeat to Omega for maintaining and verifying connection.
         Only clients that are logged on will receive heartbeat back from Omega.
+
         :param request_header: Header parameter object for requests.
         :return: (capnp._DynamicStructBuilder) heartbeat capnp object.
         """
@@ -169,6 +173,7 @@ class RequestSender(Thread):
     def request_server_time(self, request_header: RequestHeader):
         """
         Request Omega server time for syncing client and server timestamps.
+
         :param request_header: Header parameter object for requests.
         :return: (capnp._DynamicStructBuilder) heartbeat capnp object.
         """
@@ -180,6 +185,7 @@ class RequestSender(Thread):
     def place_order(self, request_header: RequestHeader, order: Order):
         """
         Sends a request to Omega to place an order.
+
         :param request_header: Header parameter object for requests.
         :param order: (Order) Python object containing all required fields.
         :return: (capnp._DynamicStructBuilder) place_order capnp object.
@@ -203,6 +209,7 @@ class RequestSender(Thread):
                       expire_at: float = 0.0):
         """
         Sends a request to Omega to replace an order.
+
         :param request_header: Header parameter object for requests.
         :param account_info: (AccountInfo) Account on which to cancel order.
         :param order_id: (str) order_id as returned from the ExecutionReport.
@@ -234,6 +241,7 @@ class RequestSender(Thread):
                      order_id: str):
         """
         Sends a request to Omega to cancel an order.
+
         :param request_header: Header parameter object for requests.
         :param account_info: (AccountInfo) Account on which to cancel order.
         :param order_id: (str) order_id as returned from the ExecutionReport.
@@ -255,6 +263,7 @@ class RequestSender(Thread):
         """
         Sends a request to Omega to cancel all orders. Optionally including
         side and/or symbol
+
         :param request_header: Header parameter object for requests.
         :param account_info: (AccountInfo) Account on which to cancel order.
         :param symbol: str (optional)
@@ -277,6 +286,7 @@ class RequestSender(Thread):
         """
         Sends a request to Omega for full account snapshot including balances,
         open positions, and working orders on specified account.
+
         :param request_header: Header parameter object for requests.
         :param account_info: (AccountInfo) Account from which to retrieve data.
         :return: (capnp._DynamicStructBuilder) get_account_data capnp object.
@@ -291,6 +301,7 @@ class RequestSender(Thread):
                                account_info: AccountInfo):
         """
         Sends a request to Omega for open positions on an Account.
+
         :param request_header: Header parameter object for requests.
         :param account_info: (AccountInfo) Account from which to retrieve data.
         :return: (capnp._DynamicStructBuilder) get_open_positions capnp
@@ -307,6 +318,7 @@ class RequestSender(Thread):
         """
         Sends a request to Omega for full account balances snapshot on an
         Account.
+
         :param request_header: Header parameter object for requests.
         :param account_info: (AccountInfo) Account from which to retrieve data.
         :return: (capnp._DynamicStructBuilder) get_account_balances capnp
@@ -323,6 +335,7 @@ class RequestSender(Thread):
         """
         Sends a request to Omega for all working orders snapshot on an
         Account.
+
         :param request_header: Header parameter object for requests.
         :param account_info: (AccountInfo) Account from which to retrieve data.
         :return: (capnp._DynamicStructBuilder) get_working_orders capnp object.
@@ -338,6 +351,7 @@ class RequestSender(Thread):
                              order_id: str):
         """
         Sends a request to Omega to request status of a specific order.
+
         :param request_header: Header parameter object for requests.
         :param account_info: (AccountInfo) Account from which to retrieve data.
         :param order_id: (str) The id of the order of interest.
@@ -360,14 +374,15 @@ class RequestSender(Thread):
         Sends a request to Omega for all completed orders on specified
         account.  If both 'count' and 'from_unix' are None, returns orders
         for last 24h.
+
         :param request_header: Header parameter object for requests.
         :param account_info: (AccountInfo) Account from which to retrieve data.
         :param count: (int) optional, number of returned orders (most recent
-            ones).
+        ones).
         :param since: (float) optional, returns all orders from provided unix
-            timestamp to present.
+        timestamp to present.
         :return: (capnp._DynamicStructBuilder) get_completed_orders capnp
-            object.
+        object.
         """
         omega_message, get_completed_orders = request_completed_orders_capnp(
             request_header=request_header,
@@ -384,6 +399,7 @@ class RequestSender(Thread):
         """
         Sends a request to Omega for supported currencies, symbols and their
         associated properties, timeInForces, and orderTypes on an exchange.
+
         :param request_header: Header parameter object for requests.
         :param exchange: (str) The exchange of interest.
         :return: (capnp._DynamicStructBuilder) get_exchange_properties capnp
@@ -401,6 +417,7 @@ class RequestSender(Thread):
                                       auth_refresh: AuthorizationRefresh):
         """
         Sends a request to Omega to refresh the session
+
         :param request_header: Header parameter object for requests.
         :param auth_refresh: AuthorizationRefresh python object
         :return: (capnp._DynamicStructBuilder) authorization_refresh capnp

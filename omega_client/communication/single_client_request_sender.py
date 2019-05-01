@@ -34,8 +34,9 @@ class SingleClientRequestSender:
     def set_access_token(self, access_token: str):
         """
         Sets the access_token in self._request_header.
+
         :param access_token: (str) Access token granted by Omega.  Note that
-            access_token is ignored in logon.
+        access_token is ignored in logon.
         """
         self._request_header.access_token = access_token
 

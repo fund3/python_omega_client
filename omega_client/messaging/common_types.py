@@ -616,6 +616,7 @@ class RequestHeader(CommonType):
                  request_id: int):
         """
         Header parameter object for requests.
+        
         :param client_id: (int) The assigned client_id.
         :param sender_comp_id: (str) uuid unique to the user session.
         :param access_token: (str) Access token granted by Omega.  Note that

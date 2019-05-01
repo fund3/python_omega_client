@@ -63,6 +63,7 @@ def omega_test_message_py(test_message):
 def system_message_py(system_message):
     """
     Builds system message Python object from capnp object.
+
     :param system_message: (capnp._DynamicStructBuilder) system message.
     :return: SystemMessage.
     """
@@ -75,6 +76,7 @@ def system_message_py(system_message):
 def authorization_grant_py(authorization_grant):
     """
     Builds AuthorizationGrant Python object from capnp object.
+
     :param authorization_grant: (capnp._DynamicStructBuilder)
         capnp AuthorizationGrant message
     :return: AuthorizationGrant
@@ -90,6 +92,7 @@ def authorization_grant_py(authorization_grant):
 def logon_ack_py(logon_ack):
     """
     Builds LogonAck Python object from capnp object.
+
     :param logon_ack: (capnp._DynamicStructBuilder) LogonAck object.
     :return: LogonAck
     """
@@ -106,6 +109,7 @@ def logon_ack_py(logon_ack):
 def logoff_ack_py(logoff_ack):
     """
     Builds LogoffAck Python object from capnp object.
+
     :param logoff_ack: (capnp._DynamicStructBuilder) LogoffAck object.
     :return: LogoffAck
     """
@@ -116,8 +120,9 @@ def logoff_ack_py(logoff_ack):
 def execution_report_py(execution_report):
     """
     Builds ExecutionReport Python object from capnp object.
+
     :param execution_report: (capnp._DynamicStructBuilder) ExecutionReport
-        object.
+    object.
     :return: (ExecutionReport) python object.
     """
     return _build_py_execution_report_from_capnp(execution_report)
@@ -127,8 +132,9 @@ def account_data_report_py(account_data_report):
     """
     Builds AccountDataReport Python object from capnp object, including
     AccountBalances, OpenPositions, and ExecutionReports.
+
     :param account_data_report: (capnp._DynamicStructBuilder) AccountDataReport
-        object.
+    object.
     :return: (AccountDataReport) Python class object.
     """
     acct_balances = [_build_py_balance_from_capnp(ab) for ab in
@@ -148,8 +154,9 @@ def account_data_report_py(account_data_report):
 def account_balances_report_py(account_balances_report):
     """
     Builds AccountBalancesReport Python object from capnp object.
+
     :param account_balances_report: (capnp._DynamicStructBuilder)
-        AccountBalancesReport object.
+    AccountBalancesReport object.
     :return: (AccountBalancesReport) Python class object.
     """
     acct_balances = [_build_py_balance_from_capnp(ab) for ab in
@@ -163,8 +170,9 @@ def account_balances_report_py(account_balances_report):
 def open_positions_report_py(open_position_report):
     """
     Builds OpenPositionReport Python object from capnp object.
+
     :param open_position_report: (capnp._DynamicStructBuilder)
-        OpenPositionReport object.
+    OpenPositionReport object.
     :return: (OpenPositionReport) Python object.
     """
     open_pos = [_build_py_open_position_from_capnp(op)
@@ -178,8 +186,9 @@ def open_positions_report_py(open_position_report):
 def working_orders_report_py(working_orders_report):
     """
     Builds WorkingOrdersReport Python object from capnp object.
+
     :param working_orders_report: (capnp._DynamicStructBuilder)
-        WorkingOrdersReport object.
+    WorkingOrdersReport object.
     :return: (WorkingOrdersReport) Python object.
     """
     execution_reports = [_build_py_execution_report_from_capnp(er)
@@ -194,8 +203,9 @@ def working_orders_report_py(working_orders_report):
 def completed_orders_report_py(completed_orders_report):
     """
     Builds CompletedOrdersReport Python object from capnp object.
+
     :param completed_orders_report: (capnp._DynamicStructBuilder)
-        CompletedOrdersReport object.
+    CompletedOrdersReport object.
     :return: (CompletedOrdersReport) Python object.
     """
     execution_reports = [_build_py_execution_report_from_capnp(er)
@@ -210,8 +220,9 @@ def completed_orders_report_py(completed_orders_report):
 def exchange_properties_report_py(exchange_properties_report):
     """
     Builds ExchangePropertiesReport Python object from capnp object.
+
     :param exchange_properties_report: (capnp._DynamicStructBuilder)
-        ExchangePropertiesReport object.
+    ExchangePropertiesReport object.
     :return: (ExchangePropertiesReport) Python object.
     """
     currencies = set(ccy for ccy in exchange_properties_report.currencies)
@@ -245,9 +256,10 @@ def logon_capnp(request_header: RequestHeader,
     """
     Generates a capnp Logon message with a specific clientID and set of
     credentials.
+
     :param client_secret: (str) client_secret key assigned by Fund3.
     :param credentials: (List[AccountCredentials]) List of exchange
-        credentials in the form of AccountCredentials.
+    credentials in the form of AccountCredentials.
     :param request_header: Header parameter object for requests.
     :return: (capnp._DynamicStructBuilder) Logon capnp object.
     """
@@ -263,6 +275,7 @@ def logon_capnp(request_header: RequestHeader,
 def logoff_capnp(request_header: RequestHeader):
     """
     Generates a capnp Logoff message with a specific clientID.
+
     :param request_header: Header parameter object for requests.
     :return: (capnp._DynamicStructBuilder) Logoff capnp object.
     """
@@ -274,6 +287,7 @@ def logoff_capnp(request_header: RequestHeader):
 def heartbeat_capnp(request_header: RequestHeader):
     """
     Generates a capnp heartbeat message.
+
     :param request_header: Header parameter object for requests.
     :return: (capnp._DynamicStructBuilder) heartbeat capnp object.
     """
@@ -285,6 +299,7 @@ def heartbeat_capnp(request_header: RequestHeader):
 def request_server_time_capnp(request_header: RequestHeader):
     """
     Generates a capnp getServerTime message.
+
     :param request_header: Header parameter object for requests.
     :return: (capnp._DynamicStructBuilder) heartbeat capnp object.
     """
@@ -296,10 +311,11 @@ def request_server_time_capnp(request_header: RequestHeader):
 def place_order_capnp(request_header: RequestHeader, order: Order):
     """
     Generates a capnp placeOrder message from an Order.
+
     :param order: (Order) Python object from omega_client.common_types.
     :param request_header: Header parameter object for requests.
     :return: (capnp._DynamicStructBuilder) TradeMessage capnp object,
-             (capnp._DynamicStructBuilder) placeOrder capnp object.
+    (capnp._DynamicStructBuilder) placeOrder capnp object.
     """
     omega_message, body = _generate_omega_request(request_header=request_header)
     place_order = body.init('placeSingleOrder')
@@ -335,6 +351,7 @@ def replace_order_capnp(
         ):
     """
     Generates a request to Omega to replace an order.
+
     :param account_info: (AccountInfo) Account on which to cancel order.
     :param order_id: (str) orderID as returned from the ExecutionReport.
     :param request_header: Header parameter object for requests.
@@ -345,7 +362,7 @@ def replace_order_capnp(
     :param time_in_force: (TimeInForce) (OPTIONAL)
     :param expire_at: (float) (OPTIONAL) utc timestamp gtt orders expire at
     :return: (capnp._DynamicStructBuilder) TradeMessage capnp object,
-             (capnp._DynamicStructBuilder) replaceOrder capnp object.
+    (capnp._DynamicStructBuilder) replaceOrder capnp object.
     """
     omega_message, body = _generate_omega_request(request_header=request_header)
     replace_order = body.init('replaceOrder')
@@ -372,11 +389,12 @@ def cancel_order_capnp(
         order_id: str):
     """
     Generates a capnp cancelOrder message.
+
     :param account_info: (AccountInfo) Account on which to cancel order.
     :param order_id: (str) order_id as returned from the ExecutionReport.
     :param request_header: Header parameter object for requests.
     :return: (capnp._DynamicStructBuilder) TradeMessage capnp object,
-             (capnp._DynamicStructBuilder) cancelOrder capnp object.
+    (capnp._DynamicStructBuilder) cancelOrder capnp object.
     """
     omega_message, body = _generate_omega_request(request_header=request_header)
     cancel_order = body.init('cancelOrder')
@@ -393,12 +411,13 @@ def cancel_all_orders_capnp(
         side: str = None):
     """
     Generates a capnp CancelAllOrders message.
+
     :param request_header: Header parameter object for requests.
     :param account_info: (AccountInfo) Account on which to cancel order.
     :param symbol: str (optional)
     :param side: str (optional)
     :return: (capnp._DynamicStructBuilder) TradeMessage capnp object,
-             (capnp._DynamicStructBuilder) cancelOrder capnp object.
+    (capnp._DynamicStructBuilder) cancelOrder capnp object.
     """
     omega_message, body = _generate_omega_request(request_header=request_header)
     cancel_all_orders = body.init('cancelAllOrders')
@@ -416,10 +435,11 @@ def request_auth_refresh_capnp(
         auth_refresh: AuthorizationRefresh):
     """
     Generates a request to Omega for an session AuthorizationRefresh
+
     :param request_header: Header parameter object for requests.
     :param auth_refresh: (AuthorizationRefresh) python object
     :return: (capnp._DynamicStructBuilder) TradeMessage capnp object,
-             (capnp._DynamicStructBuilder) authorizationRefresh capnp object.
+    (capnp._DynamicStructBuilder) authorizationRefresh capnp object.
     """
     omega_message, body = _generate_omega_request(request_header=request_header)
     authorization_refresh = body.init('authorizationRefresh')
@@ -433,10 +453,11 @@ def request_account_data_capnp(
     """
     Generates a request to Omega for full account snapshot including balances,
     open positions, and working orders.
+
     :param account_info: (AccountInfo) Account from which to retrieve data.
     :param request_header: Header parameter object for requests.
     :return: (capnp._DynamicStructBuilder) TradeMessage capnp object,
-             (capnp._DynamicStructBuilder) getAccountData capnp object.
+    (capnp._DynamicStructBuilder) getAccountData capnp object.
     """
     omega_message, body = _generate_omega_request(request_header=request_header)
     get_account_data = body.init('getAccountData')
@@ -450,10 +471,11 @@ def request_open_positions_capnp(
         account_info: AccountInfo):
     """
     Send a request to Omega for open positions on an Account.
+
     :param account_info: (AccountInfo) Account from which to retrieve data.
     :param request_header: Header parameter object for requests.
     :return: (capnp._DynamicStructBuilder) TradeMessage capnp object,
-             (capnp._DynamicStructBuilder) getOpenPositions capnp object.
+    (capnp._DynamicStructBuilder) getOpenPositions capnp object.
     """
     omega_message, body = _generate_omega_request(request_header=request_header)
     get_open_positions = body.init('getOpenPositions')
@@ -468,10 +490,11 @@ def request_account_balances_capnp(
     """
     Generates a request to Omega for full account balances snapshot on an
     Account.
+
     :param account_info: (AccountInfo) Account from which to retrieve data.
     :param request_header: Header parameter object for requests.
     :return: (capnp._DynamicStructBuilder) TradeMessage capnp object,
-             (capnp._DynamicStructBuilder) getAccountBalances capnp object.
+    (capnp._DynamicStructBuilder) getAccountBalances capnp object.
     """
     omega_message, body = _generate_omega_request(request_header=request_header)
     get_account_balances = body.init('getAccountBalances')
@@ -485,10 +508,11 @@ def request_working_orders_capnp(
         account_info: AccountInfo):
     """
     Generates a request to Omega for all working orders snapshot on an Account.
+
     :param account_info: (AccountInfo) Account from which to retrieve data.
     :param request_header: Header parameter object for requests.
     :return: (capnp._DynamicStructBuilder) TradeMessage capnp object,
-             (capnp._DynamicStructBuilder) getWorkingOrders capnp object.
+    (capnp._DynamicStructBuilder) getWorkingOrders capnp object.
     """
     omega_message, body = _generate_omega_request(request_header=request_header)
     get_working_orders = body.init('getWorkingOrders')
@@ -503,11 +527,12 @@ def request_order_status_capnp(
         order_id: str):
     """
     Generates a request to Omega to request status of a specific order.
+
     :param account_info: (AccountInfo) Account from which to retrieve data.
     :param order_id: (str) The id of the order of interest.
     :param request_header: Header parameter object for requests.
     :return: (capnp._DynamicStructBuilder) TradeMessage capnp object,
-             (capnp._DynamicStructBuilder) getOrderStatus capnp object.
+    (capnp._DynamicStructBuilder) getOrderStatus capnp object.
     """
     omega_message, body = _generate_omega_request(request_header=request_header)
     get_order_status = body.init('getOrderStatus')
@@ -525,13 +550,14 @@ def request_completed_orders_capnp(
     """
     Generates a request to Omega for all completed orders on specified account.
     If both 'count' and 'from_unix' are None, returns orders for last 24h.
+
     :param account_info: (AccountInfo) Account from which to retrieve data.
     :param request_header: Header parameter object for requests.
     :param count: (int) optional, number of returned orders (most recent ones).
     :param since: (float) optional, returns all orders from provided unix
-        timestamp to present.
+    timestamp to present.
     :return: (capnp._DynamicStructBuilder) TradeMessage capnp object,
-             (capnp._DynamicStructBuilder) getCompletedOrders capnp object.
+    (capnp._DynamicStructBuilder) getCompletedOrders capnp object.
     """
     omega_message, body = _generate_omega_request(request_header=request_header)
     get_completed_orders = body.init('getCompletedOrders')
@@ -549,10 +575,11 @@ def request_exchange_properties_capnp(request_header: RequestHeader,
     """
     Generates a request to Omega for supported currencies, symbols and their
     associated properties, timeInForces, and orderTypes on an exchange.
+
     :param exchange: (str) The exchange of interest.
     :param request_header: Header parameter object for requests.
     :return: (capnp._DynamicStructBuilder) TradeMessage capnp object,
-             (capnp._DynamicStructBuilder) getExchangeProperties capnp object.
+    (capnp._DynamicStructBuilder) getExchangeProperties capnp object.
     """
     omega_message, body = _generate_omega_request(request_header=request_header)
     get_exchange_properties = body.init('getExchangeProperties')
@@ -564,9 +591,10 @@ def request_exchange_properties_capnp(request_header: RequestHeader,
 def _set_logon_credentials(logon, credentials):
     """
     Sets the credentials of a capnp Logon object.
+
     :param logon: (capnp._DynamicStructBuilder) Logon message.
     :param credentials: (List[AccountCredentials]) List of exchange
-        credentials in the form of AccountCredentials.
+    credentials in the form of AccountCredentials.
     :return: (capnp._DynamicStructBuilder) Logon message.
     """
     for credi in zip(logon.credentials, credentials):
@@ -589,6 +617,7 @@ def _set_logon_credentials(logon, credentials):
 def account_info_py(account_info):
     """
     Converts a capnp AccountInfo to Python object.
+
     :param account_info: (capnp._DynamicStructBuilder) AccountInfo object.
     :return: (AccountInfo) Populated Python object.
     """
@@ -601,6 +630,7 @@ def account_info_py(account_info):
 def _build_py_open_position_from_capnp(open_position):
     """
     Converts a capnp OpenPosition to Python object.
+
     :param open_position: (capnp._DynamicStructBuilder) OpenPosition object.
     :return: (OpenPosition) Populated Python object.
     """
@@ -616,6 +646,7 @@ def _build_py_open_position_from_capnp(open_position):
 def _build_py_balance_from_capnp(balance):
     """
     Converts a capnp Balance to Python object.
+
     :param balance: (capnp._DynamicStructBuilder) Balance object.
     :return: (Balance) Populated Python object.
     """
@@ -629,8 +660,9 @@ def _build_py_balance_from_capnp(balance):
 def _build_py_execution_report_from_capnp(execution_report):
     """
     Converts a capnp ExecutionReport to Python object.
+
     :param execution_report: (capnp._DynamicStructBuilder) ExecutionReport
-        object.
+    object.
     :return: (ExecutionReport) Populated Python object.
     """
     return ExecutionReport(
@@ -666,6 +698,7 @@ def _determine_order_price(order_price: float, order_type: str):
     """
     Omega rejects market orders with a non-zero price, hence this method
     assigns 0.0 as order_price if it receives a market order.
+
     :param order_price: (float) Desired order price.
     :param order_type: (str) Type of order ie limit, market, etc.
     :return: (float) Properly formatted order price.
@@ -678,9 +711,10 @@ def _determine_order_price(order_price: float, order_type: str):
 def _generate_omega_request(request_header: RequestHeader):
     """
     Generates an empty Omega request from TradeMessage.capnp.
+
     :param request_header: Header parameter object for requests.
     :return: (capnp._DynamicStructBuilder) omega_message to be serialized,
-             (capnp._DynamicStructBuilder) body (empty, to be filled).
+    (capnp._DynamicStructBuilder) body (empty, to be filled).
     """
     omega_message = msgs_capnp.TradeMessage.new_message()
     request = omega_message.init('type').init('request')
@@ -696,6 +730,7 @@ def generate_client_order_id():
     """
     Simple way to generate client_order_id.  The client can generate their
     own unique order id as they wish.
+
     :return: (str) Client order_id based on the microsecond timestamp.
     """
     client_order_id = str(time.time()*1000000)
