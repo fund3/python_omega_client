@@ -174,4 +174,8 @@ texinfo_documents = [
 ]
 
 
+# autodoc mock imports for not freaking out about capnp imports
+autodoc_mock_imports = ['trading_communication_protocol.Exchanges_capnp',
+                        'trading_communication_protocol.TradeMessage_capnp']
+
 
