@@ -344,7 +344,7 @@ def _build_capnp_order_list(body, order_list: List[Order],
         list object to be populated, default = None
     :return: (capnp._DynamicStructBuilder) list of placeSingleOrder message.
     """
-    if place_order_list is not None:
+    if body is not None and place_order_list is None:
         place_order_list = body.init('orders', len(order_list))
 
     for py_order, indx in zip(order_list, range(len(order_list))):
