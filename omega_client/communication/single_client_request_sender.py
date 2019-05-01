@@ -1,6 +1,7 @@
 from queue import Queue
 from typing import List
 
+import capnp
 import zmq
 
 from omega_client.messaging.common_types import AccountCredentials, AccountInfo, \

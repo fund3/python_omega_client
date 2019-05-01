@@ -1,6 +1,7 @@
 """
 Omega Connection class.  Send and receive messages to and from Omega.
 """
+import capnp
 import logging
 from threading import Event, Thread
 import time
