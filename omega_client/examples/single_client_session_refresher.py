@@ -19,7 +19,7 @@ class SingleClientSessionRefresher(Thread):
         This class is used by the logon_logoff.py example.
 
         :param request_sender: RequestSender class used for sending messages
-            to Omega
+        to Omega
         :param client_id: int client_id
         :param sender_comp_id: str
         """

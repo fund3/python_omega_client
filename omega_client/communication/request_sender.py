@@ -39,18 +39,21 @@ class RequestSender(Thread):
     connection.
 
     Attributes:
-        _ZMQ_CONTEXT: (zmq.Context)
-        Required to create sockets. It is recommended that one application
-        use one shared zmq context for all sockets.
+        _ZMQ_CONTEXT: (zmq.Context)  Required to create sockets. It is
+        recommended that one application use one shared zmq context for all
+        sockets.
+
         _ZMQ_ENDPOINT: (str)
         The zmq endpoint to connect to.
+
         _QUEUE_POLLING_TIMEOUT_SECONDS: (int)
         The polling timeout for the internal queue.
-        _outgoing_message_queue: (Queue)
-        Internal message queue for outgoing Omega Messages.
-        _is_running: (Event)
-        Event object that indicates on/ off behavior for the response handler
-        loop.
+
+        _outgoing_message_queue: (Queue) Internal message queue for outgoing
+        Omega Messages.
+
+        _is_running: (Event) Event object that indicates on/ off behavior for
+        the response handler loop.
     """
     def __init__(self,
                  zmq_context: zmq.Context,

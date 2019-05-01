@@ -128,7 +128,7 @@ class AccountInfo(CommonType):
         Required.
         :param exchange: str exchange in which accountID is contained
         :param exchange_account_id: str account/wallet id, empty in client
-            request
+        request
         :param account_type: str exchange account type (exchange,
         margin, combined), empty in client request (will replace label)
         :param exchange_client_id: str exchange client (customer) ID,
@@ -329,9 +329,9 @@ class ExecutionReport(CommonType):
         filled thus far
         :param fee: float exchange fee paid for order
         :param creation_time: float unix timestamp when order was created on
-            Omega server
+        Omega server
         :param submission_time: float unix timestamp when order was received
-            by the exchange
+        by the exchange
         :param completion_time: float unix timestamp when order was completed
         :param execution_report_type: str (see ExecutionReportType enum)
         :param rejection_reason: Message rejectionReason
@@ -620,9 +620,8 @@ class RequestHeader(CommonType):
         :param client_id: (int) The assigned client_id.
         :param sender_comp_id: (str) uuid unique to the user session.
         :param access_token: (str) Access token granted by Omega.  Note that
-            access_token is ignored in logon.
-        :param request_id: (int) sequential, monotonically increasing integer
-            request identifier
+        access_token is ignored in logon.
+        :param request_id: (int) sequential, monotonically increasing integer request identifier
         """
         self.client_id = client_id
         self.sender_comp_id = sender_comp_id
