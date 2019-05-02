@@ -4,7 +4,7 @@ Omega Connection class.  Send and receive messages to and from Omega.
 import logging
 from threading import Event, Thread
 import time
-from typing import List
+from typing import List, Union
 
 import zmq
 
@@ -16,7 +16,7 @@ from omega_client.messaging.common_types import AccountBalancesReport, \
     AccountCredentials, AccountDataReport, AccountInfo, \
     AuthorizationRefresh, ExchangePropertiesReport, \
     ExecutionReport, OpenPositionsReport, Order, OrderInfo, \
-    OrderType, RequestHeader, TimeInForce, WorkingOrdersReport
+    OrderType, RequestHeader, TimeInForce, WorkingOrdersReport, Batch, OCO, OPO
 from omega_client.messaging.response_handler import ResponseHandler
 
 logger = logging.getLogger(__name__)
@@ -240,6 +240,19 @@ class OmegaConnection(Thread):
         """
         return self._request_sender.place_order(
             request_header=request_header, order=order)
+
+    def place_contingent_order(self,
+                               request_header: RequestHeader,
+                               contingent_order: Union[Batch, OPO, OCO]):
+        """
+        Sends a request to Omega to place a contingent order.
+        :param request_header: Header parameter object for requests.
+        :param contingent_order: (Batch, OPO, or OCO) python object
+        :return: (capnp._DynamicStructBuilder) placeContingentOrder capnp
+        object.
+        """
+        return self._request_sender.place_contingent_order(
+            request_header=request_header, contingent_order=contingent_order)
 
     def replace_order(self,
                       request_header: RequestHeader,
