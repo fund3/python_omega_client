@@ -56,3 +56,23 @@ cd capnproto-c++-0.7.0
 make -j6 check
 sudo make install
 ```
+
+## Usage
+
+There are 4 classes which should be implemented/overridden by the end user:
+1. `OmegaConnection`: the main thread that handles all communication
+between the client and Omega. There should only be one instance of
+`OmegaConnection`.
+2. `RequestSender`: the thread that sends requests to Omega via
+`OmegaConnection`. There should be a unique `RequestSender` thread for each
+client.
+3. `ResponseHandler`: event driven class to handle responses from Omega.
+4. `SessionRefresher`: Thread to refresh session
+
+## Examples
+
+See the `examples/` directory.
+Heartbeat: https://omega-client.readthedocs.io/en/latest/_modules/omega_client/examples/heartbeat.html#main
+Logon, Logoff: https://omega-client.readthedocs.io/en/latest/_modules/omega_client/examples/logon_logoff.html#main
+Place Order: https://omega-client.readthedocs.io/en/latest/_modules/omega_client/examples/place_order.html#main
+Single Client Session Refresher: https://omega-client.readthedocs.io/en/latest/_modules/omega_client/examples/single_client_session_refresher.html#SingleClientSessionRefresher
