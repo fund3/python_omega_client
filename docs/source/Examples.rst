@@ -5,7 +5,7 @@ Example Usage
 =============
 
 After modifying credentials and IDs in heartbeat.py, you should be able to
-connect with `python3 examples/heartbeat.py`.
+connect with ``python3 examples/heartbeat.py``.
 The expected output prints one of each of Logon, Heartbeat and Logoff messages.
 
 More Examples
