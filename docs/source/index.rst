@@ -8,7 +8,16 @@ Welcome to Omega Client's documentation!
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+
+   Requirements
+   Installation
+   Docker
+   Getting Started
+   Real Usage
+   Examples
+   Documentation
+   Troubleshoot
+
 
 
 
