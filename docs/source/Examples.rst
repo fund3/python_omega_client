@@ -1,6 +1,16 @@
 Examples
 ********
 
+Example Usage
+=============
+
+After modifying credentials and IDs in heartbeat.py, you should be able to
+connect with `python3 examples/heartbeat.py`.
+The expected output prints one of each of Logon, Heartbeat and Logoff messages.
+
+More Examples
+=============
+
 See the `examples/` directory.
 Heartbeat: https://omega-client.readthedocs.io/en/latest/_modules/omega_client/examples/heartbeat.html#main
 Logon, Logoff: https://omega-client.readthedocs.io/en/latest/_modules/omega_client/examples/logon_logoff.html#main

@@ -19,6 +19,10 @@ Welcome to Omega Client's documentation!
    Troubleshoot
 
 
+Omega Python Client
+===================
+API Wrapper for connecting to Fund3 Omega Order Execution and Management System
+
 Getting Started
 ===============
 
