@@ -57,7 +57,18 @@ make -j6 check
 sudo make install
 ```
 
-## Usage
+## Getting Started
+1. Install the python_omega_client package using the above instructions.
+2. See documentation on `common_types.py`: https://omega-client.readthedocs
+.io/en/latest/omega_client.messaging.html#module-omega_client.messaging
+.common_types for the definitions of the types used throughout the package.
+3. Familiarize yourself with the 4 classes mentioned in the "Real Usage" section
+below and understand how they work together.
+4. Try out some of the examples in the "Examples" section below.
+5. Override the 4 classes enumerated in the "Real Usage" section in your
+application.
+
+## Real Usage
 
 There are 4 classes which should be implemented/overridden by the end user:
 1. `OmegaConnection`: the main thread that handles all communication
@@ -76,3 +87,12 @@ Heartbeat: https://omega-client.readthedocs.io/en/latest/_modules/omega_client/e
 Logon, Logoff: https://omega-client.readthedocs.io/en/latest/_modules/omega_client/examples/logon_logoff.html#main
 Place Order: https://omega-client.readthedocs.io/en/latest/_modules/omega_client/examples/place_order.html#main
 Single Client Session Refresher: https://omega-client.readthedocs.io/en/latest/_modules/omega_client/examples/single_client_session_refresher.html#SingleClientSessionRefresher
+Printing Response Handler: https://omega-client.readthedocs.io/en/latest/omega_client.messaging.html#module-omega_client.messaging.printing_response_handler
+
+## Documentation
+
+For documentation on specific classes and methods, see:
+- `communication` module, which includes `omega_connection.py`, `request_sender.py`,
+`response_receiver.py`, `single_client_request_sender.py`: https://omega-client.readthedocs.io/en/latest/omega_client.communication.html#module-omega_client.communication
+- `messaging` module, which includes `common_types.py`, `response_handler.py`,
+`printing_response_handler.py`: https://omega-client.readthedocs.io/en/latest/omega_client.messaging.html#omega-client-messaging-package
