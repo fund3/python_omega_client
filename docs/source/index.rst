@@ -6,19 +6,6 @@
 Welcome to Omega Client's documentation!
 ========================================
 
-.. toctree::
-   :maxdepth: 2
-
-   Requirements
-   Installation
-   Docker
-   Getting Started
-   Real Usage
-   Examples
-   Documentation
-   Troubleshoot
-
-
 Omega Python Client
 ===================
 API Wrapper for connecting to Fund3 Omega Order Execution and Management System
@@ -31,6 +18,21 @@ Getting Started
 3. Familiarize yourself with the 4 classes mentioned in the "Real Usage" section and understand how they work together.
 4. Try out some of the examples in the "Examples" section.
 5. Override the 4 classes enumerated in the "Real Usage" section in your application.
+
+Contents
+========
+
+.. toctree::
+   :maxdepth: 1
+
+   Requirements
+   Installation
+   Docker
+   Getting Started
+   Real Usage
+   Examples
+   Documentation
+   Troubleshoot
 
 Indices and tables
 ==================
