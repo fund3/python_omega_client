@@ -18,7 +18,4 @@ More Examples
 * Printing Response Handler: https://omega-client.readthedocs.io/en/latest/omega_client.messaging.html#module-omega_client.messaging.printing_response_handler
 
 # TODO
-Logon-Logoff Requests
-System Requests
-Trading Requests
 Account Requests
