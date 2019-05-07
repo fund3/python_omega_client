@@ -12,7 +12,7 @@ are doing since you may run into issues with symlink etc.
 
 Alternative ways
 ================
-1. Clone the repo and run ``python3 setup.py install` or ``pip3 install .`` in the root directory of the repo.
+1. Clone the repo and run ``python3 setup.py install`` or ``pip3 install .`` in the root directory of the repo.
 2. Alternatively, if you have SSH key on your machine, you can do ``pip3 install git+ssh://git@github.com/fund3/python_omega_client.git``
 3. If you want to manually input credentials or use credentials saved locally on git,
 you can do: ``pip3 install git+https://github.com/fund3/python_omega_client.git``
