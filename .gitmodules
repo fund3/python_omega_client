@@ -1,3 +1,3 @@
-[submodule "communication_protocol/communication_protocol"]
-	path = communication_protocol/communication_protocol
-	url = git@github.com:fund3/CommunicationProtocol.git
+[submodule "omega_protocol/omega_protocol"]
+	path = omega_protocol/omega_protocol
+	url = https://github.com/fund3/OmegaProtocol.git

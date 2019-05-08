@@ -1,10 +1,10 @@
 from queue import Queue
-from typing import List
+from typing import List, Union
 
 import zmq
 
 from omega_client.messaging.common_types import AccountCredentials, AccountInfo, \
-    Order, OrderInfo, OrderType, RequestHeader, TimeInForce
+    Order, OrderInfo, OrderType, RequestHeader, TimeInForce, Batch, OPO, OCO
 from omega_client.communication.request_sender import RequestSender
 
 
@@ -82,6 +82,12 @@ class SingleClientRequestSender:
     def place_order(self, order: Order):
         return self._request_sender.place_order(
             request_header=self._request_header, order=order)
+
+    def place_contingent_order(self, contingent_order: Union[Batch, OPO, OCO]):
+        return self._request_sender.place_contingent_order(
+            request_header=self._request_header,
+            contingent_order=contingent_order
+        )
 
     def replace_order(self, account_info: AccountInfo,
                       order_id: str,

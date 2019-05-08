@@ -1,5 +1,5 @@
 from enum import Enum, auto
-from typing import List, Dict, Set
+from typing import List, Dict, Set, Union
 
 # pythonized equivalents of what is contained in:
 # https://github.com/fund3/communication-protocol/blob/master/TradeMessage.capnp
@@ -24,23 +24,32 @@ class Exchange(Enum):
     bitstamp = auto()
     itBit = auto()
     okEx = auto()
-    hitbtc = auto()
+    hitBTC = auto()
 
 
 class Side(Enum):
     """Trading Sides
 
-    https://github.com/fund3/CommunicationProtocol/blob/master/TradeMessage.capnp
+    https://github.com/fund3/OmegaProtocol/blob/master/TradeMessage.capnp
     """
     undefined = auto()
     buy = auto()
     sell = auto()
 
 
+class OrderClass(Enum):
+    """Order Class
+
+    https://github.com/fund3/OmegaProtocol/blob/master/TradeMessage.capnp
+    """
+    simple = auto()
+    compound = auto()
+
+
 class OrderType(Enum):
     """Supported Order Types
 
-    https://github.com/fund3/CommunicationProtocol/blob/master/TradeMessage.capnp
+    https://github.com/fund3/OmegaProtocol/blob/master/TradeMessage.capnp
     """
     undefined = auto()
     market = auto()
@@ -56,7 +65,7 @@ class OrderType(Enum):
 class OrderStatus(Enum):
     """Order Status on Exchange
 
-    https://github.com/fund3/CommunicationProtocol/blob/master/TradeMessage.capnp
+    https://github.com/fund3/OmegaProtocol/blob/master/TradeMessage.capnp
     """
     undefined = auto()
     received = auto()
@@ -77,7 +86,7 @@ class OrderStatus(Enum):
 class TimeInForce(Enum):
     """Order Time In Force
 
-    https://github.com/fund3/CommunicationProtocol/blob/master/TradeMessage.capnp
+    https://github.com/fund3/OmegaProtocol/blob/master/TradeMessage.capnp
     """
     undefined = auto()
     gtc = auto()        # Good till cancel
@@ -90,7 +99,7 @@ class TimeInForce(Enum):
 class LeverageType(Enum):
     """Leverage Type
 
-    https://github.com/fund3/CommunicationProtocol/blob/master/TradeMessage.capnp
+    https://github.com/fund3/OmegaProtocol/blob/master/TradeMessage.capnp
     """
     none = auto()
     exchangeDefault = auto()
@@ -100,12 +109,23 @@ class LeverageType(Enum):
 class AccountType(Enum):
     """Account Type
 
-    https://github.com/fund3/CommunicationProtocol/blob/master/TradeMessage.capnp
+    https://github.com/fund3/OmegaProtocol/blob/master/TradeMessage.capnp
     """
     undefined = auto()
     exchange = auto()
     margin = auto()
     combined = auto()
+
+
+class ContigentType(Enum):
+    """Contigent Type
+
+    https://github.com/fund3/OmegaProtocol/blob/master/TradeMessage.capnp
+    """
+    none = auto()
+    batch = auto()  # Batch (list of orders each independent of the other)
+    oco = auto()    # Order cancel other
+    opo = auto()    # Order place order(s)
 
 
 class CommonType:
@@ -216,6 +236,54 @@ class Order(CommonType):
         self.client_order_link_id = str(client_order_link_id or '')
 
 
+class Batch(CommonType):
+    """
+    Batch (list of orders each independent of the other)
+    """
+    def __init__(self, orders: List[Order]):
+        """
+
+        :param orders: list of Order objects
+        """
+        self.orders = list(orders)
+
+
+class OCO(CommonType):
+    """
+    Order cancel other
+    A multi-part order. If one part of the order is executed,
+    then all other parts are cancelled.
+    """
+    def __init__(self, orders: List[Order]):
+        """
+
+        :param orders: list of Order objects
+        """
+        self.orders = list(orders)
+
+
+class OPO(CommonType):
+    """
+    Order place order(s)
+    "primary" is an order with any regular order type. Once that order is
+    completely filled, the "secondary orders" are placed.
+
+    For example, filling a buy order can trigger either a sell OCO
+    (a profit target order and a stop loss order), a profit target order,
+    or a stop loss order. In the case of an OCO, if one of those orders is
+    filled, then the other order is cancelled.
+    """
+    def __init__(self, primary: Order, secondary: Union[Batch, OCO]):
+        """
+
+        :param primary: initial order, which upon being filled, triggers
+        Omega to place "secondary"
+        :param secondary: list of Order objects, either of type "Batch" or "OCO"
+        """
+        self.primary = primary
+        self.secondary = secondary
+
+
 class Message(CommonType):
     """
     Message object containing code, body for Logon, Logoff,
@@ -287,6 +355,8 @@ class ExecutionReport(CommonType):
                  client_order_id: str,
                  exchange_order_id: str,
                  account_info: AccountInfo,
+                 order_class: str,
+                 contingent_type: str,
                  symbol: str,
                  side: str,
                  order_type: str,
@@ -305,6 +375,9 @@ class ExecutionReport(CommonType):
                  submission_time: float,
                  completion_time: float,
                  execution_report_type: str,
+                 parent_order_id: str = None,
+                 sub_order_ids: list = None,
+                 linked_order_ids: list = None,
                  rejection_reason: Message = None,
                  client_order_link_id: str = None):
         """
@@ -313,6 +386,8 @@ class ExecutionReport(CommonType):
         :param client_order_id: str orderID generated on the client side
         :param exchange_order_id: str orderID as assigned by Exchange
         :param account_info: accountInfo
+        :param order_class: str
+        :param contingent_type: str
         :param symbol: str
         :param side: str (see Side enum)
         :param order_type: str (see OrderType enum)
@@ -334,6 +409,10 @@ class ExecutionReport(CommonType):
             by the exchange
         :param completion_time: float unix timestamp when order was completed
         :param execution_report_type: str (see ExecutionReportType enum)
+        :param parent_order_id: str parent order id for smart orders only
+        :param sub_order_ids: list of sub order id for contingent orders only
+        :param linked_order_ids: list of linked order ids for contingent
+        orders only
         :param rejection_reason: Message rejectionReason
         :param client_order_link_id: str internal id
         """
@@ -342,6 +421,8 @@ class ExecutionReport(CommonType):
         self.client_order_link_id = str(client_order_link_id or '')
         self.exchange_order_id = str(exchange_order_id)
         self.account_info = account_info
+        self.order_class = str(order_class)
+        self.contingent_type = str(contingent_type)
         self.symbol = str(symbol)
         self.side = str(side)
         self.order_type = str(order_type)
@@ -360,6 +441,9 @@ class ExecutionReport(CommonType):
         self.submission_time = float(submission_time)
         self.completion_time = float(completion_time)
         self.execution_report_type = str(execution_report_type)
+        self.parent_order_id = str(parent_order_id)
+        self.sub_order_ids = sub_order_ids
+        self.linked_order_ids = linked_order_ids
         self.rejection_reason = rejection_reason
 
 

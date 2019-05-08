@@ -10,7 +10,7 @@ RUN apt-get update && \
 # Setting up Python3 packages
 WORKDIR /app
 COPY requirements.txt /app/requirements.txt
-COPY ./communication_protocol /app/communication_protocol
+COPY ./omega_protocol /app/omega_protocol
 RUN pip3 install -r requirements.txt
 
 COPY . /app
