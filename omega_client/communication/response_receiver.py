@@ -13,7 +13,7 @@ import zmq
 
 # pylint: disable=E0611
 # pylint: disable=E0401
-import communication_protocol.TradeMessage_capnp as msgs_capnp
+import omega_protocol.TradeMessage_capnp as msgs_capnp
 # pylint: enable=E0401
 # pylint: enable=E0611
 from omega_client.messaging.response_handler import ResponseHandler
@@ -133,7 +133,7 @@ class ResponseReceiver(Thread):
             response from Omega.
         :param response: (capnp._DynamicStructBuilder) One of the types under
             "TradeMessage.Response.body".
-            See communication_protocol.TradeMessage.capnp.
+            See omega_protocol.TradeMessage.capnp.
         """
         self._RESPONSE_HANDLER.handle_response(response_type, response)
 

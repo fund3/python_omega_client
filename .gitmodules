@@ -1,4 +1,3 @@
-
 [submodule "omega_protocol/omega_protocol"]
 	path = omega_protocol/omega_protocol
 	url = https://github.com/fund3/OmegaProtocol.git
