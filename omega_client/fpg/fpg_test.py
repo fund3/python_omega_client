@@ -36,3 +36,22 @@ api_url = 'https://fund3-staging.floating.group/v1/orders/foo'
 r = requests.get(api_url, auth=auth)
 print(r.status_code)
 print(r.json())
+
+
+# Create an DMA Order to be split up using SOR
+sor_api_url = 'https://fund3-staging.floating.group/v1/orders'
+sor_body = {
+    "base": "BTC",
+    "quote": "USD",
+    "size": 6,
+    "price": 5000,
+    "algo": "DMA",
+    # "algo": "ACTIVE",
+    "orderType": "BUY",
+    "exchangeNames": [
+        "GEMINI", "KRAKEN"
+    ]
+}
+r1 = requests.post(sor_api_url, json=sor_body, auth=auth)
+print(r1.status_code)
+print(r1.json())
