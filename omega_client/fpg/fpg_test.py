@@ -42,8 +42,8 @@ print(r1.json())
 # successful usage of create_fpg_SOR_order function
 orders, status_code, error_message = create_fpg_SOR_order(
     order=Order(
-        account_info=AccountInfo(account_id=100),
-        client_order_id='vnuiebwe',
+        account_info=AccountInfo(account_id=100),   # ignored, junk
+        client_order_id='vnuiebwe',     # ignored, junk
         symbol='BTC/USD',
         side=Side.buy.name,
         order_type=OrderType.limit.name,
@@ -55,6 +55,6 @@ orders, status_code, error_message = create_fpg_SOR_order(
 )
 for order in orders:
     print('order:', order)
-    
+
 print('status_code', status_code)
 print('error_message', error_message)
