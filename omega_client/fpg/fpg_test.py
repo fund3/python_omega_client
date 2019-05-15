@@ -3,8 +3,11 @@ from requests.auth import AuthBase
 
 # Before implementation, set environmental variables API_KEY and API_SECRET
 
-API_KEY =  # from environment variable
-API_SECRET =  # from environment variable
+with open('fpg_key.json', 'r') as f:
+    creds = json.load(f)
+API_KEY = creds['FPG_API_KEY']
+API_SECRET = creds['FPG_API_SECRET']
+
 
 class FPGAuth(AuthBase):
     def __init__(self, api_key, secret_key):
@@ -14,7 +17,9 @@ class FPGAuth(AuthBase):
     def __call__(self, request):
         timestamp = str(int(time.time()))
         message = timestamp + self.api_key + request.path_url
-        signature = hmac.new(self.secret_key, message, hashlib.sha256).hexdigest()
+        signature = hmac.new(bytes(self.secret_key, 'latin-1'),
+                             bytes(message, 'latin-1'),
+                             hashlib.sha256).hexdigest()
 
         request.headers.update({
             'FPG-ACCESS-SIGN': signature,
@@ -22,6 +27,7 @@ class FPGAuth(AuthBase):
             'FPG-ACCESS-KEY': self.api_key,
         })
         return request
+
 
 auth = FPGAuth(API_KEY, API_SECRET)
 
