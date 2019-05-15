@@ -1,5 +1,8 @@
 import json, hmac, hashlib, time, requests
 from requests.auth import AuthBase
+from omega_client.fpg.fpg_lib import FPGAuth, create_fpg_SOR_order
+from omega_client.messaging.common_types import AccountInfo, Exchange, Order, \
+    OrderType, Side
 
 # Before implementation, set environmental variables API_KEY and API_SECRET
 
@@ -7,26 +10,6 @@ with open('fpg_key.json', 'r') as f:
     creds = json.load(f)
 API_KEY = creds['FPG_API_KEY']
 API_SECRET = creds['FPG_API_SECRET']
-
-
-class FPGAuth(AuthBase):
-    def __init__(self, api_key, secret_key):
-        self.api_key = api_key
-        self.secret_key = secret_key
-
-    def __call__(self, request):
-        timestamp = str(int(time.time()))
-        message = timestamp + self.api_key + request.path_url
-        signature = hmac.new(bytes(self.secret_key, 'latin-1'),
-                             bytes(message, 'latin-1'),
-                             hashlib.sha256).hexdigest()
-
-        request.headers.update({
-            'FPG-ACCESS-SIGN': signature,
-            'FPG-ACCESS-TIMESTAMP': timestamp,
-            'FPG-ACCESS-KEY': self.api_key,
-        })
-        return request
 
 
 auth = FPGAuth(API_KEY, API_SECRET)
@@ -55,3 +38,23 @@ sor_body = {
 r1 = requests.post(sor_api_url, json=sor_body, auth=auth)
 print(r1.status_code)
 print(r1.json())
+
+# successful usage of create_fpg_SOR_order function
+orders, status_code, error_message = create_fpg_SOR_order(
+    order=Order(
+        account_info=AccountInfo(account_id=100),
+        client_order_id='vnuiebwe',
+        symbol='BTC/USD',
+        side=Side.buy.name,
+        order_type=OrderType.limit.name,
+        quantity=6.,
+        price=5000.),
+    accounts={Exchange.gemini.name: AccountInfo(account_id=200),
+              Exchange.kraken.name: AccountInfo(account_id=201)},
+    auth=auth
+)
+for order in orders:
+    print('order:', order)
+    
+print('status_code', status_code)
+print('error_message', error_message)
