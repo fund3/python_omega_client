@@ -1,8 +1,10 @@
 # external imports
-import json, hmac, hashlib, logging, time, requests
+import hmac, hashlib, logging, time, requests
 from requests.auth import AuthBase
 from typing import Dict
 # omega library imports
+from omega_client.fpg.fpg_orders_convert import (
+    convert_f3_order_to_fpg_order, convert_fpg_orders_to_omg_orders)
 from omega_client.messaging.common_types import AccountInfo, Order, OrderType
 
 logger = logging.getLogger(__name__)
@@ -31,30 +33,6 @@ class FPGAuth(AuthBase):
         return request
 
 
-def convert_f3_order_to_fpg_order(order: Order,
-                                  accounts: Dict[str, AccountInfo]):
-    """
-
-    :param order: (Order) parent Order to be spilt up amongst exchanges (
-    account_info field is discarded)
-    :param accounts: (Dict[str, AccountInfo]) dict of exchanges: AccountInfo
-    for which we will split up orders on
-    :return: json dict for the body of the order request to send to fpg
-    """
-    [base, quote] = order.symbol.split('/')
-    algo = 'DMA'
-    return {
-        "base": base,
-        "quote": quote,
-        "size": float(order.quantity),
-        "price": float(order.price),
-        "algo": algo,
-        "orderType": order.side.upper(),
-        "exchangeNames": [exchange.upper() for exchange in list(
-            accounts.keys())]
-    }
-
-
 def create_fpg_SOR_order(order: Order,
                          accounts: Dict[str, AccountInfo],
                          auth: FPGAuth):
@@ -81,22 +59,8 @@ def create_fpg_SOR_order(order: Order,
         fpg_order_list = json_response.get('createOrderResponse', []).get(
             'immediates', [])
         for child_order in fpg_order_list:
-            symbol = child_order.get('base') + '/' + child_order.get('quote')
-            exchange = child_order.get('exchangeName').lower()
-            quantity = float(child_order.get('expectedSize'))
-            price = float(child_order.get('expectedPrice'))
-            side = child_order.get('orderType').lower()
-            client_order_id = str(child_order.get('name').split('/')[-1])
-
-            orders.append(Order(
-                account_info=accounts.get(exchange),
-                client_order_id=client_order_id,
-                symbol=symbol,
-                side=side,
-                order_type=OrderType.limit.name,
-                quantity=quantity,
-                price=price
-            ))
+            orders.append(convert_fpg_orders_to_omg_orders(
+                fpg_order=child_order, accounts=accounts))
     else:
         error_message = json_response.get('error').get('message')
 
