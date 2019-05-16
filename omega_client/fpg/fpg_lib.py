@@ -65,10 +65,11 @@ def create_SOR_order(order: Order,
         for child_order in fpg_order_list:
             orders.append(convert_fpg_orders_to_omg_orders(
                 fpg_order=child_order, accounts=accounts))
+    elif status_code == 400:  # unsuccessful response
+        error_message = ''
+    elif status_code == 404:  # unsuccessful response 
+        error_message = json_response.get('error').get('message')
     else:
-        if json_response is not '':
-            error_message = json_response.get('error').get('message')
-        else:
-            error_message = ''
+        error_message = ''
 
     return orders, status_code, error_message
