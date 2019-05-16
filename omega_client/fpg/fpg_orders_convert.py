@@ -1,4 +1,5 @@
 from typing import Dict
+import random
 
 from omega_client.messaging.common_types import Order, OrderType, AccountInfo
 
@@ -23,7 +24,8 @@ def convert_f3_order_to_fpg_order(order: Order,
         "algo": algo,
         "orderType": order.side.upper(),
         "exchangeNames": [exchange.upper() for exchange in list(
-            accounts.keys())]
+            accounts.keys())],
+        "userName": str(random.choice(list(accounts.values())).account_id)
     }
 
 
