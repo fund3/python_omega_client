@@ -44,7 +44,7 @@ def create_fpg_SOR_order(order: Order,
     :return: List[Order] list of child Orders to be placed (empty list [] if
     status code is not 200), status_code (int), error_message (str)
     """
-    base, quote = order.symbol.split('/')[0], order.symbol.split('/')[1]
+    [base, quote] = order.symbol.split('/')
     algo = 'DMA'
     sor_body = {
         "base": base,
@@ -58,14 +58,14 @@ def create_fpg_SOR_order(order: Order,
     }
     logger.info('json to be sent to fpg', extra={'sor_body': sor_body})
     r = requests.post(ORDERS_URL, json=sor_body, auth=auth)
-    status_code, resp = r.status_code, r.json()
+    status_code, json_response = r.status_code, r.json()
     logger.info('fpg response status code', extra={'status_code': status_code})
-    logger.info('fpg response body', extra={'response': resp})
+    logger.info('fpg response body', extra={'response': json_response})
 
     orders = []
     error_message = ''
     if status_code == 200:  # successful response
-        fpg_order_list = resp.get('createOrderResponse', []).get(
+        fpg_order_list = json_response.get('createOrderResponse', []).get(
             'immediates', [])
         for child_order in fpg_order_list:
             symbol = child_order.get('base') + '/' + child_order.get('quote')
@@ -73,7 +73,6 @@ def create_fpg_SOR_order(order: Order,
             quantity = float(child_order.get('expectedSize'))
             price = float(child_order.get('expectedPrice'))
             side = child_order.get('orderType').lower()
-            # TODO decide whether OK to use client_order_id assigned by fpg
             client_order_id = str(child_order.get('name').split('/')[-1])
 
             orders.append(Order(
@@ -86,6 +85,6 @@ def create_fpg_SOR_order(order: Order,
                 price=price
             ))
     else:
-        error_message = resp.get('error').get('message')
+        error_message = json_response.get('error').get('message')
 
     return orders, status_code, error_message
