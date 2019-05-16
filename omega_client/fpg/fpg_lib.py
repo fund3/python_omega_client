@@ -31,6 +31,30 @@ class FPGAuth(AuthBase):
         return request
 
 
+def convert_f3_order_to_fpg_order(order: Order,
+                                  accounts: Dict[str, AccountInfo]):
+    """
+
+    :param order: (Order) parent Order to be spilt up amongst exchanges (
+    account_info field is discarded)
+    :param accounts: (Dict[str, AccountInfo]) dict of exchanges: AccountInfo
+    for which we will split up orders on
+    :return: json dict for the body of the order request to send to fpg
+    """
+    [base, quote] = order.symbol.split('/')
+    algo = 'DMA'
+    return {
+        "base": base,
+        "quote": quote,
+        "size": float(order.quantity),
+        "price": float(order.price),
+        "algo": algo,
+        "orderType": order.side.upper(),
+        "exchangeNames": [exchange.upper() for exchange in list(
+            accounts.keys())]
+    }
+
+
 def create_fpg_SOR_order(order: Order,
                          accounts: Dict[str, AccountInfo],
                          auth: FPGAuth):
@@ -44,18 +68,7 @@ def create_fpg_SOR_order(order: Order,
     :return: List[Order] list of child Orders to be placed (empty list [] if
     status code is not 200), status_code (int), error_message (str)
     """
-    [base, quote] = order.symbol.split('/')
-    algo = 'DMA'
-    sor_body = {
-        "base": base,
-        "quote": quote,
-        "size": float(order.quantity),
-        "price": float(order.price),
-        "algo": algo,
-        "orderType": order.side.upper(),
-        "exchangeNames": [exchange.upper() for exchange in list(
-            accounts.keys())]
-    }
+    sor_body = convert_f3_order_to_fpg_order(order=order, accounts=accounts)
     logger.info('json to be sent to fpg', extra={'sor_body': sor_body})
     r = requests.post(ORDERS_URL, json=sor_body, auth=auth)
     status_code, json_response = r.status_code, r.json()
