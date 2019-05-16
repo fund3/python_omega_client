@@ -1,6 +1,8 @@
 Troubleshoot
 ************
 
+If any url links are broken, try removing the "/en/latest" from the url
+
 If, for some reason, `pip3 install` was not successful because there was no
 capnproto installed, do this and install with pip3 again:
 .. code::
@@ -10,4 +12,6 @@ capnproto installed, do this and install with pip3 again:
     ./configure
     make -j6 check
     sudo make install
+
+
 
