@@ -1,5 +1,6 @@
 # external imports
 import hmac, hashlib, logging, time, requests
+from json import JSONDecodeError
 from requests.auth import AuthBase
 from typing import Dict
 # omega library imports
@@ -49,7 +50,10 @@ def create_SOR_order(order: Order,
     sor_body = convert_f3_order_to_fpg_order(order=order, accounts=accounts)
     logger.info('json to be sent to fpg', extra={'sor_body': sor_body})
     r = requests.post(ORDERS_URL, json=sor_body, auth=auth)
-    status_code, json_response = r.status_code, r.json()
+    try:
+        status_code, json_response = r.status_code, r.json()
+    except JSONDecodeError:
+        status_code, json_response = r.status_code, ''
     logger.info('fpg response status code', extra={'status_code': status_code})
     logger.info('fpg response body', extra={'response': json_response})
 
@@ -62,6 +66,9 @@ def create_SOR_order(order: Order,
             orders.append(convert_fpg_orders_to_omg_orders(
                 fpg_order=child_order, accounts=accounts))
     else:
-        error_message = json_response.get('error').get('message')
+        if json_response is not '':
+            error_message = json_response.get('error').get('message')
+        else:
+            error_message = ''
 
     return orders, status_code, error_message

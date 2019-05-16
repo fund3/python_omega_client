@@ -55,6 +55,26 @@ orders, status_code, error_message = create_SOR_order(
 )
 for order in orders:
     print('order:', order)
+print('status_code', status_code)
+print('error_message', error_message)
 
+
+# unsuccessful usage of create_SOR_order function (itBit is unsupported)
+# error code 400
+orders, status_code, error_message = create_SOR_order(
+    order=Order(
+        account_info=AccountInfo(account_id=100),   # ignored, junk
+        client_order_id='vnuiebwe',     # ignored, junk
+        symbol='BTC/USD',
+        side=Side.buy.name,
+        order_type=OrderType.limit.name,
+        quantity=6.,
+        price=5000.),
+    accounts={Exchange.itBit.name: AccountInfo(account_id=200),
+              Exchange.kraken.name: AccountInfo(account_id=201)},
+    auth=auth
+)
+for order in orders:
+    print('order:', order)
 print('status_code', status_code)
 print('error_message', error_message)
