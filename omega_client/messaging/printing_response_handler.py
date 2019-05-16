@@ -1,6 +1,6 @@
 import logging
 
-from examples.single_client_session_refresher import SingleClientSessionRefresher
+from omega_client.examples.single_client_session_refresher import SingleClientSessionRefresher
 from omega_client.messaging.response_handler import ResponseHandler
 from omega_client.messaging.common_types import *
 
