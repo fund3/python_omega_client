@@ -33,9 +33,9 @@ class FPGAuth(AuthBase):
         return request
 
 
-def create_fpg_SOR_order(order: Order,
-                         accounts: Dict[str, AccountInfo],
-                         auth: FPGAuth):
+def create_SOR_order(order: Order,
+                     accounts: Dict[str, AccountInfo],
+                     auth: FPGAuth):
     """
 
     :param order: (Order) parent Order to be spilt up amongst exchanges (

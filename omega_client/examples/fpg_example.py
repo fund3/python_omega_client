@@ -1,6 +1,6 @@
 import json, hmac, hashlib, time, requests
 from requests.auth import AuthBase
-from omega_client.fpg.fpg_lib import FPGAuth, create_fpg_SOR_order
+from omega_client.fpg.fpg_lib import FPGAuth, create_SOR_order
 from omega_client.messaging.common_types import AccountInfo, Exchange, Order, \
     OrderType, Side
 
@@ -39,8 +39,8 @@ r1 = requests.post(sor_api_url, json=sor_body, auth=auth)
 print(r1.status_code)
 print(r1.json())
 
-# successful usage of create_fpg_SOR_order function
-orders, status_code, error_message = create_fpg_SOR_order(
+# successful usage of create_SOR_order function
+orders, status_code, error_message = create_SOR_order(
     order=Order(
         account_info=AccountInfo(account_id=100),   # ignored, junk
         client_order_id='vnuiebwe',     # ignored, junk
