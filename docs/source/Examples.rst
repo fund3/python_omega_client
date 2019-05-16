@@ -11,9 +11,9 @@ The expected output prints one of each of Logon, Heartbeat and Logoff messages.
 More Examples
 =============
 
-* Heartbeat: https://omega-client.readthedocs.io/en/latest/_modules/omega_client/examples/heartbeat.html#main
-* Logon, Logoff: https://omega-client.readthedocs.io/en/latest/_modules/omega_client/examples/logon_logoff.html#main
-* Place Order: https://omega-client.readthedocs.io/en/latest/_modules/omega_client/examples/place_order.html#main
-* Account Balances: https://omega-client.readthedocs.io/en/latest/_modules/omega_client/examples/get_account_balances.html#main
-* Single Client Session Refresher: https://omega-client.readthedocs.io/en/latest/_modules/omega_client/examples/single_client_session_refresher.html#SingleClientSessionRefresher
-* Printing Response Handler: https://omega-client.readthedocs.io/en/latest/omega_client.messaging.html#module-omega_client.messaging.printing_response_handler
+* Heartbeat: https://omega-client.readthedocs.io/_modules/omega_client/examples/heartbeat.html#main
+* Logon, Logoff: https://omega-client.readthedocs.io/_modules/omega_client/examples/logon_logoff.html#main
+* Place Order: https://omega-client.readthedocs.io/_modules/omega_client/examples/place_order.html#main
+* Account Balances: https://omega-client.readthedocs.io/_modules/omega_client/examples/get_account_balances.html#main
+* Single Client Session Refresher: https://omega-client.readthedocs.io/_modules/omega_client/examples/single_client_session_refresher.html#SingleClientSessionRefresher
+* Printing Response Handler: https://omega-client.readthedocs.io/omega_client.messaging.html#module-omega_client.messaging.printing_response_handler
