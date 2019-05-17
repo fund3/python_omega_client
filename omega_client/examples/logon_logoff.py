@@ -6,7 +6,7 @@ from omega_client.communication.omega_connection import \
 from omega_client.messaging.common_types import AccountCredentials, AccountInfo
 from omega_client.messaging.printing_response_handler import \
     PrintingResponseHandler
-from examples.single_client_session_refresher import SingleClientSessionRefresher
+from omega_client.examples.single_client_session_refresher import SingleClientSessionRefresher
 
 OMEGA_ENDPOINT = "tcp://0.0.0.0:9999"
 OMEGA_SERVER_KEY = "omega_server_key"
