@@ -81,6 +81,7 @@ class OrderStatus(Enum):
     expired = auto()
     failed = auto()
     deferred = auto()
+    pendingUpdate = auto()
 
 
 class TimeInForce(Enum):
