@@ -60,8 +60,7 @@ def create_SOR_order(order: Order,
     orders = []
     error_message = ''
     if status_code == 200:  # successful response
-        fpg_order_list = json_response.get('createOrderResponse', []).get(
-            'immediates', [])
+        fpg_order_list = json_response.get('suborders', [])
         for child_order in fpg_order_list:
             orders.append(convert_fpg_orders_to_omg_orders(
                 fpg_order=child_order, accounts=accounts))
