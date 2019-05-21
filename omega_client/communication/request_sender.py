@@ -219,11 +219,21 @@ class RequestSender(Thread):
         AccountInfo for which we will split up orders on
         :param auth: (FPGAuth) authentication used to sign request
         :return: (List[capnp._DynamicStructBuilder]) list of place_order capnp
-        objects.
+        objects, status_code (int), error_message (str)
         """
         place_child_orders = []
-        # TODO
-        return place_child_orders
+        # get child orders from parent orders using fpg endpoint
+        child_orders, status_code, error_message = create_SOR_order(
+            order=parent_order,
+            accounts=accounts,
+            auth=auth
+        )
+        # call place_order for each of the child orders
+        for child_order in child_orders:
+            place_child_orders.append(
+                self.place_order(
+                    request_header=request_header, order=child_order))
+        return place_child_orders, status_code, error_message
 
     def replace_order(self,
                       request_header: RequestHeader,
