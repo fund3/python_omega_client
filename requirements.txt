@@ -7,3 +7,4 @@ pyzmq==16.0.4
 pylint
 pylint-json2html
 pytest-cov==2.5.1
+requests

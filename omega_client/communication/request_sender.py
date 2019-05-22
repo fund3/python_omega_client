@@ -2,11 +2,12 @@ import logging
 from queue import Empty, Queue
 from threading import Event, Thread
 import time
-from typing import List, Union
+from typing import Dict, List, Union
 
 import capnp
 import zmq
 
+from omega_client.fpg.fpg_lib import create_SOR_order, FPGAuth
 from omega_client.messaging.common_types import AccountBalancesReport, \
     AccountCredentials, AccountInfo, AuthorizationGrant, AuthorizationRefresh, \
     CompletedOrdersReport, ExchangePropertiesReport, \
@@ -203,6 +204,36 @@ class RequestSender(Thread):
             request_header=request_header, contingent_order=contingent_order)
         self._queue_message(omega_message)
         return place_contingent_order
+
+    def place_SOR_order(self, request_header: RequestHeader,
+                        parent_order: Order,
+                        accounts: Dict[str, AccountInfo],
+                        auth: FPGAuth):
+        """
+        Sends a request to FPG to split up parent order into child orders,
+        which are then sent to Omega for execution
+        :param request_header: Header parameter object for requests.
+        :param parent_order: (Order) Python object containing all required
+        fields.
+        :param accounts: (Dict[str, AccountInfo]) dict of exchanges:
+        AccountInfo for which we will split up orders on
+        :param auth: (FPGAuth) authentication used to sign request
+        :return: (List[capnp._DynamicStructBuilder]) list of place_order capnp
+        objects, status_code (int), error_message (str)
+        """
+        place_child_orders = []
+        # get child orders from parent orders using fpg endpoint
+        child_orders, status_code, error_message = create_SOR_order(
+            order=parent_order,
+            accounts=accounts,
+            auth=auth
+        )
+        # call place_order for each of the child orders
+        for child_order in child_orders:
+            place_child_orders.append(
+                self.place_order(
+                    request_header=request_header, order=child_order))
+        return place_child_orders, status_code, error_message
 
     def replace_order(self,
                       request_header: RequestHeader,
