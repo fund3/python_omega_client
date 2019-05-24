@@ -1,4 +1,4 @@
-import datetime as dt
+import datetime.datetime as dt
 import logging
 import sched
 import time
