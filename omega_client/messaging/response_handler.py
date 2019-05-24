@@ -104,7 +104,7 @@ class ResponseHandler:
         :param logon_ack: (LogonAck) LogonAck message from Omega.
         :param client_id: (int) client_id of the response.
         :param sender_comp_id: (str) sender_comp_id of the response.
-        :param request_id: (int) request_id which requested this response
+        :param request_id: (int) request_id which requested this response.
         """
 
     @abstractmethod
@@ -208,8 +208,8 @@ class ResponseHandler:
     @abstractmethod
     def on_exchange_properties_report(self,
                                       report: ExchangePropertiesReport,
-                                      client_id,
-                                      sender_comp_id,
+                                      client_id: int,
+                                      sender_comp_id: str,
                                       request_id: int):
         """
         Override in subclass to handle Omega ExchangePropertiesReport response.
@@ -222,8 +222,8 @@ class ResponseHandler:
     @abstractmethod
     def on_authorization_grant(self,
                                authorization_grant: AuthorizationGrant,
-                               client_id,
-                               sender_comp_id,
+                               client_id: int,
+                               sender_comp_id: str,
                                request_id: int):
         """
         Override in subclass to handle Omega AuthorizationGrant response.

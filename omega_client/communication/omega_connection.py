@@ -478,13 +478,14 @@ def configure_default_omega_connection(omega_endpoint: str,
     response_receiver = ResponseReceiver(ZMQ_CONTEXT,
                                          RESPONSE_RECEIVER_ENDPOINT,
                                          response_handler)
-    omega_connection = OmegaConnection(ZMQ_CONTEXT,
-                                       omega_endpoint,
-                                       REQUEST_SENDER_ENDPOINT,
-                                       RESPONSE_RECEIVER_ENDPOINT,
-                                       request_sender,
-                                       response_receiver,
-                                       server_zmq_encryption_key=omega_server_key)
+    omega_connection = OmegaConnection(
+        ZMQ_CONTEXT,
+        omega_endpoint,
+        REQUEST_SENDER_ENDPOINT,
+        RESPONSE_RECEIVER_ENDPOINT,
+        request_sender,
+        response_receiver,
+        server_zmq_encryption_key=omega_server_key)
     return omega_connection, request_sender, response_receiver
 
 
@@ -513,14 +514,16 @@ def configure_single_client_omega_connection(omega_endpoint: str,
                                                REQUEST_SENDER_ENDPOINT,
                                                client_id,
                                                sender_comp_id)
+    response_handler.set_request_sender(request_sender=request_sender)
     response_receiver = ResponseReceiver(ZMQ_CONTEXT,
                                          RESPONSE_RECEIVER_ENDPOINT,
                                          response_handler)
-    omega_connection = OmegaConnection(ZMQ_CONTEXT,
-                                       omega_endpoint,
-                                       REQUEST_SENDER_ENDPOINT,
-                                       RESPONSE_RECEIVER_ENDPOINT,
-                                       request_sender,
-                                       response_receiver,
-                                       server_zmq_encryption_key=omega_server_key)
+    omega_connection = OmegaConnection(
+        ZMQ_CONTEXT,
+        omega_endpoint,
+        REQUEST_SENDER_ENDPOINT,
+        RESPONSE_RECEIVER_ENDPOINT,
+        request_sender,
+        response_receiver,
+        server_zmq_encryption_key=omega_server_key)
     return omega_connection, request_sender, response_receiver
