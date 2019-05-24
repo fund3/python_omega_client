@@ -1,7 +1,6 @@
 from datetime import datetime as dt
 import logging
-import sched
-import time
+from threading import Timer
 
 from omega_client.messaging.common_types import AccountBalancesReport, \
     AccountCredentials, AccountDataReport, AuthorizationGrant, \
@@ -11,7 +10,6 @@ from omega_client.messaging.common_types import AccountBalancesReport, \
 from omega_client.messaging.response_handler import ResponseHandler
 
 logger = logging.getLogger(__name__)
-scheduler = sched.scheduler(time.time, time.sleep)
 
 
 class SingleClientResponseHandler(ResponseHandler):
@@ -96,11 +94,8 @@ class SingleClientResponseHandler(ResponseHandler):
             self._token_expire_time = authorization_grant.expire_at
             time_until_session_refresh = (self._token_expire_time -
                                           dt.utcnow().timestamp() - 30.)
-            scheduler.enter(
-                delay=time_until_session_refresh,
-                priority=1,
-                action=self._send_authorization_refresh
-            )
+            Timer(time_until_session_refresh,
+                  self._send_authorization_refresh).start()
         else:
             if not authorization_grant.success:
                 logger.error(
