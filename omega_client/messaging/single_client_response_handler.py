@@ -18,7 +18,7 @@ class SingleClientResponseHandler(ResponseHandler):
     # ~~~~~~~~~~~~~~~~~~~~~~~~~ Incoming OmegaMessages ~~~~~~~~~~~~~~~~~~~~~~ #
     #                                                                         #
     ###########################################################################
-    def __init__(self):
+    def __init__(self, refresh_buffer_time: float = 30.):
         self._command_dispatcher = {
             'heartbeat': self.on_heartbeat,
             'test': self.on_test_message,
@@ -37,6 +37,7 @@ class SingleClientResponseHandler(ResponseHandler):
         }
         self._request_sender = None
         self._refresh_token = None
+        self._REFRESH_BUFFER_TIME = refresh_buffer_time
 
     def set_request_sender(self, request_sender):
         self._request_sender = request_sender
@@ -92,8 +93,9 @@ class SingleClientResponseHandler(ResponseHandler):
                 authorization_grant.access_token)
             self._refresh_token = authorization_grant.refresh_token
             self._token_expire_time = authorization_grant.expire_at
-            time_until_session_refresh = (self._token_expire_time -
-                                          dt.utcnow().timestamp() - 30.)
+            time_until_session_refresh = (
+                self._token_expire_time - dt.utcnow().timestamp() - 
+                self._REFRESH_BUFFER_TIME)
             Timer(time_until_session_refresh,
                   self._send_authorization_refresh).start()
         else:
