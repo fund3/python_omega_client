@@ -44,7 +44,9 @@ def _build_py_message(msg):
     :param msg: (capnp._DynamicStructBuilder) Message object
     :return: Message python object
     """
-    return Message(msg.code, msg.body)
+    if msg:
+        return Message(msg.code, msg.body)
+    return None
 
 
 def omega_test_message_py(test_message):
