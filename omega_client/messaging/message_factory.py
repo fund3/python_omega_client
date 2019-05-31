@@ -727,6 +727,10 @@ def _build_py_execution_report_from_capnp(execution_report):
         object.
     :return: (ExecutionReport) Populated Python object.
     """
+    if execution_report.rejectionReason:
+        rejection_reason =_build_py_message(execution_report.rejectionReason)
+    else:
+        rejection_reason = None
     return ExecutionReport(
         order_id=execution_report.orderID,
         client_order_id=execution_report.clientOrderID,
@@ -758,7 +762,7 @@ def _build_py_execution_report_from_capnp(execution_report):
         submission_time=execution_report.submissionTime,
         completion_time=execution_report.completionTime,
         execution_report_type=execution_report.executionType,
-        rejection_reason=_build_py_message(execution_report.rejectionReason)
+        rejection_reason=rejection_reason
     )
 
 
