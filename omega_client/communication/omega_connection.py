@@ -10,8 +10,6 @@ import zmq
 
 from omega_client.communication.request_sender import RequestSender
 from omega_client.communication.response_receiver import ResponseReceiver
-from omega_client.communication.single_client_request_sender import \
-    SingleClientRequestSender
 from omega_client.messaging.common_types import AccountBalancesReport, \
     AccountCredentials, AccountDataReport, AccountInfo, \
     AuthorizationRefresh, ExchangePropertiesReport, \
@@ -460,9 +458,11 @@ class OmegaConnection(Thread):
         )
 
 
-def configure_default_omega_connection(omega_endpoint: str,
-                                     omega_server_key: str,
-                                     response_handler: ResponseHandler):
+def configure_default_omega_connection(
+        zmq_context: zmq.Context,
+        omega_endpoint: str,
+        omega_server_key: str,
+        response_handler: ResponseHandler):
     """
     Set up a TesConnection that comes with request_sender and response_receiver.
     :param omega_endpoint: (str) The zmq endpoint to connect to Omega.
@@ -472,54 +472,13 @@ def configure_default_omega_connection(omega_endpoint: str,
         message.
     :return: omega_connection, request_sender, response_receiver
     """
-    ZMQ_CONTEXT = zmq.Context.instance()
-    request_sender = RequestSender(ZMQ_CONTEXT,
+    request_sender = RequestSender(zmq_context,
                                    REQUEST_SENDER_ENDPOINT)
-    response_receiver = ResponseReceiver(ZMQ_CONTEXT,
+    response_receiver = ResponseReceiver(zmq_context,
                                          RESPONSE_RECEIVER_ENDPOINT,
                                          response_handler)
     omega_connection = OmegaConnection(
-        ZMQ_CONTEXT,
-        omega_endpoint,
-        REQUEST_SENDER_ENDPOINT,
-        RESPONSE_RECEIVER_ENDPOINT,
-        request_sender,
-        response_receiver,
-        server_zmq_encryption_key=omega_server_key)
-    return omega_connection, request_sender, response_receiver
-
-
-def configure_single_client_omega_connection(omega_endpoint: str,
-                                           omega_server_key: str,
-                                           client_id: int,
-                                           sender_comp_id: str,
-                                           response_handler: ResponseHandler):
-    """
-    Set up a TesConnection that comes with request_sender and
-    response_receiver.  Sets the default client_id and sender_comp_id for the
-    request sender.
-    Note that each machine should be assigned a unique sender_comp_id even
-    when the client_id is the same.
-    :param omega_endpoint: (str) The zmq endpoint to connect to Omega.
-    :param omega_server_key: (str) The public key of the Omega server.
-    :param client_id: (int) The client id assigned by Fund3.
-    :param sender_comp_id: (str) str representation of a unique Python uuid.
-    :param response_handler: (ResponseHandler) The handler object that will
-        be called in a callback function when omega_connection receives a
-        message.
-    :return: omega_connection, request_sender, response_receiver
-    """
-    ZMQ_CONTEXT = zmq.Context.instance()
-    request_sender = SingleClientRequestSender(ZMQ_CONTEXT,
-                                               REQUEST_SENDER_ENDPOINT,
-                                               client_id,
-                                               sender_comp_id)
-    response_handler.set_request_sender(request_sender=request_sender)
-    response_receiver = ResponseReceiver(ZMQ_CONTEXT,
-                                         RESPONSE_RECEIVER_ENDPOINT,
-                                         response_handler)
-    omega_connection = OmegaConnection(
-        ZMQ_CONTEXT,
+        zmq_context,
         omega_endpoint,
         REQUEST_SENDER_ENDPOINT,
         RESPONSE_RECEIVER_ENDPOINT,

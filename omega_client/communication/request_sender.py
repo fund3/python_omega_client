@@ -57,7 +57,7 @@ class RequestSender(Thread):
                  zmq_endpoint: str,
                  outgoing_message_queue: Queue = None,
                  queue_polling_timeout_seconds: int = 1,
-                 name: str='TesRequestSender'):
+                 name: str='OmegaRequestSender'):
         assert zmq_context
         assert zmq_endpoint
 
