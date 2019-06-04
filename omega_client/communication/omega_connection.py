@@ -472,17 +472,18 @@ def configure_default_omega_connection(
         message.
     :return: omega_connection, request_sender, response_receiver
     """
-    request_sender = RequestSender(zmq_context,
-                                   REQUEST_SENDER_ENDPOINT)
-    response_receiver = ResponseReceiver(zmq_context,
-                                         RESPONSE_RECEIVER_ENDPOINT,
-                                         response_handler)
+    request_sender = RequestSender(zmq_context=zmq_context,
+                                   zmq_endpoint=REQUEST_SENDER_ENDPOINT)
+    response_receiver = ResponseReceiver(
+        zmq_context=zmq_context,
+        zmq_endpoint=RESPONSE_RECEIVER_ENDPOINT,
+        response_handler=response_handler)
     omega_connection = OmegaConnection(
-        zmq_context,
-        omega_endpoint,
-        REQUEST_SENDER_ENDPOINT,
-        RESPONSE_RECEIVER_ENDPOINT,
-        request_sender,
-        response_receiver,
+        zmq_context=zmq_context,
+        omega_endpoint=omega_endpoint,
+        request_sender_endpoint=REQUEST_SENDER_ENDPOINT,
+        response_receiver_endpoint=RESPONSE_RECEIVER_ENDPOINT,
+        request_sender=request_sender,
+        response_receiver=response_receiver,
         server_zmq_encryption_key=omega_server_key)
-    return omega_connection, request_sender, response_receiver
+    return omega_connection

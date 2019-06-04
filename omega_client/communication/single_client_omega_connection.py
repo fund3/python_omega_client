@@ -308,21 +308,23 @@ def configure_single_client_omega_connection(
         message.
     :return: omega_connection
     """
-    request_sender = SingleClientRequestSender(zmq_context,
-                                               REQUEST_SENDER_ENDPOINT,
-                                               client_id,
-                                               sender_comp_id)
+    request_sender = SingleClientRequestSender(
+        zmq_context=zmq_context,
+        zmq_endpoint=REQUEST_SENDER_ENDPOINT,
+        client_id=client_id,
+        sender_comp_id=sender_comp_id)
     response_handler.set_request_sender(request_sender=request_sender)
-    response_receiver = ResponseReceiver(zmq_context,
-                                         RESPONSE_RECEIVER_ENDPOINT,
-                                         response_handler)
+    response_receiver = ResponseReceiver(
+        zmq_context=zmq_context,
+        zmq_endpoint=RESPONSE_RECEIVER_ENDPOINT,
+        response_handler=response_handler)
     omega_connection = OmegaConnection(
-        zmq_context,
-        omega_endpoint,
-        REQUEST_SENDER_ENDPOINT,
-        RESPONSE_RECEIVER_ENDPOINT,
-        request_sender,
-        response_receiver,
+        zmq_context=zmq_context,
+        omega_endpoint=omega_endpoint,
+        request_sender_endpoint=REQUEST_SENDER_ENDPOINT,
+        response_receiver_endpoint=RESPONSE_RECEIVER_ENDPOINT,
+        request_sender=request_sender,
+        response_receiver=response_receiver,
         server_zmq_encryption_key=omega_server_key)
     single_client_omega_connection = SingleClientOmegaConnection(
         omega_connection=omega_connection,
