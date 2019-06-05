@@ -65,11 +65,12 @@ class SingleClientResponseHandler(ResponseHandler):
         else:
             if not logon_ack.success:
                 logger.error('logon_ack error: ',
-                             extra={'message': logon_ack.message})
+                             extra={'error_message': logon_ack.message})
             if not logon_ack.authorization_grant.success:
                 logger.error(
                     'authorization_grant error: ',
-                    extra={'message': logon_ack.authorization_grant.message})
+                    extra={'error_message':
+                           logon_ack.authorization_grant.message})
         self.on_logon_ack(
             logon_ack=logon_ack,
             client_id=client_id,
@@ -102,7 +103,7 @@ class SingleClientResponseHandler(ResponseHandler):
             if not authorization_grant.success:
                 logger.error(
                     'authorization_grant error: ',
-                    extra={'message': authorization_grant.message})
+                    extra={'error_message': authorization_grant.message})
         self.on_authorization_grant(
             authorization_grant=authorization_grant,
             client_id=client_id,
