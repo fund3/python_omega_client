@@ -9,7 +9,7 @@ import zmq
 
 from omega_client.fpg.fpg_lib import create_SOR_order, FPGAuth
 from omega_client.messaging.common_types import AccountBalancesReport, \
-    AccountCredentials, AccountInfo, AuthorizationGrant, AuthorizationRefresh, \
+    AccountCredentials, AccountInfo, AuthorizationRefresh, \
     CompletedOrdersReport, ExchangePropertiesReport, \
     ExecutionReport, OpenPositionsReport, Order, OrderInfo, \
     OrderType, RequestHeader, TimeInForce, WorkingOrdersReport, Batch, OPO, OCO
@@ -57,7 +57,7 @@ class RequestSender(Thread):
                  zmq_endpoint: str,
                  outgoing_message_queue: Queue = None,
                  queue_polling_timeout_seconds: int = 1,
-                 name: str='TesRequestSender'):
+                 name: str='OmegaRequestSender'):
         assert zmq_context
         assert zmq_endpoint
 

@@ -3,8 +3,9 @@ from typing import List, Union
 
 import zmq
 
-from omega_client.messaging.common_types import AccountCredentials, AccountInfo, \
-    Order, OrderInfo, OrderType, RequestHeader, TimeInForce, Batch, OPO, OCO
+from omega_client.messaging.common_types import AccountCredentials, \
+    AccountInfo, AuthorizationRefresh, Batch, OCO, OPO, \
+    Order, OrderInfo, OrderType, RequestHeader, TimeInForce
 from omega_client.communication.request_sender import RequestSender
 
 
@@ -14,13 +15,13 @@ class SingleClientRequestSender:
     with only 1 client_id.
     """
     def __init__(self, zmq_context: zmq.Context,
-                 connection_string: str,
+                 zmq_endpoint: str,
                  client_id: int,
                  sender_comp_id: str,
                  outgoing_message_queue: Queue = None):
         self._request_sender = RequestSender(
             zmq_context=zmq_context,
-            zmq_endpoint=connection_string,
+            zmq_endpoint=zmq_endpoint,
             outgoing_message_queue=outgoing_message_queue)
         self._request_header = RequestHeader(client_id=client_id,
                                              sender_comp_id=sender_comp_id,
@@ -160,3 +161,9 @@ class SingleClientRequestSender:
     def request_exchange_properties(self, exchange: str):
         return self._request_sender.request_exchange_properties(
             request_header=self._request_header, exchange=exchange)
+
+    def request_authorization_refresh(self,
+                                      auth_refresh: AuthorizationRefresh):
+        return self._request_sender.request_authorization_refresh(
+            request_header=self._request_header, auth_refresh=auth_refresh
+        )
