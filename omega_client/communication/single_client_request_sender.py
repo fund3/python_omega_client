@@ -15,13 +15,13 @@ class SingleClientRequestSender:
     with only 1 client_id.
     """
     def __init__(self, zmq_context: zmq.Context,
-                 connection_string: str,
+                 zmq_endpoint: str,
                  client_id: int,
                  sender_comp_id: str,
                  outgoing_message_queue: Queue = None):
         self._request_sender = RequestSender(
             zmq_context=zmq_context,
-            zmq_endpoint=connection_string,
+            zmq_endpoint=zmq_endpoint,
             outgoing_message_queue=outgoing_message_queue)
         self._request_header = RequestHeader(client_id=client_id,
                                              sender_comp_id=sender_comp_id,
