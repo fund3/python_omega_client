@@ -147,6 +147,6 @@ class ResponseReceiver(Thread):
             response = trade_message.type.response
             response_type = response.body.which()
             self._handle_response(response_type, response)
-        except (Exception, TypeError) as e:
+        except TypeError as e:
             logger.error('Exception in decoding message' + repr(e),
                          extra={'exception': repr(e)})
