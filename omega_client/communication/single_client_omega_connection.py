@@ -53,6 +53,9 @@ class SingleClientOmegaConnection:
         """
         self._omega_connection.stop()
 
+    def start(self):
+        self._omega_connection.start()
+
     ##########################################################################
     #                                                                        #
     # ~~~~~~~~~~~~~~~~~~~~~ Wrapper for Request Sender ~~~~~~~~~~~~~~~~~~~~~ #
