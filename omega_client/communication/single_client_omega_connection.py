@@ -31,6 +31,28 @@ class SingleClientOmegaConnection:
         self._omega_connection = omega_connection
         self._request_sender = request_sender
 
+    def cleanup(self):
+        """
+        Stop the response receiver gracefully and join the thread.
+        """
+        self._omega_connection.cleanup()
+
+    def is_running(self):
+        """
+        Return True if the thread is running, False otherwise.
+        """
+        return self._omega_connection.is_running()
+
+    def wait_until_running(self):
+        self._omega_connection.wait_until_running()
+
+    def stop(self):
+        """
+        Clear the _is_running Event, which terminates the response receiver
+        loop.
+        """
+        self._omega_connection.stop()
+
     ##########################################################################
     #                                                                        #
     # ~~~~~~~~~~~~~~~~~~~~~ Wrapper for Request Sender ~~~~~~~~~~~~~~~~~~~~~ #
