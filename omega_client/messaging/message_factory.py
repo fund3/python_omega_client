@@ -15,7 +15,7 @@ import omega_protocol.TradeMessage_capnp as msgs_capnp
 from omega_client.messaging.common_types import AccountBalancesReport, \
     AccountCredentials, AccountDataReport, AccountInfo, AuthorizationGrant, \
     AuthorizationRefresh, Balance, CompletedOrdersReport, Exchange,\
-    ExchangePropertiesReport, ExecutionReport, \
+    ExchangePropertiesReport, ExchangeLimits, ExecutionReport, \
     LogoffAck,  LogonAck, Message, OpenPosition, OpenPositionsReport, Order, \
     OrderInfo,  OrderType, RequestHeader, SymbolProperties, \
     SystemMessage, TimeInForce, WorkingOrdersReport, Batch, OCO, OPO
@@ -230,12 +230,18 @@ def exchange_properties_report_py(exchange_properties_report):
                          for tif in exchange_properties_report.timeInForces)
     order_types = set(str(ot)
                       for ot in exchange_properties_report.orderTypes)
+    ex_limits = exchange_properties_report.exchangeLimits
+    exchange_limits = ExchangeLimits(
+        rate_limit=ex_limits.rateLimit,
+        max_working_orders=ex_limits.maxWorkingOrdersNumber
+    )
     return ExchangePropertiesReport(
         exchange=str(exchange_properties_report.exchange),
         currencies=currencies,
         symbol_properties=symbol_properties,
         time_in_forces=time_in_forces,
-        order_types=order_types
+        order_types=order_types,
+        exchange_limits=exchange_limits
     )
 
 

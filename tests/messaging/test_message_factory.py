@@ -6,9 +6,9 @@ import pytest
 
 from omega_client.messaging.common_types import AccountBalancesReport, \
     AccountCredentials, AccountDataReport, AccountInfo, AuthorizationGrant, \
-    AuthorizationRefresh, Balance, CompletedOrdersReport, Exchange,  \
-    ExchangePropertiesReport, ExecutionReport, LeverageType, OpenPosition, \
-    Message, OpenPositionsReport, Order, OrderInfo, \
+    AuthorizationRefresh, Balance, CompletedOrdersReport, Exchange, \
+    ExchangeLimits, ExchangePropertiesReport, ExecutionReport, LeverageType, \
+    OpenPosition, Message, OpenPositionsReport, Order, OrderInfo, \
     OrderStatus, OrderType, RequestHeader, Side, \
     SymbolProperties, TimeInForce, WorkingOrdersReport
 import omega_protocol.TradeMessage_capnp as msgs_capnp
@@ -543,6 +543,9 @@ def test_handle_omega_message_exchange_properties_report():
     ots[0] = OrderType.undefined.name
     ots[1] = OrderType.limit.name
     ots[2] = OrderType.market.name
+    exch_limits = epr.init('exchangeLimits')
+    exch_limits.rateLimit = 6
+    exch_limits.maxWorkingOrdersNumber = 100
 
     exch_props_rpt = exchange_properties_report_py(
         omega_mess.type.response.body.exchangePropertiesReport)
