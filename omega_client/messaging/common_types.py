@@ -573,13 +573,26 @@ class SymbolProperties(CommonType):
         self.leverage = set(leverage)
 
 
+class ExchangeLimits(CommonType):
+    def __init__(self, rate_limit: int, max_working_orders: int):
+        """
+        :param rate_limit: max number of requests per second (soft limit
+        which exchanges may not enforce)
+        :param max_working_orders: max number of working orders per account,
+        0 - if no limit
+        """
+        self.rate_limit = rate_limit
+        self.max_working_orders = max_working_orders
+
+
 class ExchangePropertiesReport(CommonType):
     def __init__(self,
                  exchange: str,
                  currencies: Set[str],
                  symbol_properties: Dict[str, SymbolProperties],
                  time_in_forces: Set[str],
-                 order_types: Set[str]):
+                 order_types: Set[str],
+                 exchange_limits: ExchangeLimits):
         """
         :param exchange: str
         :param currencies: set of str active currencies on exchange
@@ -593,6 +606,7 @@ class ExchangePropertiesReport(CommonType):
         self.symbol_properties = dict(symbol_properties)
         self.time_in_forces = set(time_in_forces)
         self.order_types = set(order_types)
+        self.exchange_limits = exchange_limits
 
 
 class ReplaceOrder(CommonType):
