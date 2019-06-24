@@ -387,3 +387,13 @@ def test_request_exchange_properties_invalid_case(fake_request_sender):
     )
     assert type(exch_prop) == capnp.lib.capnp._DynamicStructBuilder
     assert exch_prop.exchange == exch_capnp.Exchange.undefined
+
+
+@pytest.mark.test_id(18)
+def test_request_exchange_properties(fake_request_sender):
+    # valid exchange test case
+    test = fake_request_sender.request_exchange_properties(
+        test_message='test message'
+    )
+    assert type(exch_prop) == capnp.lib.capnp._DynamicStructBuilder
+    assert test.string == 'test message'

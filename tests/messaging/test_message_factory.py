@@ -17,15 +17,15 @@ from omega_client.messaging.message_factory import account_balances_report_py, \
     completed_orders_report_py, \
     exchange_properties_report_py, execution_report_py, \
     generate_client_order_id, logoff_ack_py, logon_ack_py, \
-    open_positions_report_py, system_message_py, omega_test_message_py, \
-    working_orders_report_py, cancel_order_capnp, heartbeat_capnp, \
-    logoff_capnp, logon_capnp, place_order_capnp, replace_order_capnp, \
-    request_account_balances_capnp, request_account_data_capnp, \
-    request_auth_refresh_capnp, request_completed_orders_capnp, \
-    request_exchange_properties_capnp, request_open_positions_capnp, \
-    request_order_status_capnp, request_server_time_capnp, \
-    request_working_orders_capnp,  _determine_order_price, \
-    _generate_omega_request
+    omega_test_message_capnp, open_positions_report_py, system_message_py, \
+    omega_test_message_py,  working_orders_report_py, cancel_order_capnp, \
+    heartbeat_capnp,  logoff_capnp, logon_capnp, place_order_capnp, \
+    replace_order_capnp,  request_account_balances_capnp, \
+    request_account_data_capnp,  request_auth_refresh_capnp, \
+    request_completed_orders_capnp,  request_exchange_properties_capnp, \
+    request_open_positions_capnp,  request_order_status_capnp, \
+    request_server_time_capnp,  request_working_orders_capnp,  \
+    _determine_order_price, _generate_omega_request
 
 __FAKE_ACCESS_TOKEN = 'FakeAccessToken'
 __FAKE_REQUEST_HEADER = RequestHeader(client_id=123,
@@ -953,3 +953,47 @@ def test_handle_omega_message_completed_contingent_orders_report():
     assert exec_reports[1].contingent_type == 'oco'
     assert type(exec_reports[2].contingent_type) == str
     assert exec_reports[2].contingent_type == 'batch'
+
+
+@pytest.mark.test_id(21)
+def test_handle_omega_message_test():
+    omega_mess = msgs_capnp.TradeMessage.new_message()
+    test_resp = omega_mess.init('type').init('response')
+    test_resp.clientID = 123
+    test_resp.senderCompID = str(987)
+    test_resp.requestID = 100001
+    body = test_resp.init('body')
+
+    test_message = 'test message'
+    test = body.init('test')
+    test.string = test_message
+
+    test_message = omega_test_message_py(omega_mess.type.response.body.test)
+    assert type(test_message) == str
+    assert test_message == test_message
+
+
+@pytest.mark.test_id(22)
+def test_send_test_message_capnp():
+    test_message = 'test message'
+    expected_omega_message = msgs_capnp.TradeMessage.new_message()
+    test_req = expected_omega_message.init('type').init('request')
+    test_req.clientID = 123
+    test_req.senderCompID = str(987)
+    test_req.requestID = 100001
+    test_req.accessToken = __FAKE_ACCESS_TOKEN
+    body = test_req.init('body')
+    test = body.init('test')
+    test.string = test_message
+
+    actual_omega_message = omega_test_message_capnp(__FAKE_REQUEST_HEADER,
+                                                    test_message)[0]
+
+    assert actual_omega_message.type.request.clientID == (
+        expected_omega_message.type.request.clientID)
+    assert actual_omega_message.type.request.senderCompID == (
+        expected_omega_message.type.request.senderCompID)
+    assert actual_omega_message.type.request.requestID == (
+        expected_omega_message.type.request.requestID)
+    actual_test_string = actual_omega_message.type.request.body.test.string
+    assert actual_test_string == test_message

@@ -273,6 +273,20 @@ def logoff_capnp(request_header: RequestHeader):
     return omega_message, body
 
 
+def omega_test_message_capnp(request_header: RequestHeader,
+                             test_message: str):
+    """
+    Generates a capnp test message with a specific clientID.
+    :param request_header: Header parameter object for requests.
+    :param test_message: (str) Test message.
+    :return: (capnp._DynamicStructBuilder) Test capnp object.
+    """
+    omega_message, body = _generate_omega_request(request_header=request_header)
+    test = body.init('test')
+    test.string = test_message
+    return omega_message, body
+
+
 def heartbeat_capnp(request_header: RequestHeader):
     """
     Generates a capnp heartbeat message.

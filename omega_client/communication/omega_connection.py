@@ -209,6 +209,19 @@ class OmegaConnection(Thread):
         """
         return self._request_sender.logoff(request_header=request_header)
 
+    def send_test_message(self, request_header: RequestHeader,
+                          test_message: str):
+        """
+       Sends a test message to Omega for checking connectivity.  Client id
+       and sender_comp_id won't be checked although they are required,
+       so fake ids can be sent.
+       :param request_header: Header parameter object for requests.
+       :param test_message: (str) Test message.
+       :return: (capnp._DynamicStructBuilder) test_message capnp object.
+       """
+        return self._request_sender.send_test_message(
+            request_header=request_header, test_message=test_message)
+
     def send_heartbeat(self, request_header: RequestHeader):
         """
         Sends a heartbeat to Omega for maintaining and verifying connection.

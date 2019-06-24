@@ -72,6 +72,10 @@ class SingleClientRequestSender:
     def logoff(self):
         return self._request_sender.logoff(request_header=self._request_header)
 
+    def send_test_message(self, test_message: str):
+        return self._request_sender.send_test_message(
+            request_header=self._request_header, test_message=test_message)
+
     def send_heartbeat(self):
         return self._request_sender.send_heartbeat(
             request_header=self._request_header)
