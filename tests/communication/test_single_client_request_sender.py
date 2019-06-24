@@ -43,7 +43,7 @@ def fake_zmq_context():
 def fake_request_sender(fake_zmq_context):
     request_sender = SingleClientRequestSender(
         zmq_context=fake_zmq_context,
-        connection_string=__FAKE_REQUEST_SENDER_CONNECTION_STR,
+        zmq_endpoint=__FAKE_REQUEST_SENDER_CONNECTION_STR,
         client_id=TEST_CLIENT_ID,
         sender_comp_id=TEST_SENDER_COMP_ID
     )
@@ -387,3 +387,13 @@ def test_request_exchange_properties_invalid_case(fake_request_sender):
     )
     assert type(exch_prop) == capnp.lib.capnp._DynamicStructBuilder
     assert exch_prop.exchange == exch_capnp.Exchange.undefined
+
+
+@pytest.mark.test_id(18)
+def test_send_test_message(fake_request_sender):
+    # valid exchange test case
+    test = fake_request_sender.send_test_message(
+        test_message='test message'
+    )
+    assert type(test) == capnp.lib.capnp._DynamicStructBuilder
+    assert test.test.string == 'test message'

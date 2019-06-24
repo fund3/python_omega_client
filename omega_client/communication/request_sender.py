@@ -15,12 +15,12 @@ from omega_client.messaging.common_types import AccountBalancesReport, \
     OrderType, RequestHeader, TimeInForce, WorkingOrdersReport, Batch, OPO, OCO
 from omega_client.messaging.message_factory import cancel_all_orders_capnp, \
     cancel_order_capnp, heartbeat_capnp, logoff_capnp, logon_capnp, \
-    place_order_capnp, replace_order_capnp, request_account_balances_capnp, \
-    request_account_data_capnp, request_auth_refresh_capnp, \
-    request_completed_orders_capnp, request_exchange_properties_capnp, \
-    request_open_positions_capnp, request_order_status_capnp, \
-    request_server_time_capnp, request_working_orders_capnp, \
-    place_contingent_order_capnp
+    omega_test_message_capnp, place_order_capnp, replace_order_capnp, \
+    request_account_balances_capnp, request_account_data_capnp, \
+    request_auth_refresh_capnp, request_completed_orders_capnp, \
+    request_exchange_properties_capnp, request_open_positions_capnp, \
+    request_order_status_capnp, request_server_time_capnp, \
+    request_working_orders_capnp, place_contingent_order_capnp
 
 logger = logging.getLogger(__name__)
 
@@ -165,6 +165,13 @@ class RequestSender(Thread):
         :return: (capnp._DynamicStructBuilder) heartbeat capnp object.
         """
         omega_message, body = heartbeat_capnp(request_header=request_header)
+        self._queue_message(omega_message)
+        return body
+
+    def send_test_message(self, request_header: RequestHeader,
+                          test_message: str):
+        omega_message, body = omega_test_message_capnp(
+            request_header=request_header, test_message=test_message)
         self._queue_message(omega_message)
         return body
 

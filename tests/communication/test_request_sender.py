@@ -842,3 +842,11 @@ def test_place_contingent_opo_batch_order(fake_request_sender):
     assert batch_order1.stopPrice == 0.0
     assert batch_order1.timeInForce == 'gtc'
     assert batch_order1.expireAt == 0.0
+
+
+@pytest.mark.test_id(30)
+def test_omega_test_message(fake_request_sender):
+    test = fake_request_sender.send_test_message(
+        request_header=__FAKE_REQUEST_HEADER, test_message='test message')
+    assert type(test) == capnp.lib.capnp._DynamicStructBuilder
+    assert test.test.string == 'test message'

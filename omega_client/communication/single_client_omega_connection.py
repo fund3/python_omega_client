@@ -83,6 +83,10 @@ class SingleClientOmegaConnection:
         """
         return self._request_sender.logoff()
 
+    def send_test_message(self, test_message: str):
+        return self._request_sender.send_test_message(
+            test_message=test_message)
+
     def send_heartbeat(self):
         """
         Sends a heartbeat to Omega for maintaining and verifying connection.
