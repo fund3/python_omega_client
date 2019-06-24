@@ -849,4 +849,4 @@ def test_omega_test_message(fake_request_sender):
     test = fake_request_sender.send_test_message(
         request_header=__FAKE_REQUEST_HEADER, test_message='test message')
     assert type(test) == capnp.lib.capnp._DynamicStructBuilder
-    assert test.string == 'test message'
+    assert test.test.string == 'test message'
