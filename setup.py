@@ -22,7 +22,6 @@ with open('README.md') as readme_file:
     readme = readme_file.read()
 
 requirements = [
-    './omega_protocol',
     'pycapnp==0.6.4',
     'pytest==3.6.3',
     'pytest-runner==2.11.1',
