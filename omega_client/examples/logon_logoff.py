@@ -6,7 +6,6 @@ from omega_client.communication.omega_connection import \
 from omega_client.messaging.common_types import AccountCredentials, AccountInfo
 from omega_client.messaging.printing_response_handler import \
     PrintingResponseHandler
-from omega_client.examples.single_client_session_refresher import SingleClientSessionRefresher
 
 OMEGA_ENDPOINT = "tcp://0.0.0.0:9999"
 OMEGA_SERVER_KEY = "omega_server_key"
@@ -37,13 +36,12 @@ def main():
     # See omega_client.messaging.response_handler and
     # omega_client.messaging.printing_response_handler (example child class
     # that just prints everything).
-    omega_connection, request_sender, response_receiver = (
-        configure_single_client_omega_connection(
-            omega_endpoint=OMEGA_ENDPOINT,
-            omega_server_key=OMEGA_SERVER_KEY,
-            client_id=client_id,
-            sender_comp_id=sender_comp_id,
-            response_handler=PrintingResponseHandler()))
+    omega_connection = configure_single_client_omega_connection(
+        omega_endpoint=OMEGA_ENDPOINT,
+        omega_server_key=OMEGA_SERVER_KEY,
+        client_id=client_id,
+        sender_comp_id=sender_comp_id,
+        response_handler=PrintingResponseHandler())
     # Starting the TesConnection thread.
     omega_connection.start()
     # Waiting for the TesConnection to be set up.
@@ -61,33 +59,20 @@ def main():
                                      secret_key=secret_key,
                                      passphrase=passphrase)
 
-    # initialize SessionRefresher
-    session_refresher = SingleClientSessionRefresher(
-        request_sender=request_sender,
-        client_id=client_id,
-        sender_comp_id=sender_comp_id
-    )
-
-    # update response_handler to use SessionRefresher
-    response_receiver.set_response_handler(
-        PrintingResponseHandler(session_refresher=session_refresher)
-    )
-
     # Send logon message, which when received will start and update token for
     # session_refresher. session_refresher will run until stopped
-    request_sender.logon([credentials])
+    omega_connection.logon([credentials])
     time.sleep(2)
 
     # send a heartbeat every minute for 2 hours (during which the session
     # should refresh at least once)
     minutes_left = 120
     while minutes_left > 0:
-        request_sender.send_heartbeat()
+        omega_connection.send_heartbeat()
         time.sleep(60)
 
     # stop and cleanup
-    session_refresher.stop()
-    request_sender.logoff()
+    omega_connection.logoff()
     time.sleep(2)
     omega_connection.cleanup()
 

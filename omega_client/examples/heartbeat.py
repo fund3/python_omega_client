@@ -14,7 +14,7 @@ DISTRIBUTED_CLIENTS = False
 
 def main():
     client_id = 1
-    # sender_comp_id is a unique identifier for a omega_client.  Omega supports the
+    # sender_comp_id is a unique identifier.  Omega supports the
     # use case of multiple omega_clients sending messages with the same
     # client_id, hence a sender_comp_id is needed to distinguish the machine
     # and client in the middle of a request and response communication.
@@ -33,12 +33,12 @@ def main():
         sender_comp_id = str(uuid.uuid4())
     client_id_machine_dict[client_id] = sender_comp_id
 
-    omega_connection, request_sender, response_receiver = (
-        configure_single_client_omega_connection(OMEGA_ENDPOINT,
-                                                 OMEGA_SERVER_KEY,
-                                                 client_id,
-                                                 sender_comp_id,
-                                                 PrintingResponseHandler()))
+    omega_connection = configure_single_client_omega_connection(
+        OMEGA_ENDPOINT,
+        OMEGA_SERVER_KEY,
+        client_id,
+        sender_comp_id,
+        PrintingResponseHandler())
 
     omega_connection.start()
     omega_connection.wait_until_running()
@@ -50,9 +50,9 @@ def main():
     credentials = AccountCredentials(AccountInfo(account_id), api_key,
                                      secret_key, passphrase)
 
-    request_sender.logon([credentials])
-    request_sender.send_heartbeat()
-    request_sender.logoff()
+    omega_connection.logon([credentials])
+    omega_connection.send_heartbeat()
+    omega_connection.logoff()
     time.sleep(2)
     omega_connection.cleanup()
 
