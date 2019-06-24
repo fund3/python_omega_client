@@ -1,7 +1,7 @@
 import time
 import uuid
 
-from omega_client.communication.omega_connection import \
+from omega_client.communication.single_client_omega_connection import \
     configure_single_client_omega_connection
 from omega_client.messaging.common_types import (AccountCredentials,
     AccountInfo, LeverageType, Order, OrderType, Side, TimeInForce)
