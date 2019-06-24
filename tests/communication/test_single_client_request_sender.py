@@ -43,7 +43,7 @@ def fake_zmq_context():
 def fake_request_sender(fake_zmq_context):
     request_sender = SingleClientRequestSender(
         zmq_context=fake_zmq_context,
-        connection_string=__FAKE_REQUEST_SENDER_CONNECTION_STR,
+        zmq_endpoint=__FAKE_REQUEST_SENDER_CONNECTION_STR,
         client_id=TEST_CLIENT_ID,
         sender_comp_id=TEST_SENDER_COMP_ID
     )
