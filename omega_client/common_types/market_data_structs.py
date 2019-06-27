@@ -22,42 +22,10 @@ class PairId(CommonType):
         self.symbol = symbol
 
 
-class EntriesById(CommonType):
-    def __init__(self, pair_id: PairId, entries: List[MarketDataEntry]):
-        """
-
-        :param pair_id:
-        :param entries:
-        """
-        self.pair_id = pair_id
-        self.entries = entries
-
-
-class MarketDataMessage(CommonType):
-    def __init__(self,
-                 timestamp: float,
-                 request_type: Union[MarketDataRequest, MarketDataSnapshot,
-                                     MarketDataIncrementalRefresh],
-                 sequence_number: int = None,
-                 request_id: int = None):
-        """
-
-        :param timestamp: (float) unix timestamp seconds since 1/1/1970
-        :param request_type:
-        :param sequence_number:
-        :param request_id:
-        """
-        self.timestamp = timestamp
-        self.request_type = request_type
-        self.sequence_number = sequence_number
-        self.request_id = request_id
-
-
 class MarketDataRequest(CommonType):
     def __init__(self,
                  pair_ids: List[PairId],
-                 entry_types: List[Union[MarketDataRequest, MarketDataSnapshot,
-                                         MarketDataIncrementalRefresh]],
+                 entry_types,
                  depth: int,
                  subscription_type: SubscriptionType):
         """
@@ -76,30 +44,6 @@ class MarketDataRequest(CommonType):
         self.entry_types = entry_types
         self.depth = depth
         self.subscription_type = subscription_type
-
-
-class MarketDataSnapshot(CommonType):
-    def __init__(self, timestamp: float, entries_by_id_list: List[EntriesById]):
-        """
-        http://fixwiki.org/fixwiki/MarketDataSnapshotFullRefresh/FIX.5.0SP2%2Bol
-
-        :param timestamp: (float) unix timestamp seconds since 1/1/1970
-        :param entries_by_id_list:
-        """
-        self.timestamp = timestamp
-        self.entries_by_id_list = entries_by_id_list
-
-
-class MarketDataIncrementalRefresh(CommonType):
-    def __init__(self, timestamp: float, entries_by_id_list: List[EntriesById]):
-        """
-        http://fixwiki.org/fixwiki/MarketDataIncrementalRefresh/FIX.5.0SP2%2B
-
-        :param timestamp: (float) unix timestamp seconds since 1/1/1970
-        :param entries_by_id_list:
-        """
-        self.timestamp = timestamp
-        self.entries_by_id_list = entries_by_id_list
 
 
 class MarketDataEntry(CommonType):
@@ -133,6 +77,61 @@ class MarketDataEntry(CommonType):
         self.position = position
         self.side = side
         self.trade_id = trade_id
+
+
+class EntriesById(CommonType):
+    def __init__(self, pair_id: PairId, entries: List[MarketDataEntry]):
+        """
+
+        :param pair_id:
+        :param entries:
+        """
+        self.pair_id = pair_id
+        self.entries = entries
+
+
+class MarketDataSnapshot(CommonType):
+    def __init__(self, timestamp: float, entries_by_id_list: List[EntriesById]):
+        """
+        http://fixwiki.org/fixwiki/MarketDataSnapshotFullRefresh/FIX.5.0SP2%2Bol
+
+        :param timestamp: (float) unix timestamp seconds since 1/1/1970
+        :param entries_by_id_list:
+        """
+        self.timestamp = timestamp
+        self.entries_by_id_list = entries_by_id_list
+
+
+class MarketDataIncrementalRefresh(CommonType):
+    def __init__(self, timestamp: float, entries_by_id_list: List[EntriesById]):
+        """
+        http://fixwiki.org/fixwiki/MarketDataIncrementalRefresh/FIX.5.0SP2%2B
+
+        :param timestamp: (float) unix timestamp seconds since 1/1/1970
+        :param entries_by_id_list:
+        """
+        self.timestamp = timestamp
+        self.entries_by_id_list = entries_by_id_list
+
+
+class MarketDataMessage(CommonType):
+    def __init__(self,
+                 timestamp: float,
+                 request_type: Union[MarketDataRequest, MarketDataSnapshot,
+                                     MarketDataIncrementalRefresh],
+                 sequence_number: int = None,
+                 request_id: int = None):
+        """
+
+        :param timestamp: (float) unix timestamp seconds since 1/1/1970
+        :param request_type:
+        :param sequence_number:
+        :param request_id:
+        """
+        self.timestamp = timestamp
+        self.request_type = request_type
+        self.sequence_number = sequence_number
+        self.request_id = request_id
 
 
 class MDHeader(CommonType):
