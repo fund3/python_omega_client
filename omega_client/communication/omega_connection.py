@@ -13,8 +13,7 @@ from omega_client.communication.response_receiver import ResponseReceiver
 from omega_client.communication.single_client_request_sender import \
     SingleClientRequestSender
 from omega_client.common_types.trading_structs import AccountCredentials, \
-    AccountInfo, \
-    AuthorizationRefresh, Order, RequestHeader, Batch, OCO, OPO
+    AccountInfo, AuthorizationRefresh, Order, RequestHeader, Batch, OCO, OPO
 from omega_client.common_types.enum_types import OrderType, TimeInForce
 from omega_client.messaging.response_handler import ResponseHandler
 

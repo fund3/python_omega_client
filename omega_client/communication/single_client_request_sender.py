@@ -3,8 +3,8 @@ from typing import List, Union
 
 import zmq
 
-from omega_client.common_types.trading_structs import AccountCredentials, AccountInfo, \
-    Order, RequestHeader, Batch, OPO, OCO
+from omega_client.common_types.trading_structs import AccountCredentials, \
+    AccountInfo, Order, RequestHeader, Batch, OPO, OCO
 from omega_client.common_types.enum_types import OrderType, TimeInForce
 from omega_client.communication.request_sender import RequestSender
 

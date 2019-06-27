@@ -1,12 +1,11 @@
-import math
-
 import capnp
+import math
 import pytest
 
 from omega_client.common_types.trading_structs import AccountBalancesReport, \
     AccountDataReport, AccountInfo, AuthorizationGrant, \
-    AuthorizationRefresh, CompletedOrdersReport, ExchangePropertiesReport, ExecutionReport, \
-    OpenPosition, Message, RequestHeader, WorkingOrdersReport
+    AuthorizationRefresh, CompletedOrdersReport, ExchangePropertiesReport, \
+    ExecutionReport, OpenPosition, Message, RequestHeader, WorkingOrdersReport
 from omega_client.common_types.enum_types import Side, OrderType, OrderStatus, \
     TimeInForce
 import omega_protocol.TradeMessage_capnp as msgs_capnp
