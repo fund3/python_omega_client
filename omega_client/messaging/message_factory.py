@@ -7,8 +7,8 @@ from typing import List, Union
 
 # pylint: disable=E0611
 # pylint: disable=E0401
-import omega_protocol.omega_protocol.Exchanges_capnp as exch_capnp
-import omega_protocol.omega_protocol.TradeMessage_capnp as msgs_capnp
+import omega_protocol.Exchanges_capnp as exch_capnp
+import omega_protocol.TradeMessage_capnp as msgs_capnp
 # pylint: enable=E0611
 # pylint: enable=E0401
 from omega_client.common_types.trading_structs import AccountBalancesReport, \
