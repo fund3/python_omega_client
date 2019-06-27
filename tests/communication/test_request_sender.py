@@ -7,12 +7,10 @@ import zmq
 import omega_protocol.Exchanges_capnp as exch_capnp
 import omega_protocol.TradeMessage_capnp as msgs_capnp
 from omega_client.communication.request_sender import RequestSender
-from omega_client.messaging.common_types import AccountBalancesReport, \
-    AccountCredentials, AccountDataReport, AccountInfo, AuthorizationRefresh, \
-    CompletedOrdersReport, Exchange, ExchangePropertiesReport, LeverageType, \
-    ExecutionReport, OpenPosition, OpenPositionsReport, Order, OrderInfo, \
-    OrderStatus, OrderType, RequestHeader, Side, SymbolProperties, \
-    TimeInForce, WorkingOrdersReport, Batch, OPO, OCO
+from omega_client.common_types.trading_structs import AccountCredentials, \
+    AccountInfo, AuthorizationRefresh, \
+    LeverageType, \
+    Order, OrderType, RequestHeader, Side, TimeInForce, Batch, OPO, OCO
 from omega_client.messaging.message_factory import heartbeat_capnp
 
 

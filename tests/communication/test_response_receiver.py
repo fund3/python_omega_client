@@ -1,8 +1,6 @@
 import time
-from typing import List
 
 # pylint: disable=W0611
-import capnp
 # pylint: enable=W0611
 import pytest
 import zmq
@@ -13,7 +11,7 @@ import omega_protocol.TradeMessage_capnp as msgs_capnp
 # pylint: enable=E0401
 # pylint: enable=E0611
 from omega_client.communication.response_receiver import ResponseReceiver
-from omega_client.messaging.common_types import LogonAck, SystemMessage
+from omega_client.common_types.trading_structs import LogonAck, SystemMessage
 from omega_client.messaging.response_handler import ResponseHandler
 
 

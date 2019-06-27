@@ -12,11 +12,9 @@ from omega_client.communication.request_sender import RequestSender
 from omega_client.communication.response_receiver import ResponseReceiver
 from omega_client.communication.single_client_request_sender import \
     SingleClientRequestSender
-from omega_client.messaging.common_types import AccountBalancesReport, \
-    AccountCredentials, AccountDataReport, AccountInfo, \
-    AuthorizationRefresh, ExchangePropertiesReport, \
-    ExecutionReport, OpenPositionsReport, Order, OrderInfo, \
-    OrderType, RequestHeader, TimeInForce, WorkingOrdersReport, Batch, OCO, OPO
+from omega_client.common_types.trading_structs import AccountCredentials, \
+    AccountInfo, \
+    AuthorizationRefresh, Order, OrderType, RequestHeader, TimeInForce, Batch, OCO, OPO
 from omega_client.messaging.response_handler import ResponseHandler
 
 logger = logging.getLogger(__name__)

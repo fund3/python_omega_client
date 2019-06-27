@@ -1,7 +1,6 @@
-import json, hmac, hashlib, time, requests
-from requests.auth import AuthBase
+import json, requests
 from omega_client.fpg.fpg_lib import FPGAuth, create_SOR_order
-from omega_client.messaging.common_types import AccountInfo, Exchange, Order, \
+from omega_client.common_types.trading_structs import AccountInfo, Exchange, Order, \
     OrderType, Side
 
 # Before implementation, set environmental variables API_KEY and API_SECRET

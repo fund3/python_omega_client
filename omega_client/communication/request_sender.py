@@ -8,11 +8,9 @@ import capnp
 import zmq
 
 from omega_client.fpg.fpg_lib import create_SOR_order, FPGAuth
-from omega_client.messaging.common_types import AccountBalancesReport, \
-    AccountCredentials, AccountInfo, AuthorizationGrant, AuthorizationRefresh, \
-    CompletedOrdersReport, ExchangePropertiesReport, \
-    ExecutionReport, OpenPositionsReport, Order, OrderInfo, \
-    OrderType, RequestHeader, TimeInForce, WorkingOrdersReport, Batch, OPO, OCO
+from omega_client.common_types.trading_structs import AccountCredentials, AccountInfo, \
+    AuthorizationRefresh, \
+    Order, OrderType, RequestHeader, TimeInForce, Batch, OPO, OCO
 from omega_client.messaging.message_factory import cancel_all_orders_capnp, \
     cancel_order_capnp, heartbeat_capnp, logoff_capnp, logon_capnp, \
     place_order_capnp, replace_order_capnp, request_account_balances_capnp, \

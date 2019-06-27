@@ -3,8 +3,8 @@ import uuid
 
 from omega_client.communication.omega_connection import \
     configure_single_client_omega_connection
-from omega_client.messaging.common_types import (AccountCredentials,
-    AccountInfo, LeverageType, Order, OrderType, Side, TimeInForce)
+from omega_client.common_types.trading_structs import (AccountCredentials,
+                                                       AccountInfo, LeverageType, Order, OrderType, Side, TimeInForce)
 from omega_client.messaging.printing_response_handler import \
     PrintingResponseHandler
 

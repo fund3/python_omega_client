@@ -2,7 +2,7 @@ import logging
 
 from omega_client.examples.single_client_session_refresher import SingleClientSessionRefresher
 from omega_client.messaging.response_handler import ResponseHandler
-from omega_client.messaging.common_types import *
+from omega_client.common_types.trading_structs import *
 
 logger = logging.getLogger(__name__)
 

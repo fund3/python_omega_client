@@ -3,7 +3,6 @@ import time
 from typing import List, Union
 
 # pylint: disable=W0611
-import capnp
 # pylint: enable=W0611
 
 # pylint: disable=E0611
@@ -12,12 +11,12 @@ import omega_protocol.Exchanges_capnp as exch_capnp
 import omega_protocol.TradeMessage_capnp as msgs_capnp
 # pylint: enable=E0611
 # pylint: enable=E0401
-from omega_client.messaging.common_types import AccountBalancesReport, \
+from omega_client.common_types.trading_structs import AccountBalancesReport, \
     AccountCredentials, AccountDataReport, AccountInfo, AuthorizationGrant, \
     AuthorizationRefresh, Balance, CompletedOrdersReport, Exchange,\
     ExchangePropertiesReport, ExchangeLimits, ExecutionReport, \
     LogoffAck,  LogonAck, Message, OpenPosition, OpenPositionsReport, Order, \
-    OrderInfo,  OrderType, RequestHeader, SymbolProperties, \
+    OrderType, RequestHeader, SymbolProperties, \
     SystemMessage, TimeInForce, WorkingOrdersReport, Batch, OCO, OPO
 
 logger = logging.getLogger(__name__)

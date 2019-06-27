@@ -6,7 +6,7 @@ from typing import Dict
 # omega library imports
 from omega_client.fpg.fpg_orders_convert import (
     convert_f3_order_to_fpg_order, convert_fpg_orders_to_omg_orders)
-from omega_client.messaging.common_types import AccountInfo, Order, OrderType
+from omega_client.common_types.trading_structs import AccountInfo, Order
 
 logger = logging.getLogger(__name__)
 

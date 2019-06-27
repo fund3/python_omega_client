@@ -3,8 +3,8 @@ from typing import List, Union
 
 import zmq
 
-from omega_client.messaging.common_types import AccountCredentials, AccountInfo, \
-    Order, OrderInfo, OrderType, RequestHeader, TimeInForce, Batch, OPO, OCO
+from omega_client.common_types.trading_structs import AccountCredentials, AccountInfo, \
+    Order, OrderType, RequestHeader, TimeInForce, Batch, OPO, OCO
 from omega_client.communication.request_sender import RequestSender
 
 

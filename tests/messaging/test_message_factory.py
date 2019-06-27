@@ -1,16 +1,13 @@
 import math
-from typing import List
 
 import capnp
 import pytest
 
-from omega_client.messaging.common_types import AccountBalancesReport, \
-    AccountCredentials, AccountDataReport, AccountInfo, AuthorizationGrant, \
-    AuthorizationRefresh, Balance, CompletedOrdersReport, Exchange, \
-    ExchangeLimits, ExchangePropertiesReport, ExecutionReport, LeverageType, \
-    OpenPosition, Message, OpenPositionsReport, Order, OrderInfo, \
-    OrderStatus, OrderType, RequestHeader, Side, \
-    SymbolProperties, TimeInForce, WorkingOrdersReport
+from omega_client.common_types.trading_structs import AccountBalancesReport, \
+    AccountDataReport, AccountInfo, AuthorizationGrant, \
+    AuthorizationRefresh, CompletedOrdersReport, ExchangePropertiesReport, ExecutionReport, \
+    OpenPosition, Message, OrderStatus, OrderType, RequestHeader, Side, \
+    TimeInForce, WorkingOrdersReport
 import omega_protocol.TradeMessage_capnp as msgs_capnp
 from omega_client.messaging.message_factory import account_balances_report_py, \
     account_data_report_py, authorization_grant_py, \
@@ -18,13 +15,9 @@ from omega_client.messaging.message_factory import account_balances_report_py, \
     exchange_properties_report_py, execution_report_py, \
     generate_client_order_id, logoff_ack_py, logon_ack_py, \
     open_positions_report_py, system_message_py, omega_test_message_py, \
-    working_orders_report_py, cancel_order_capnp, heartbeat_capnp, \
-    logoff_capnp, logon_capnp, place_order_capnp, replace_order_capnp, \
-    request_account_balances_capnp, request_account_data_capnp, \
-    request_auth_refresh_capnp, request_completed_orders_capnp, \
-    request_exchange_properties_capnp, request_open_positions_capnp, \
-    request_order_status_capnp, request_server_time_capnp, \
-    request_working_orders_capnp,  _determine_order_price, \
+    working_orders_report_py, heartbeat_capnp, \
+    request_auth_refresh_capnp, request_server_time_capnp, \
+    _determine_order_price, \
     _generate_omega_request
 
 __FAKE_ACCESS_TOKEN = 'FakeAccessToken'
