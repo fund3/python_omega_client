@@ -1,7 +1,8 @@
 from typing import Dict
 import random
 
-from omega_client.common_types.trading_structs import Order, OrderType, AccountInfo
+from omega_client.common_types.trading_structs import Order, AccountInfo
+from omega_client.common_types.enum_types import OrderType
 
 
 def convert_f3_order_to_fpg_order(order: Order,

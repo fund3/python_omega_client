@@ -13,11 +13,13 @@ import omega_protocol.TradeMessage_capnp as msgs_capnp
 # pylint: enable=E0401
 from omega_client.common_types.trading_structs import AccountBalancesReport, \
     AccountCredentials, AccountDataReport, AccountInfo, AuthorizationGrant, \
-    AuthorizationRefresh, Balance, CompletedOrdersReport, Exchange,\
+    AuthorizationRefresh, Balance, CompletedOrdersReport, \
     ExchangePropertiesReport, ExchangeLimits, ExecutionReport, \
     LogoffAck,  LogonAck, Message, OpenPosition, OpenPositionsReport, Order, \
-    OrderType, RequestHeader, SymbolProperties, \
-    SystemMessage, TimeInForce, WorkingOrdersReport, Batch, OCO, OPO
+    RequestHeader, SymbolProperties, \
+    SystemMessage, WorkingOrdersReport, Batch, OCO, OPO
+from omega_client.common_types.enum_types import Exchange, OrderType, \
+    TimeInForce
 
 logger = logging.getLogger(__name__)
 

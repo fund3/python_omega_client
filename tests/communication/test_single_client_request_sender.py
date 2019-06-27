@@ -6,8 +6,9 @@ import omega_protocol.Exchanges_capnp as exch_capnp
 import omega_protocol.TradeMessage_capnp as msgs_capnp
 
 from omega_client.common_types.trading_structs import AccountCredentials, \
-    AccountInfo, LeverageType, \
-    Order, OrderType, RequestHeader, Side, TimeInForce
+    AccountInfo, Order, RequestHeader
+from omega_client.common_types.enum_types import Side, OrderType, TimeInForce, \
+    LeverageType
 from omega_client.communication.single_client_request_sender import \
     SingleClientRequestSender
 

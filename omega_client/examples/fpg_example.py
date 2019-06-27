@@ -1,7 +1,7 @@
 import json, requests
 from omega_client.fpg.fpg_lib import FPGAuth, create_SOR_order
-from omega_client.common_types.trading_structs import AccountInfo, Exchange, Order, \
-    OrderType, Side
+from omega_client.common_types.trading_structs import AccountInfo, Order
+from omega_client.common_types.enum_types import Exchange, Side, OrderType
 
 # Before implementation, set environmental variables API_KEY and API_SECRET
 

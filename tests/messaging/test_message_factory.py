@@ -6,8 +6,9 @@ import pytest
 from omega_client.common_types.trading_structs import AccountBalancesReport, \
     AccountDataReport, AccountInfo, AuthorizationGrant, \
     AuthorizationRefresh, CompletedOrdersReport, ExchangePropertiesReport, ExecutionReport, \
-    OpenPosition, Message, OrderStatus, OrderType, RequestHeader, Side, \
-    TimeInForce, WorkingOrdersReport
+    OpenPosition, Message, RequestHeader, WorkingOrdersReport
+from omega_client.common_types.enum_types import Side, OrderType, OrderStatus, \
+    TimeInForce
 import omega_protocol.TradeMessage_capnp as msgs_capnp
 from omega_client.messaging.message_factory import account_balances_report_py, \
     account_data_report_py, authorization_grant_py, \

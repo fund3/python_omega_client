@@ -9,8 +9,9 @@ import omega_protocol.TradeMessage_capnp as msgs_capnp
 from omega_client.communication.request_sender import RequestSender
 from omega_client.common_types.trading_structs import AccountCredentials, \
     AccountInfo, AuthorizationRefresh, \
-    LeverageType, \
-    Order, OrderType, RequestHeader, Side, TimeInForce, Batch, OPO, OCO
+    Order, RequestHeader, Batch, OPO, OCO
+from omega_client.common_types.enum_types import Side, OrderType, TimeInForce, \
+    LeverageType
 from omega_client.messaging.message_factory import heartbeat_capnp
 
 
