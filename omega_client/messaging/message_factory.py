@@ -1,3 +1,4 @@
+import capnp
 import logging
 import time
 from typing import List, Union
