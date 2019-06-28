@@ -15,6 +15,7 @@ class PairId(CommonType):
     def __init__(self, exchange: str, symbol: str):
         """
         Struct representation of a trading pair
+
         :param exchange: (str) name of exchange i.e. kraken
         :param symbol: (str) pair in format BASE/QUOTE i.e. BTC/USD
         """
@@ -31,7 +32,7 @@ class MarketDataRequest(CommonType):
         """
         http://www.fixwiki.org/fixwiki/MarketDataRequest/FIX.5.0SP2%2B
 
-        :param pair_ids:
+        :param pair_ids: (List[PairId]) list of pairs to subscribe to
         :param entry_types: (List[Union[MarketDataRequest, MarketDataSnapshot,
                                         MarketDataIncrementalRefresh]])
 
@@ -59,7 +60,7 @@ class MarketDataEntry(CommonType):
         """
         https://github.com/fund3/OmegaProtocol/blob/master/MarketDataMessage.capnp
 
-        :param event_timestamp: (float)
+        :param event_timestamp: (float) timestamp of the event on the exchange
         :param action: (MDEAction)
         :param mde_type: (MDEType)
         :param price: (float)
