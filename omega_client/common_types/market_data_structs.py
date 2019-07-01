@@ -1,138 +1,37 @@
 from typing import List, Union
 
 from omega_client.common_types.common_type import CommonType
-from omega_client.common_types.enum_types import SubscriptionType, MDEAction, \
-    MDEType
+from omega_client.common_types.enum_types import SubscriptionType, Channel
 
 # pythonized equivalents of what is contained in:
-# https://github.com/fund3/OmegaProtocol/blob/master/MarketDataMessage.capnp and
 # https://github.com/fund3/OmegaProtocol/blob/master/MarketDataMessage2.capnp
 # make sure to call .name if you want the string representation of an enum
 # object when communicating with Omega
 
 
-class PairId(CommonType):
-    def __init__(self, exchange: str, symbol: str):
-        """
-        Struct representation of a trading pair
-
-        :param exchange: (str) name of exchange i.e. kraken
-        :param symbol: (str) pair in format BASE/QUOTE i.e. BTC/USD
-        """
-        self.exchange = exchange
-        self.symbol = symbol
-
-
 class MarketDataRequest(CommonType):
     def __init__(self,
-                 pair_ids: List[PairId],
-                 entry_types,
-                 depth: int,
+                 channels: List[Channel],
+                 exchange: str,
+                 symbols: List[str],
+                 market_depth: int,
                  subscription_type: SubscriptionType):
         """
         http://www.fixwiki.org/fixwiki/MarketDataRequest/FIX.5.0SP2%2B
 
-        :param pair_ids: (List[PairId]) list of pairs to subscribe to
-        :param entry_types: (List[Union[MarketDataRequest, MarketDataSnapshot,
-                                        MarketDataIncrementalRefresh]])
-
-        :param depth: (int) 0 = full L2 orderbook, 1 = top of book (L1);
+        :param channels: (List[Channel]) list of channels to subscribe to
+        :param exchange: (str) exchange containing "symbols"
+        :param symbols: (List[str]) list of ticker symbols to subscribe to
+        :param market_depth: (int) 0 = full L2 orderbook, 1 = top of book (L1);
         http://www.fixwiki.org/fixwiki/MarketDepth
         :param subscription_type: (SubscriptionType)
         http://www.fixwiki.org/fixwiki/SubscriptionRequestType
         """
-        self.pair_ids = pair_ids
-        self.entry_types = entry_types
-        self.depth = depth
+        self.channels = channels
+        self.exchange = exchange
+        self.symbols = symbols
+        self.market_depth = market_depth
         self.subscription_type = subscription_type
-
-
-class MarketDataEntry(CommonType):
-    def __init__(self,
-                 event_timestamp: float,
-                 action: MDEAction,
-                 mde_type: MDEType,
-                 price: float,
-                 size: float,
-                 position: int,
-                 side: str,
-                 trade_id: str):
-        """
-        https://github.com/fund3/OmegaProtocol/blob/master/MarketDataMessage.capnp
-
-        :param event_timestamp: (float) timestamp of the event on the exchange
-        :param action: (MDEAction)
-        :param mde_type: (MDEType)
-        :param price: (float)
-        :param size: (float)
-        :param position: (int) optional, position in orderbook, empty if the
-        entry is not an orderbook update
-        :param side: (str)
-        :param trade_id: (str) optional
-        """
-        self.event_timestamp = event_timestamp
-        self.action = action
-        self.mde_type = mde_type
-        self.price = price
-        self.size = size
-        self.position = position
-        self.side = side
-        self.trade_id = trade_id
-
-
-class EntriesById(CommonType):
-    def __init__(self, pair_id: PairId, entries: List[MarketDataEntry]):
-        """
-
-        :param pair_id:
-        :param entries:
-        """
-        self.pair_id = pair_id
-        self.entries = entries
-
-
-class MarketDataSnapshot(CommonType):
-    def __init__(self, timestamp: float, entries_by_id_list: List[EntriesById]):
-        """
-        http://fixwiki.org/fixwiki/MarketDataSnapshotFullRefresh/FIX.5.0SP2%2Bol
-
-        :param timestamp: (float) unix timestamp seconds since 1/1/1970
-        :param entries_by_id_list:
-        """
-        self.timestamp = timestamp
-        self.entries_by_id_list = entries_by_id_list
-
-
-class MarketDataIncrementalRefresh(CommonType):
-    def __init__(self, timestamp: float, entries_by_id_list: List[EntriesById]):
-        """
-        http://fixwiki.org/fixwiki/MarketDataIncrementalRefresh/FIX.5.0SP2%2B
-
-        :param timestamp: (float) unix timestamp seconds since 1/1/1970
-        :param entries_by_id_list:
-        """
-        self.timestamp = timestamp
-        self.entries_by_id_list = entries_by_id_list
-
-
-class MarketDataMessage(CommonType):
-    def __init__(self,
-                 timestamp: float,
-                 request_type: Union[MarketDataRequest, MarketDataSnapshot,
-                                     MarketDataIncrementalRefresh],
-                 sequence_number: int = None,
-                 request_id: int = None):
-        """
-
-        :param timestamp: (float) unix timestamp seconds since 1/1/1970
-        :param request_type:
-        :param sequence_number:
-        :param request_id:
-        """
-        self.timestamp = timestamp
-        self.request_type = request_type
-        self.sequence_number = sequence_number
-        self.request_id = request_id
 
 
 class MDHeader(CommonType):
