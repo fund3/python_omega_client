@@ -32,6 +32,7 @@ class ResponseHandler:
             'completedOrdersReport': self.on_completed_orders_report,
             'exchangePropertiesReport': self.on_exchange_properties_report,
             'authorizationGrant': self.on_authorization_grant
+            # TODO add methods for MDP
         }
 
     def handle_response(self, response_type, response):
