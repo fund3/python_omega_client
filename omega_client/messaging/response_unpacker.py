@@ -141,8 +141,7 @@ _omega_response_unpacker = {
     'openPositionsReport': _open_positions_report_message_unpacker,
     'completedOrdersReport': _completed_orders_report_message_unpacker,
     'exchangePropertiesReport': _exchange_properties_report_message_unpacker,
-    'authorizationGrant': _authorization_grant_message_unpacker,
-    # TODO add MDP responses
+    'authorizationGrant': _authorization_grant_message_unpacker
 }
 
 

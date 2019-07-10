@@ -19,6 +19,9 @@ from omega_client.common_types.trading_structs import AccountBalancesReport, \
     LogoffAck,  LogonAck, Message, OpenPosition, OpenPositionsReport, Order, \
     RequestHeader, SymbolProperties, \
     SystemMessage, WorkingOrdersReport, Batch, OCO, OPO
+from omega_client.common_types.market_data_structs import \
+    L2OrderbookMarketDataEntry, MarketDataRequest, MDHeader, \
+    MarketDataRequest, MDSystemMessage, OrderbookData, TickerData
 from omega_client.common_types.enum_types import Exchange, OrderType, \
     TimeInForce
 
@@ -247,6 +250,87 @@ def exchange_properties_report_py(exchange_properties_report):
         order_types=order_types,
         exchange_limits=exchange_limits
     )
+
+
+""" ----------------------------------------------------------------------------
+-------------- MDP conversion to python objects from capnp ---------------------
+--------------------------------------------------------------------------------
+"""
+
+
+def _build_py_orderbook_from_capnp(mde_list):
+    """
+    Builds 1 side of the L2 orderbook from a list of MarketDataEntries
+    :param mde_list: (List[MarketDataEntry]) capnp list
+    :return: python list of L2OrderbookMarketDataEntry elements
+    """
+    return [L2OrderbookMarketDataEntry(price=float(entry.price),
+                                       quantity=float(entry.quantity))
+            for entry in mde_list]
+
+
+def orderbook_snapshot_py(orderbook_snapshot):
+    """
+    Builds full OrderbookData python object from capnp object
+    :param orderbook_snapshot: (capnp._DynamicStructBuilder) OrderBookData
+    object
+    :return: OrderbookData python object of L2 orderbook snapshot
+    """
+    return OrderbookData(
+        exchange=str(orderbook_snapshot.exchange),
+        symbol=orderbook_snapshot.symbol,
+        bids=_build_py_orderbook_from_capnp(orderbook_snapshot.bids),
+        asks=_build_py_orderbook_from_capnp(orderbook_snapshot.asks),
+        timestamp=float(orderbook_snapshot.timestamp)
+    )
+
+
+def orderbook_update_py(orderbook_update):
+    """
+    Builds OrderbookData python object from capnp object
+    :param orderbook_update: (capnp._DynamicStructBuilder) OrderBookData
+    object
+    :return: OrderbookData python object of L2 orderbook entries to be updated
+    """
+    return OrderbookData(
+        exchange=str(orderbook_update.exchange),
+        symbol=orderbook_update.symbol,
+        bids=_build_py_orderbook_from_capnp(orderbook_update.bids),
+        asks=_build_py_orderbook_from_capnp(orderbook_update.asks),
+        timestamp=float(orderbook_update.timestamp)
+    )
+
+
+def md_system_message_py(md_system_message):
+    """
+    Builds MDSystemMessage Python object from capnp object.
+    :param md_system_message: (capnp._DynamicStructBuilder) system message.
+    :return: MDSystemMessage.
+    """
+    return MDSystemMessage(code=int(md_system_message.code),
+                           body=str(md_system_message.body))
+
+
+def ticker_data_py(ticker_data):
+    """
+    Builds TickerData Python object from capnp object
+    :param ticker_data: (capnp._DynamicStructBuilder) capnp ticker data
+    :return: TickerData python object
+    """
+    return TickerData(
+        exchange=str(ticker_data.exchange),
+        symbol=str(ticker_data.symbol),
+        side=str(ticker_data.side),
+        price=float(ticker_data.price),
+        quantity=float(ticker_data.quantity),
+        timestamp=float(ticker_data.timestamp)
+    )
+
+
+""" ----------------------------------------------------------------------------
+------------------------ CONVERTING PYTHON TO CAPNP ----------------------------
+--------------------------------------------------------------------------------
+"""
 
 
 def logon_capnp(request_header: RequestHeader,
