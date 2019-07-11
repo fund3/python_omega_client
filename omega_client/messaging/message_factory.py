@@ -9,6 +9,7 @@ from typing import List, Union
 # pylint: disable=E0611
 # pylint: disable=E0401
 import omega_protocol.Exchanges_capnp as exch_capnp
+import omega_protocol.MarketDataMessage2_capnp as mdm_capnp
 import omega_protocol.TradeMessage_capnp as msgs_capnp
 # pylint: enable=E0611
 # pylint: enable=E0401
@@ -22,7 +23,7 @@ from omega_client.common_types.trading_structs import AccountBalancesReport, \
 from omega_client.common_types.market_data_structs import \
     L2OrderbookMarketDataEntry, MarketDataRequest, MDHeader, \
     MarketDataRequest, MDSystemMessage, OrderbookData, TickerData
-from omega_client.common_types.enum_types import Exchange, OrderType, \
+from omega_client.common_types.enum_types import Channel, Exchange, OrderType, \
     TimeInForce
 
 logger = logging.getLogger(__name__)
@@ -882,6 +883,65 @@ def _generate_omega_request(request_header: RequestHeader):
     request.accessToken = request_header.access_token
     body = request.init('body')
     return omega_message, body
+
+
+def _populate_capnp_list(list_name: str, capnp_parent_object, py_list: list):
+    if py_list is not None:
+        capnp_list = capnp_parent_object.init(list_name, len(py_list))
+
+        for ch, indx in zip(py_list, range(len(py_list))):
+            try:
+                # build list of structs based on method in:
+                # https://jparyani.github.io/pycapnp/quickstart.html#list
+                capnp_list[indx] = ch
+            except Exception as e:
+                logger.error('Missing channel field', extra={'error': e})
+                raise e
+    else:
+        capnp_list = None
+    return capnp_list
+
+
+def request_mdp_capnp(request_header: MDHeader,
+                      channels: List[Channel],
+                      exchange: str,
+                      symbols: List[str],
+                      market_depth: int,
+                      is_subscribe: bool):
+    """
+    Generates a MDP Omega request from MarketDataMessage2.capnp.
+    :param request_header: (MDHeader) parameter object for requests.
+    :param channels: (List[Channel]) list of ticker, orderbook (l2)
+    elements you wish to subscribe/unsubscribe to
+    :param exchange: (str) exchange containing "symbols" you'd like to
+    subscribe/unsubscribe to "channels"
+    :param symbols: (List[str]) list of pairs corresponding to channels
+    you'd like to subscribe/unsubscribe to
+    :param market_depth: (int) book depth (# of levels), 0 for full book
+    :param is_subscribe: (bool) True for subscribe, False for unsubscribe
+    :return: (capnp._DynamicStructBuilder) omega_message to be serialized,
+             (capnp._DynamicStructBuilder) request_mdp capnp object
+    """
+    omega_message = mdm_capnp.MarketDataMessage.new_message()
+    header = omega_message.init('header')
+    header.clientID = request_header.client_id
+    header.senderCompID = request_header.sender_comp_id
+    request_mdp = omega_message.init('type').init('request')
+    request_mdp.channels = _populate_capnp_list(
+        list_name='channels', capnp_parent_object=request_mdp, py_list=channels
+    )   # TODO maybe need to modify helper method for list of enums instead
+    # of str
+    request_mdp.exchange = EXCHANGE_ENUM_MAPPING.get(
+        exchange, exch_capnp.Exchange.undefined)
+    request_mdp.symbols = _populate_capnp_list(
+        list_name='symbols', capnp_parent_object=request_mdp, py_list=symbols
+    )
+    request_mdp.marketDepth = market_depth
+    if is_subscribe:
+        request_mdp.init('type').init('subscribe')
+    else:
+        request_mdp.init('type').init('unsubscribe')
+    return omega_message, request_mdp
 
 
 def generate_client_order_id():

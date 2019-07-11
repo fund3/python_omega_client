@@ -123,6 +123,15 @@ class ContigentType(Enum):
     opo = auto()    # Order place order(s)
 
 
+class SubscriptionType(Enum):
+    """Market Data Subscription Type
+
+    https://github.com/fund3/OmegaProtocol/blob/master/MarketDataMessage2.capnp
+    """
+    subscribe = auto()
+    unsubscribe = auto()
+
+
 class Channel(Enum):
     """Channels available for Market Data Subscription
 
