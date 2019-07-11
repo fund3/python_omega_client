@@ -10,7 +10,6 @@ import zmq
 
 from omega_client.communication.mdp_request_sender import MDPRequestSender
 from omega_client.communication.mdp_response_receiver import MDPResponseReceiver
-from omega_client.communication.mdp_request_sender import MDRequestSender
 from omega_client.common_types.market_data_structs import MDHeader
 from omega_client.common_types.enum_types import Channel
 from omega_client.messaging.mdp_response_handler import MDPResponseHandler
