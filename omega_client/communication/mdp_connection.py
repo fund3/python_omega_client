@@ -8,14 +8,12 @@ from typing import List, Union
 
 import zmq
 
-from omega_client.communication.request_sender import RequestSender
-from omega_client.communication.response_receiver import ResponseReceiver
-from omega_client.communication.single_client_request_sender import \
-    SingleClientRequestSender
-from omega_client.common_types.trading_structs import AccountCredentials, \
-    AccountInfo, AuthorizationRefresh, Order, RequestHeader, Batch, OCO, OPO
-from omega_client.common_types.enum_types import OrderType, TimeInForce
-from omega_client.messaging.response_handler import ResponseHandler
+from omega_client.communication.mdp_request_sender import MDPRequestSender
+from omega_client.communication.mdp_response_receiver import MDPResponseReceiver
+from omega_client.communication.mdp_request_sender import MDRequestSender
+from omega_client.common_types.market_data_structs import MDHeader
+from omega_client.common_types.enum_types import Channel
+from omega_client.messaging.mdp_response_handler import MDPResponseHandler
 
 logger = logging.getLogger(__name__)
 
@@ -237,14 +235,12 @@ def configure_default_omega_mdp_connection(
     return omega_connection, request_sender, response_receiver
 
 
-def configure_single_client_omega_connection(omega_endpoint: str,
-                                           omega_server_key: str,
-                                           client_id: int,
-                                           sender_comp_id: str,
-                                           response_handler: ResponseHandler):
+def configure_single_client_omega_connection(
+        omega_endpoint: str, omega_server_key: str, client_id: int,
+        sender_comp_id: str, mdp_response_handler: MDPResponseHandler):
     """
-    Set up a TesConnection that comes with request_sender and
-    response_receiver.  Sets the default client_id and sender_comp_id for the
+    Set up a MDPOmegaConnection that comes with mdp_request_sender and
+    mdp_response_receiver.  Sets the default client_id and sender_comp_id for the
     request sender.
     Note that each machine should be assigned a unique sender_comp_id even
     when the client_id is the same.
@@ -252,19 +248,18 @@ def configure_single_client_omega_connection(omega_endpoint: str,
     :param omega_server_key: (str) The public key of the Omega server.
     :param client_id: (int) The client id assigned by Fund3.
     :param sender_comp_id: (str) str representation of a unique Python uuid.
-    :param response_handler: (ResponseHandler) The handler object that will
-        be called in a callback function when omega_connection receives a
+    :param mdp_response_handler: (MDPResponseHandler) The handler object that will
+        be called in a callback function when mdp_omega_connection receives a
         message.
-    :return: omega_connection, request_sender, response_receiver
+    :return: mdp_omega_connection, mdp_request_sender, mdp_response_receiver
     """
     ZMQ_CONTEXT = zmq.Context.instance()
-    request_sender = MDPRequestSender(ZMQ_CONTEXT, REQUEST_SENDER_ENDPOINT,
-                                      client_id, sender_comp_id)
-    response_receiver = MDPResponseReceiver(ZMQ_CONTEXT,
-                                         RESPONSE_RECEIVER_ENDPOINT,
-                                         response_handler)
-    omega_connection = MDPOmegaConnection(
+    mdp_request_sender = MDPRequestSender(
+        ZMQ_CONTEXT, REQUEST_SENDER_ENDPOINT, client_id, sender_comp_id)
+    mdp_response_receiver = MDPResponseReceiver(
+        ZMQ_CONTEXT, RESPONSE_RECEIVER_ENDPOINT, mdp_response_handler)
+    mdp_omega_connection = MDPOmegaConnection(
         ZMQ_CONTEXT, omega_endpoint, REQUEST_SENDER_ENDPOINT,
-        RESPONSE_RECEIVER_ENDPOINT, request_sender, response_receiver,
+        RESPONSE_RECEIVER_ENDPOINT, mdp_request_sender, mdp_response_receiver,
         server_zmq_encryption_key=omega_server_key)
-    return omega_connection, request_sender, response_receiver
+    return mdp_omega_connection, mdp_request_sender, mdp_response_receiver

@@ -123,46 +123,6 @@ class ContigentType(Enum):
     opo = auto()    # Order place order(s)
 
 
-class SubscriptionType(Enum):
-    """Market Data Subscription Type
-
-    https://github.com/fund3/OmegaProtocol/blob/master/MarketDataMessage.capnp
-    """
-    snapshot = auto()
-    snapshotAndUpdates = auto()
-    unsubscribe = auto()
-
-
-class MDEAction(Enum):
-    """Market Data Entry Action Types
-
-    https://github.com/fund3/OmegaProtocol/blob/master/MarketDataMessage.capnp
-    http://fixwiki.org/fixwiki/MDUpdateAction
-    """
-    undefined = auto()
-    new = auto()
-    change = auto()
-    delete = auto()
-
-
-class MDEType(Enum):
-    """Market Data Entry Type
-
-    https://github.com/fund3/OmegaProtocol/blob/master/MarketDataMessage.capnp
-    http://www.fixwiki.org/fixwiki/MDEntryType
-    """
-    undefined = auto()
-    bid = auto()
-    ask = auto()
-    trade = auto()
-    index_value = auto()
-    opening_price = auto()
-    closing_price = auto()
-    settlement_price = auto()
-    trading_session_high_price = auto()
-    trading_session_low_price = auto()
-
-
 class Channel(Enum):
     """Channels available for Market Data Subscription
 
