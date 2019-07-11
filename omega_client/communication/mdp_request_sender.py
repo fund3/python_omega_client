@@ -7,18 +7,9 @@ from typing import Dict, List, Union
 import capnp
 import zmq
 
-from omega_client.fpg.fpg_lib import create_SOR_order, FPGAuth
-from omega_client.common_types.trading_structs import AccountCredentials, \
-    AccountInfo, AuthorizationRefresh, Order, RequestHeader, Batch, OPO, OCO
-from omega_client.common_types.enum_types import OrderType, TimeInForce
-from omega_client.messaging.message_factory import cancel_all_orders_capnp, \
-    cancel_order_capnp, heartbeat_capnp, logoff_capnp, logon_capnp, \
-    place_order_capnp, replace_order_capnp, request_account_balances_capnp, \
-    request_account_data_capnp, request_auth_refresh_capnp, \
-    request_completed_orders_capnp, request_exchange_properties_capnp, \
-    request_open_positions_capnp, request_order_status_capnp, \
-    request_server_time_capnp, request_working_orders_capnp, \
-    place_contingent_order_capnp
+from omega_client.common_types.market_data_structs import MDHeader
+from omega_client.common_types.enum_types import Channel
+from omega_client.messaging.message_factory import request_mdp_capnp
 
 logger = logging.getLogger(__name__)
 
