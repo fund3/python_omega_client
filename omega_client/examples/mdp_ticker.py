@@ -28,7 +28,7 @@ def main():
     # configure_single_client_omega_connection sets up a default TesConnection
     # with one default client_id
     # The MDPResponseHandler is a command dispatch callback class.  Basically,
-    # when the response is received from Omega, OmegaMDPConnection will route
+    # when the response is received from Omega, MDPOmegaConnection will route
     # it to MDPResponseReceiver, and the type of the response will be
     # determined. Each type of response will trigger a specific function that
     # can be overridden in a child class of ResponseHandler for client
@@ -45,7 +45,7 @@ def main():
             mdp_response_handler=PrintingMDPResponseHandler()))
     # Starting the TesConnection thread.
     omega_mdp_connection.start()
-    # Waiting for the OmegaMDPConnection to be set up.
+    # Waiting for the MDPOmegaConnection to be set up.
     omega_mdp_connection.wait_until_running()
 
     # subscribe to BTC/USD ticker on coinbasePrime

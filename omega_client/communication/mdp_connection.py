@@ -60,7 +60,7 @@ class MDPOmegaConnection(Thread):
                  request_sender: MDPRequestSender,
                  response_receiver: MDPResponseReceiver,
                  omega_polling_timeout_milli: int = 1000,
-                 name: str = 'OmegaMDPConnection',
+                 name: str = 'MDPOmegaConnection',
                  omega_socket_identity: bytes = None,
                  server_zmq_encryption_key: str = None):
         assert zmq_context
@@ -213,7 +213,7 @@ def configure_default_omega_mdp_connection(
         mdp_omega_endpoint: str, mdp_omega_server_key: str,
         mdp_response_handler: MDPResponseHandler):
     """
-    Set up an OmegaMDPConnection that comes with mdp_request_sender and 
+    Set up an MDPOmegaConnection that comes with mdp_request_sender and
     mdp_response_receiver.
     :param mdp_omega_endpoint: (str) The zmq endpoint to connect to Omega MDP.
     :param mdp_omega_server_key: (str) The public key of the MDP Omega server.
