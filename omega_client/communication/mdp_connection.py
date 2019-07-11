@@ -189,8 +189,9 @@ class MDPOmegaConnection(Thread):
                     market_depth: int,
                     is_subscribe: bool):
         """
-        Sends a request to Omega to refresh the session
-        :param request_header: MDHeader parameter object for requests.
+        Sends a request to Omega MDP to subscribe/unscubscribe to a list of
+        channels, symbol pairs on exchange
+        :param request_header: (MDHeader) parameter object for requests.
         :param channels: (List[Channel]) list of ticker, orderbook (l2)
         elements you wish to subscribe/unsubscribe to
         :param exchange: (str) exchange containing "symbols" you'd like to
