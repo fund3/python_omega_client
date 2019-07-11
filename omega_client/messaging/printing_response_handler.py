@@ -1,7 +1,10 @@
 import logging
 
-from omega_client.examples.single_client_session_refresher import SingleClientSessionRefresher
+from omega_client.examples.single_client_session_refresher import \
+    SingleClientSessionRefresher
+from omega_client.messaging.mdp_response_handler import MDPResponseHandler
 from omega_client.messaging.response_handler import ResponseHandler
+from omega_client.common_types.market_data_structs import *
 from omega_client.common_types.trading_structs import *
 
 logger = logging.getLogger(__name__)
@@ -124,3 +127,72 @@ class PrintingResponseHandler(ResponseHandler):
                        sender_comp_id: str,
                        request_id: int):
         print({'message': 'Order executed!', 'report': report})
+
+
+"""
+========================= MDP Response Handler =================================
+"""
+
+
+class PrintingMDPResponseHandler(MDPResponseHandler):
+    def __init__(self):
+        """
+        Example class to print all responses and automatically refresh sessions.
+        """
+        super().__init__()
+
+    def on_ticker_data(self,
+                       client_id: int,
+                       sender_comp_id: str,
+                       ticker_data: TickerData):
+        """
+        Override in subclass to handle Omega MDP Ticker Data
+        :param client_id: (int) client_id of the response.
+        :param sender_comp_id: (str) sender_comp_id of the response.
+        :param ticker_data: (TickerData) latest "tick"
+        """
+        print('client_id: ', client_id)
+        print('sender_comp_id: ', sender_comp_id)
+        print('ticker_data: ', ticker_data.__str__())
+
+    def on_orderbook_snapshot(self,
+                              client_id: int,
+                              sender_comp_id: str,
+                              orderbook_snapshot: OrderbookData):
+        """
+        Override in subclass to handle Omega MDP Ticker Data
+        :param client_id: (int) client_id of the response.
+        :param sender_comp_id: (str) sender_comp_id of the response.
+        :param orderbook_snapshot: (OrderbookData) snapshot latest L2 orderbook
+        """
+        print('client_id: ', client_id)
+        print('sender_comp_id: ', sender_comp_id)
+        print('orderbook_snapshot: ', orderbook_snapshot.__str__())
+
+    def on_orderbook_update(self,
+                            client_id: int,
+                            sender_comp_id: str,
+                            orderbook_update: OrderbookData):
+        """
+        Override in subclass to handle Omega MDP Ticker Data
+        :param client_id: (int) client_id of the response.
+        :param sender_comp_id: (str) sender_comp_id of the response.
+        :param orderbook_update: (OrderbookData) updates in L2 orderbook
+        """
+        print('client_id: ', client_id)
+        print('sender_comp_id: ', sender_comp_id)
+        print('orderbook_update: ', orderbook_update.__str__())
+
+    def on_system_message(self,
+                          client_id: int,
+                          sender_comp_id: str,
+                          system_message: MDSystemMessage):
+        """
+        Override in subclass to handle Omega MDP Ticker Data
+        :param client_id: (int) client_id of the response.
+        :param sender_comp_id: (str) sender_comp_id of the response.
+        :param system_message: (MDSystemMessage) system message from Omega MDP
+        """
+        print('client_id: ', client_id)
+        print('sender_comp_id: ', sender_comp_id)
+        print('system_message: ', system_message.__str__())

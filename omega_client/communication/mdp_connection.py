@@ -235,9 +235,9 @@ def configure_default_omega_mdp_connection(
     return omega_connection, request_sender, response_receiver
 
 
-def configure_single_client_omega_connection(
-        omega_endpoint: str, omega_server_key: str, client_id: int,
-        sender_comp_id: str, mdp_response_handler: MDPResponseHandler):
+def configure_single_client_mdp_connection(
+        omega_endpoint: str, omega_server_key: str,
+        mdp_response_handler: MDPResponseHandler):
     """
     Set up a MDPOmegaConnection that comes with mdp_request_sender and
     mdp_response_receiver.  Sets the default client_id and sender_comp_id for the
@@ -246,8 +246,6 @@ def configure_single_client_omega_connection(
     when the client_id is the same.
     :param omega_endpoint: (str) The zmq endpoint to connect to Omega.
     :param omega_server_key: (str) The public key of the Omega server.
-    :param client_id: (int) The client id assigned by Fund3.
-    :param sender_comp_id: (str) str representation of a unique Python uuid.
     :param mdp_response_handler: (MDPResponseHandler) The handler object that will
         be called in a callback function when mdp_omega_connection receives a
         message.
@@ -255,7 +253,7 @@ def configure_single_client_omega_connection(
     """
     ZMQ_CONTEXT = zmq.Context.instance()
     mdp_request_sender = MDPRequestSender(
-        ZMQ_CONTEXT, REQUEST_SENDER_ENDPOINT, client_id, sender_comp_id)
+        ZMQ_CONTEXT, REQUEST_SENDER_ENDPOINT)
     mdp_response_receiver = MDPResponseReceiver(
         ZMQ_CONTEXT, RESPONSE_RECEIVER_ENDPOINT, mdp_response_handler)
     mdp_omega_connection = MDPOmegaConnection(
