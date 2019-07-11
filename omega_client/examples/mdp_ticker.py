@@ -1,6 +1,9 @@
 import time
 import uuid
 
+from omega_client.common_types.enum_types import Channel, Exchange
+from omega_client.common_types.market_data_structs import MarketDataRequest, \
+    MDHeader
 from omega_client.communication.mdp_connection import \
     configure_single_client_mdp_connection
 from omega_client.messaging.printing_response_handler import \
@@ -20,20 +23,20 @@ def main():
     # the machine and to route the appropriate responses back to the machine
     # that sent the request.
     sender_comp_id = str(uuid.uuid4())
+    md_header = MDHeader(client_id=client_id, sender_comp_id=sender_comp_id)
 
     # configure_single_client_omega_connection sets up a default TesConnection
     # with one default client_id
-    # The ResponseHandler is a command dispatch callback class.  Basically,
-    # when the response is received from Omega, TesConnection will route it to
-    # ResponseReceiver, and the type of the response will be determined.
-    # Each type of response will trigger a specific function that can be
-    # overridden in a child class of ResponseHandler for client designated
-    # action upon receiving a certain type of response.  E.g. updating
-    # internal order status when ExecutionReport is received, updating
-    # balance when balance is received etc.
+    # The MDPResponseHandler is a command dispatch callback class.  Basically,
+    # when the response is received from Omega, OmegaMDPConnection will route
+    # it to MDPResponseReceiver, and the type of the response will be
+    # determined. Each type of response will trigger a specific function that
+    # can be overridden in a child class of ResponseHandler for client
+    # designated action upon receiving a certain type of response.  E.g.
+    # updating most internal data structures for current price with ticker data
 
-    # See omega_client.messaging.response_handler and
-    # omega_client.messaging.printing_response_handler (example child class
+    # See omega_client.messaging.mdp_response_handler and
+    # omega_client.messaging.printing_mdp_response_handler (example child class
     # that just prints everything).
     omega_mdp_connection, mdp_request_sender, mdp_response_receiver = (
         configure_single_client_mdp_connection(
@@ -44,6 +47,29 @@ def main():
     omega_mdp_connection.start()
     # Waiting for the OmegaMDPConnection to be set up.
     omega_mdp_connection.wait_until_running()
+
+    # subscribe to BTC/USD ticker on coinbasePrime
+    omega_mdp_connection.request_mdp(
+        request_header=md_header,
+        channels=[Channel.ticker.name],
+        exchange=Exchange.coinbasePrime.name,
+        symbols=['BTC/USD'],
+        market_depth=0,
+        is_subscribe=True
+    )
+
+    # wait and observe ticker data coming in
+    time.sleep(60)
+
+    # unsubscribe
+    omega_mdp_connection.request_mdp(
+        request_header=md_header,
+        channels=[Channel.ticker.name],
+        exchange=Exchange.coinbasePrime.name,
+        symbols=['BTC/USD'],
+        market_depth=0,
+        is_subscribe=False
+    )
 
     # stop and cleanup
     mdp_request_sender.logoff()

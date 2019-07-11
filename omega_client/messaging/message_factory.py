@@ -903,7 +903,7 @@ def _populate_capnp_list(list_name: str, capnp_parent_object, py_list: list):
 
 
 def request_mdp_capnp(request_header: MDHeader,
-                      channels: List[Channel],
+                      channels: List[str],
                       exchange: str,
                       symbols: List[str],
                       market_depth: int,
@@ -911,7 +911,7 @@ def request_mdp_capnp(request_header: MDHeader,
     """
     Generates a MDP Omega request from MarketDataMessage2.capnp.
     :param request_header: (MDHeader) parameter object for requests.
-    :param channels: (List[Channel]) list of ticker, orderbook (l2)
+    :param channels: (List[str]) list of ticker, orderbook (l2)
     elements you wish to subscribe/unsubscribe to
     :param exchange: (str) exchange containing "symbols" you'd like to
     subscribe/unsubscribe to "channels"
