@@ -2,8 +2,7 @@ import time
 import uuid
 
 from omega_client.common_types.enum_types import Channel, Exchange
-from omega_client.common_types.market_data_structs import MarketDataRequest, \
-    MDHeader
+from omega_client.common_types.market_data_structs import MDHeader
 from omega_client.communication.mdp_connection import \
     configure_single_client_mdp_connection
 from omega_client.messaging.printing_response_handler import \
@@ -25,15 +24,15 @@ def main():
     sender_comp_id = str(uuid.uuid4())
     md_header = MDHeader(client_id=client_id, sender_comp_id=sender_comp_id)
 
-    # configure_single_client_omega_connection sets up a default TesConnection
-    # with one default client_id
+    # configure_single_client_omega_connection sets up a default
+    # MDPOmegaConnection with one default client_id
     # The MDPResponseHandler is a command dispatch callback class.  Basically,
     # when the response is received from Omega, MDPOmegaConnection will route
     # it to MDPResponseReceiver, and the type of the response will be
     # determined. Each type of response will trigger a specific function that
     # can be overridden in a child class of ResponseHandler for client
     # designated action upon receiving a certain type of response.  E.g.
-    # updating most internal data structures for current price with ticker data
+    # updating internal data structures for current price with ticker data
 
     # See omega_client.messaging.mdp_response_handler and
     # omega_client.messaging.printing_mdp_response_handler (example child class
