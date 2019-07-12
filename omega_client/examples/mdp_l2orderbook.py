@@ -35,7 +35,7 @@ def main():
     # updating internal orderbook data structures
 
     # See omega_client.messaging.mdp_response_handler and
-    # omega_client.messaging.printing_mdp_response_handler (example child class
+    # omega_client.messaging.printing_response_handler (example child class
     # that just prints everything).
     omega_mdp_connection, mdp_request_sender, mdp_response_receiver = (
         configure_single_client_mdp_connection(
