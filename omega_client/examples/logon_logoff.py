@@ -23,10 +23,10 @@ def main():
     # that sent the request.
     sender_comp_id = str(uuid.uuid4())
 
-    # configure_single_client_omega_connection sets up a default TesConnection
+    # configure_single_client_omega_connection sets up a default OmegaConnection
     # with one default client_id
     # The ResponseHandler is a command dispatch callback class.  Basically,
-    # when the response is received from Omega, TesConnection will route it to
+    # when the response is received from Omega, OmegaConnection will route it to
     # ResponseReceiver, and the type of the response will be determined.
     # Each type of response will trigger a specific function that can be
     # overridden in a child class of ResponseHandler for client designated
@@ -44,9 +44,9 @@ def main():
             client_id=client_id,
             sender_comp_id=sender_comp_id,
             response_handler=PrintingResponseHandler()))
-    # Starting the TesConnection thread.
+    # Starting the OmegaConnection thread.
     omega_connection.start()
-    # Waiting for the TesConnection to be set up.
+    # Waiting for the OmegaConnection to be set up.
     omega_connection.wait_until_running()
 
     # Account id is assigned by Fund3 and is unique per exchange account.

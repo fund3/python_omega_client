@@ -1,5 +1,5 @@
 """
-Omega Response Receiver class.  Receive messages from a local TesConnection
+Omega Response Receiver class.  Receive messages from a local OmegaConnection
 that is connected to Omega.
 """
 import logging
@@ -25,7 +25,7 @@ class ResponseReceiver(Thread):
     """
     Acts as a separate thread that processes the messages coming from Omega so
     that the message receive loop is not blocked.  Only does unidirectional
-    message receiving from TesConnection.
+    message receiving from OmegaConnection.
 
     Future optimization plan: add this into a threadpool or processpool for
     sliced/ parallel processing of messages.

@@ -42,7 +42,7 @@ def main():
             omega_endpoint=OMEGA_ENDPOINT,
             omega_server_key=OMEGA_SERVER_KEY,
             mdp_response_handler=PrintingMDPResponseHandler()))
-    # Starting the TesConnection thread.
+    # Starting the OmegaConnection thread.
     omega_mdp_connection.start()
     # Waiting for the MDPOmegaConnection to be set up.
     omega_mdp_connection.wait_until_running()

@@ -28,14 +28,14 @@ logger = logging.getLogger(__name__)
 
 class RequestSender(Thread):
     """
-    Runs as an individual thread to send requests to TesConnection,
+    Runs as an individual thread to send requests to OmegaConnection,
     which then gets routed to Omega.  The motivation of the design is different
-    threads should not share zmq sockets, and that the TesConnection event
+    threads should not share zmq sockets, and that the OmegaConnection event
     loop should not be blocked.
 
     When a request is "sent" from this class, it is placed into an internal
     thread-safe queue.  The request sender loop checks if the queue has a
-    message, and if there is one, sends it to TesConnection through an inproc
+    message, and if there is one, sends it to OmegaConnection through an inproc
     connection.
 
     Attributes:
@@ -71,7 +71,7 @@ class RequestSender(Thread):
     def _queue_message(self, omega_message_capnp: capnp._DynamicStructBuilder):
         """
         Put a capnp message into the internal queue for sending to
-        TesConnection.
+        OmegaConnection.
         :param omega_message_capnp:
         """
         self._outgoing_message_queue.put(omega_message_capnp)
@@ -102,7 +102,7 @@ class RequestSender(Thread):
         the provided _ZMQ_ENDPOINT.
 
         Try to get a message for _QUEUE_POLLING_TIMEOUT_SECONDS and then send
-        it out to TesConnection.
+        it out to OmegaConnection.
         """
         request_socket = self._ZMQ_CONTEXT.socket(zmq.DEALER)
         request_socket.connect(self._ZMQ_ENDPOINT)
