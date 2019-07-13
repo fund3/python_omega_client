@@ -12,11 +12,9 @@ from omega_client.communication.request_sender import RequestSender
 from omega_client.communication.response_receiver import ResponseReceiver
 from omega_client.communication.single_client_request_sender import \
     SingleClientRequestSender
-from omega_client.messaging.common_types import AccountBalancesReport, \
-    AccountCredentials, AccountDataReport, AccountInfo, \
-    AuthorizationRefresh, ExchangePropertiesReport, \
-    ExecutionReport, OpenPositionsReport, Order, OrderInfo, \
-    OrderType, RequestHeader, TimeInForce, WorkingOrdersReport, Batch, OCO, OPO
+from omega_client.common_types.trading_structs import AccountCredentials, \
+    AccountInfo, AuthorizationRefresh, Order, RequestHeader, Batch, OCO, OPO
+from omega_client.common_types.enum_types import OrderType, TimeInForce
 from omega_client.messaging.response_handler import ResponseHandler
 
 logger = logging.getLogger(__name__)
@@ -464,7 +462,7 @@ def configure_default_omega_connection(omega_endpoint: str,
                                      omega_server_key: str,
                                      response_handler: ResponseHandler):
     """
-    Set up a TesConnection that comes with request_sender and response_receiver.
+    Set up a OmegaConnection that comes with request_sender and response_receiver.
     :param omega_endpoint: (str) The zmq endpoint to connect to Omega.
     :param omega_server_key: (str) The public key of the Omega server.
     :param response_handler: (ResponseHandler) The handler object that will
@@ -494,7 +492,7 @@ def configure_single_client_omega_connection(omega_endpoint: str,
                                            sender_comp_id: str,
                                            response_handler: ResponseHandler):
     """
-    Set up a TesConnection that comes with request_sender and
+    Set up a OmegaConnection that comes with request_sender and
     response_receiver.  Sets the default client_id and sender_comp_id for the
     request sender.
     Note that each machine should be assigned a unique sender_comp_id even

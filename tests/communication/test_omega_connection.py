@@ -4,7 +4,7 @@ import time
 import pytest
 import zmq
 
-from omega_client.messaging.common_types import RequestHeader
+from omega_client.common_types.trading_structs import RequestHeader
 from omega_client.messaging.response_handler import ResponseHandler
 from omega_client.communication.response_receiver import ResponseReceiver
 from omega_client.communication.request_sender import RequestSender

@@ -8,11 +8,9 @@ import capnp
 import zmq
 
 from omega_client.fpg.fpg_lib import create_SOR_order, FPGAuth
-from omega_client.messaging.common_types import AccountBalancesReport, \
-    AccountCredentials, AccountInfo, AuthorizationGrant, AuthorizationRefresh, \
-    CompletedOrdersReport, ExchangePropertiesReport, \
-    ExecutionReport, OpenPositionsReport, Order, OrderInfo, \
-    OrderType, RequestHeader, TimeInForce, WorkingOrdersReport, Batch, OPO, OCO
+from omega_client.common_types.trading_structs import AccountCredentials, \
+    AccountInfo, AuthorizationRefresh, Order, RequestHeader, Batch, OPO, OCO
+from omega_client.common_types.enum_types import OrderType, TimeInForce
 from omega_client.messaging.message_factory import cancel_all_orders_capnp, \
     cancel_order_capnp, heartbeat_capnp, logoff_capnp, logon_capnp, \
     place_order_capnp, replace_order_capnp, request_account_balances_capnp, \
@@ -30,14 +28,14 @@ logger = logging.getLogger(__name__)
 
 class RequestSender(Thread):
     """
-    Runs as an individual thread to send requests to TesConnection,
+    Runs as an individual thread to send requests to OmegaConnection,
     which then gets routed to Omega.  The motivation of the design is different
-    threads should not share zmq sockets, and that the TesConnection event
+    threads should not share zmq sockets, and that the OmegaConnection event
     loop should not be blocked.
 
     When a request is "sent" from this class, it is placed into an internal
     thread-safe queue.  The request sender loop checks if the queue has a
-    message, and if there is one, sends it to TesConnection through an inproc
+    message, and if there is one, sends it to OmegaConnection through an inproc
     connection.
 
     Attributes:
@@ -73,7 +71,7 @@ class RequestSender(Thread):
     def _queue_message(self, omega_message_capnp: capnp._DynamicStructBuilder):
         """
         Put a capnp message into the internal queue for sending to
-        TesConnection.
+        OmegaConnection.
         :param omega_message_capnp:
         """
         self._outgoing_message_queue.put(omega_message_capnp)
@@ -104,7 +102,7 @@ class RequestSender(Thread):
         the provided _ZMQ_ENDPOINT.
 
         Try to get a message for _QUEUE_POLLING_TIMEOUT_SECONDS and then send
-        it out to TesConnection.
+        it out to OmegaConnection.
         """
         request_socket = self._ZMQ_CONTEXT.socket(zmq.DEALER)
         request_socket.connect(self._ZMQ_ENDPOINT)

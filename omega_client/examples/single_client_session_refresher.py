@@ -3,7 +3,7 @@ from datetime import datetime as dt
 from threading import Thread, Event
 
 from omega_client.communication.request_sender import RequestSender
-from omega_client.messaging.common_types import RequestHeader, \
+from omega_client.common_types.trading_structs import RequestHeader, \
     AuthorizationRefresh, AuthorizationGrant
 
 

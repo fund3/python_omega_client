@@ -1,9 +1,8 @@
 from abc import abstractmethod
 import logging
-from typing import List
 
-from omega_client.messaging.common_types import AccountBalancesReport, \
-    AccountCredentials, AccountDataReport, AuthorizationGrant, \
+from omega_client.common_types.trading_structs import AccountBalancesReport, \
+    AccountDataReport, AuthorizationGrant, \
     CompletedOrdersReport, ExchangePropertiesReport, ExecutionReport, LogoffAck, \
     LogonAck, OpenPositionsReport, SystemMessage, WorkingOrdersReport
 from omega_client.messaging.response_unpacker import unpack_response

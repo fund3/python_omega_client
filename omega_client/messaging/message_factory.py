@@ -1,24 +1,30 @@
+import capnp
 import logging
 import time
 from typing import List, Union
 
 # pylint: disable=W0611
-import capnp
 # pylint: enable=W0611
 
 # pylint: disable=E0611
 # pylint: disable=E0401
 import omega_protocol.Exchanges_capnp as exch_capnp
+import omega_protocol.MarketDataMessage2_capnp as mdm_capnp
 import omega_protocol.TradeMessage_capnp as msgs_capnp
 # pylint: enable=E0611
 # pylint: enable=E0401
-from omega_client.messaging.common_types import AccountBalancesReport, \
+from omega_client.common_types.trading_structs import AccountBalancesReport, \
     AccountCredentials, AccountDataReport, AccountInfo, AuthorizationGrant, \
-    AuthorizationRefresh, Balance, CompletedOrdersReport, Exchange,\
+    AuthorizationRefresh, Balance, CompletedOrdersReport, \
     ExchangePropertiesReport, ExchangeLimits, ExecutionReport, \
     LogoffAck,  LogonAck, Message, OpenPosition, OpenPositionsReport, Order, \
-    OrderInfo,  OrderType, RequestHeader, SymbolProperties, \
-    SystemMessage, TimeInForce, WorkingOrdersReport, Batch, OCO, OPO
+    RequestHeader, SymbolProperties, \
+    SystemMessage, WorkingOrdersReport, Batch, OCO, OPO
+from omega_client.common_types.market_data_structs import \
+    L2OrderbookMarketDataEntry, MarketDataRequest, MDHeader, \
+    MarketDataRequest, MDSystemMessage, OrderbookData, TickerData
+from omega_client.common_types.enum_types import Channel, Exchange, OrderType, \
+    TimeInForce
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +39,9 @@ EXCHANGE_ENUM_MAPPING = {
     Exchange.coinbasePro.name: exch_capnp.Exchange.coinbasePro,
     Exchange.coinbasePrime.name: exch_capnp.Exchange.coinbasePrime,
     Exchange.bitstamp.name: exch_capnp.Exchange.bitstamp,
-    Exchange.itBit.name: exch_capnp.Exchange.itBit
+    Exchange.itBit.name: exch_capnp.Exchange.itBit,
+    Exchange.okEx.name: exch_capnp.Exchange.okEx,
+    Exchange.hitBTC.name: exch_capnp.Exchange.hitBTC
 }
 # pylint: enable=E1101
 
@@ -243,6 +251,87 @@ def exchange_properties_report_py(exchange_properties_report):
         order_types=order_types,
         exchange_limits=exchange_limits
     )
+
+
+""" ----------------------------------------------------------------------------
+-------------- MDP conversion to python objects from capnp ---------------------
+--------------------------------------------------------------------------------
+"""
+
+
+def _build_py_orderbook_from_capnp(mde_list):
+    """
+    Builds 1 side of the L2 orderbook from a list of MarketDataEntries
+    :param mde_list: (List[MarketDataEntry]) capnp list
+    :return: python list of L2OrderbookMarketDataEntry elements
+    """
+    return [L2OrderbookMarketDataEntry(price=float(entry.price),
+                                       quantity=float(entry.quantity))
+            for entry in mde_list]
+
+
+def orderbook_snapshot_py(orderbook_snapshot):
+    """
+    Builds full OrderbookData python object from capnp object
+    :param orderbook_snapshot: (capnp._DynamicStructBuilder) OrderBookData
+    object
+    :return: OrderbookData python object of L2 orderbook snapshot
+    """
+    return OrderbookData(
+        exchange=str(orderbook_snapshot.exchange),
+        symbol=orderbook_snapshot.symbol,
+        bids=_build_py_orderbook_from_capnp(orderbook_snapshot.bids),
+        asks=_build_py_orderbook_from_capnp(orderbook_snapshot.asks),
+        timestamp=float(orderbook_snapshot.timestamp)
+    )
+
+
+def orderbook_update_py(orderbook_update):
+    """
+    Builds OrderbookData python object from capnp object
+    :param orderbook_update: (capnp._DynamicStructBuilder) OrderBookData
+    object
+    :return: OrderbookData python object of L2 orderbook entries to be updated
+    """
+    return OrderbookData(
+        exchange=str(orderbook_update.exchange),
+        symbol=orderbook_update.symbol,
+        bids=_build_py_orderbook_from_capnp(orderbook_update.bids),
+        asks=_build_py_orderbook_from_capnp(orderbook_update.asks),
+        timestamp=float(orderbook_update.timestamp)
+    )
+
+
+def md_system_message_py(md_system_message):
+    """
+    Builds MDSystemMessage Python object from capnp object.
+    :param md_system_message: (capnp._DynamicStructBuilder) system message.
+    :return: MDSystemMessage.
+    """
+    return MDSystemMessage(code=int(md_system_message.code),
+                           body=str(md_system_message.body))
+
+
+def ticker_data_py(ticker_data):
+    """
+    Builds TickerData Python object from capnp object
+    :param ticker_data: (capnp._DynamicStructBuilder) capnp ticker data
+    :return: TickerData python object
+    """
+    return TickerData(
+        exchange=str(ticker_data.exchange),
+        symbol=str(ticker_data.symbol),
+        side=str(ticker_data.side),
+        price=float(ticker_data.price),
+        quantity=float(ticker_data.quantity),
+        timestamp=float(ticker_data.timestamp)
+    )
+
+
+""" ----------------------------------------------------------------------------
+------------------------ CONVERTING PYTHON TO CAPNP ----------------------------
+--------------------------------------------------------------------------------
+"""
 
 
 def logon_capnp(request_header: RequestHeader,
@@ -794,6 +883,65 @@ def _generate_omega_request(request_header: RequestHeader):
     request.accessToken = request_header.access_token
     body = request.init('body')
     return omega_message, body
+
+
+def _populate_capnp_list(list_name: str, capnp_parent_object, py_list: list):
+    if py_list is not None:
+        capnp_list = capnp_parent_object.init(list_name, len(py_list))
+
+        for ch, indx in zip(py_list, range(len(py_list))):
+            try:
+                # build list of structs based on method in:
+                # https://jparyani.github.io/pycapnp/quickstart.html#list
+                capnp_list[indx] = ch
+            except Exception as e:
+                logger.error('Missing channel field', extra={'error': e})
+                raise e
+    else:
+        capnp_list = None
+    return capnp_list
+
+
+def request_mdp_capnp(request_header: MDHeader,
+                      channels: List[str],
+                      exchange: str,
+                      symbols: List[str],
+                      market_depth: int,
+                      is_subscribe: bool):
+    """
+    Generates a MDP Omega request from MarketDataMessage2.capnp.
+    :param request_header: (MDHeader) parameter object for requests.
+    :param channels: (List[str]) list of ticker, orderbook (l2)
+    elements you wish to subscribe/unsubscribe to
+    :param exchange: (str) exchange containing "symbols" you'd like to
+    subscribe/unsubscribe to "channels"
+    :param symbols: (List[str]) list of pairs corresponding to channels
+    you'd like to subscribe/unsubscribe to
+    :param market_depth: (int) book depth (# of levels), 0 for full book
+    :param is_subscribe: (bool) True for subscribe, False for unsubscribe
+    :return: (capnp._DynamicStructBuilder) omega_message to be serialized,
+             (capnp._DynamicStructBuilder) request_mdp capnp object
+    """
+    omega_message = mdm_capnp.MarketDataMessage.new_message()
+    header = omega_message.init('header')
+    header.clientID = request_header.client_id
+    header.senderCompID = request_header.sender_comp_id
+    request_mdp = omega_message.init('type').init('request')
+    request_mdp.channels = _populate_capnp_list(
+        list_name='channels', capnp_parent_object=request_mdp, py_list=channels
+    )   # TODO maybe need to modify helper method for list of enums instead
+    # of str
+    request_mdp.exchange = EXCHANGE_ENUM_MAPPING.get(
+        exchange, exch_capnp.Exchange.undefined)
+    request_mdp.symbols = _populate_capnp_list(
+        list_name='symbols', capnp_parent_object=request_mdp, py_list=symbols
+    )
+    request_mdp.marketDepth = market_depth
+    if is_subscribe:
+        request_mdp.init('type').init('subscribe')
+    else:
+        request_mdp.init('type').init('unsubscribe')
+    return omega_message, request_mdp
 
 
 def generate_client_order_id():
