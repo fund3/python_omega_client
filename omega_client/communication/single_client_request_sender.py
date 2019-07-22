@@ -27,9 +27,13 @@ class SingleClientRequestSender:
                                              sender_comp_id=sender_comp_id,
                                              access_token='',
                                              request_id=0)
+        self.engine = None
         # TODO (low priority) change _request_header to use variable request_id
         # client should override self._request_header in their implementation
         #  and use their own method for generating request_ids
+
+    def set_engine(self, engine):
+        self.engine = engine
 
     def set_sender_comp_id(self, new_sender_comp_id: str):
         """
@@ -45,6 +49,7 @@ class SingleClientRequestSender:
             access_token is ignored in logon.
         """
         self._request_header.access_token = access_token
+        self.engine.access_token = access_token
 
     def start(self):
         self._request_sender.start()
@@ -91,15 +96,27 @@ class SingleClientRequestSender:
         return self._request_sender.request_server_time(
             request_header=self._request_header)
 
-    def place_order(self, order: Order):
-        return self._request_sender.place_order(
-            request_header=self._request_header, order=order)
+    def place_order(self, order: Order, request_header: RequestHeader = None):
+        if request_header is not None:
+            return self._request_sender.place_order(
+                request_header=request_header, order=order
+            )
+        else:
+            return self._request_sender.place_order(
+                request_header=self._request_header, order=order)
 
-    def place_contingent_order(self, contingent_order: Union[Batch, OPO, OCO]):
-        return self._request_sender.place_contingent_order(
-            request_header=self._request_header,
-            contingent_order=contingent_order
-        )
+    def place_contingent_order(self, contingent_order: Union[Batch, OPO, OCO],
+                               request_header: RequestHeader = None):
+        if request_header is not None:
+            return self._request_sender.place_contingent_order(
+                request_header=request_header,
+                contingent_order=contingent_order
+            )
+        else:
+            return self._request_sender.place_contingent_order(
+                request_header=self._request_header,
+                contingent_order=contingent_order
+            )
 
     def replace_order(self, account_info: AccountInfo,
                       order_id: str,
@@ -108,34 +125,63 @@ class SingleClientRequestSender:
                       price: float = 0.0,
                       stop_price: float = 0.0,
                       time_in_force: str = TimeInForce.gtc.name,
-                      expire_at: float = 0.0):
-        return self._request_sender.replace_order(
-            request_header=self._request_header,
-            account_info=account_info,
-            order_id=order_id,
-            order_type=order_type,
-            quantity=quantity,
-            price=price,
-            stop_price=stop_price,
-            time_in_force=time_in_force,
-            expire_at=expire_at
-        )
+                      expire_at: float = 0.0,
+                      request_header: RequestHeader = None):
+        if request_header is not None:
+            return self._request_sender.replace_order(
+                request_header=request_header,
+                account_info=account_info,
+                order_id=order_id,
+                order_type=order_type,
+                quantity=quantity,
+                price=price,
+                stop_price=stop_price,
+                time_in_force=time_in_force,
+                expire_at=expire_at
+            )
+        else:
+            return self._request_sender.replace_order(
+                request_header=self._request_header,
+                account_info=account_info,
+                order_id=order_id,
+                order_type=order_type,
+                quantity=quantity,
+                price=price,
+                stop_price=stop_price,
+                time_in_force=time_in_force,
+                expire_at=expire_at
+            )
 
     def cancel_order(self, account_info: AccountInfo,
-                     order_id: str):
-        return self._request_sender.cancel_order(
-            request_header=self._request_header,
-            account_info=account_info,
-            order_id=order_id)
+                     order_id: str,
+                     request_header: RequestHeader = None):
+        if request_header is not None:
+            return self._request_sender.cancel_order(
+                request_header=request_header,
+                account_info=account_info,
+                order_id=order_id)
+        else:
+            return self._request_sender.cancel_order(
+                request_header=self._request_header,
+                account_info=account_info,
+                order_id=order_id)
 
     def cancel_all_orders(self, account_info: AccountInfo,
                           symbol: str = None,
-                          side: str = None):
-        return self._request_sender.cancel_all_orders(
-            request_header=self._request_header,
-            account_info=account_info,
-            symbol=symbol,
-            side=side)
+                          side: str = None,
+                          request_header: RequestHeader = None):
+        if request_header is not None:
+            return self._request_sender.cancel_all_orders(
+                request_header=request_header,
+                account_info=account_info,
+                symbol=symbol,
+                side=side)
+        else:
+            return self._request_sender.cancel_all_orders(
+                request_header=self._request_header,
+                account_info=account_info,
+                symbol=symbol,
+                side=side)
 
     def request_account_data(self, account_info: AccountInfo):
         return self._request_sender.request_account_data(

@@ -12,7 +12,7 @@ from omega_client.messaging.common_types import AccountBalancesReport, \
     AccountCredentials, AccountDataReport, AccountInfo, \
     AuthorizationRefresh, ExchangePropertiesReport, \
     ExecutionReport, OpenPositionsReport, Order, OrderInfo, \
-    OrderType, TimeInForce, WorkingOrdersReport, Batch, OCO, OPO
+    OrderType, TimeInForce, WorkingOrdersReport, Batch, OCO, OPO, RequestHeader
 from omega_client.messaging.single_client_response_handler import \
     SingleClientResponseHandler
 
@@ -113,16 +113,18 @@ class SingleClientOmegaConnection:
         """
         return self._request_sender.request_server_time()
 
-    def place_order(self, order: Order):
+    def place_order(self, order: Order, request_header: RequestHeader = None):
         """
         Sends a request to Omega to place an order.
         :param order: (Order) Python object containing all required fields.
         :return: (capnp._DynamicStructBuilder) place_order capnp object.
         """
-        return self._request_sender.place_order(order=order)
+        return self._request_sender.place_order(order=order,
+                                                request_header=request_header)
 
     def place_contingent_order(self,
-                               contingent_order: Union[Batch, OPO, OCO]):
+                               contingent_order: Union[Batch, OPO, OCO],
+                               request_header: RequestHeader = None):
         """
         Sends a request to Omega to place a contingent order.
         :param contingent_order: (Batch, OPO, or OCO) python object
@@ -130,7 +132,9 @@ class SingleClientOmegaConnection:
         object.
         """
         return self._request_sender.place_contingent_order(
-            contingent_order=contingent_order)
+            contingent_order=contingent_order,
+            request_header=request_header
+        )
 
     def replace_order(self,
                       account_info: AccountInfo,
@@ -142,7 +146,8 @@ class SingleClientOmegaConnection:
                       stop_price: float = 0.0,
                       time_in_force: str = TimeInForce.gtc.name,
                       # pylint: enable=E1101
-                      expire_at: float = 0.0):
+                      expire_at: float = 0.0,
+                      request_header: RequestHeader = None):
         """
         Sends a request to Omega to replace an order.
         :param account_info: (AccountInfo) Account on which to cancel order.
@@ -164,12 +169,14 @@ class SingleClientOmegaConnection:
             price=price,
             stop_price=stop_price,
             time_in_force=time_in_force,
-            expire_at=expire_at
+            expire_at=expire_at,
+            request_header=request_header
         )
 
     def cancel_order(self,
                      account_info: AccountInfo,
-                     order_id: str):
+                     order_id: str,
+                     request_header: RequestHeader = None):
         """
         Sends a request to Omega to cancel an order.
         :param account_info: (AccountInfo) Account on which to cancel order.
@@ -179,13 +186,15 @@ class SingleClientOmegaConnection:
         """
         return self._request_sender.cancel_order(
             account_info=account_info,
-            order_id=order_id
+            order_id=order_id,
+            request_header=request_header
         )
 
     def cancel_all_orders(self,
                           account_info: AccountInfo,
                           symbol: str = None,
-                          side: str = None):
+                          side: str = None,
+                          request_header: RequestHeader = None):
         """
         Sends a request to Omega to cancel an order.
         :param account_info: (AccountInfo) Account on which to cancel order.
